@@ -1,5 +1,4 @@
 ﻿import express, { Request, Response } from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
@@ -21,13 +20,21 @@ import migrationRoutes from './routes/migration';
 import DeviceCatalog from './models/DeviceCatalog';
 import DeviceReport from './models/DeviceReport';
 
-dotenv.config();
+// Solo cargar dotenv en desarrollo (Railway maneja variables automáticamente)
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    const dotenv = require('dotenv');
+    dotenv.config();
+  } catch (error) {
+    console.log('⚠️ dotenv no disponible, usando variables de entorno del sistema');
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
+  origin: process.env.NODE_ENV === 'production'
     ? true  // Permite todos los orígenes en producción
     : ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
