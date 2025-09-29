@@ -1,4 +1,4 @@
-# Dockerfile para producción con Railway
+# Dockerfile optimizado para Railway
 FROM node:18-alpine AS base
 
 # Instalar pnpm globalmente
@@ -17,27 +17,21 @@ COPY apps/ ./apps/
 # Instalar todas las dependencias
 RUN pnpm install --frozen-lockfile
 
-# Build del cliente
+# Build completo con turbo
 RUN pnpm run build
 
-# Build del servidor
-WORKDIR /app/apps/server
-RUN pnpm run build
-
-# Etapa de producción
+# Etapa de producción simplificada
 FROM node:18-alpine AS production
 
 RUN npm install -g pnpm@9.0.0
 
 WORKDIR /app
 
-# Copiar archivos necesarios para producción
+# Copiar todo lo necesario desde la etapa de build
 COPY --from=base /app/apps/server/dist ./dist
-COPY --from=base /app/apps/server/package.json ./package.json
 COPY --from=base /app/apps/client/dist ./public
-
-# Instalar solo dependencias de producción
-RUN pnpm install --prod --frozen-lockfile
+COPY --from=base /app/apps/server/package.json ./package.json
+COPY --from=base /app/node_modules ./node_modules
 
 # Crear directorio temporal para archivos
 RUN mkdir -p temp
