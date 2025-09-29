@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import CollaborativeWorkSelector from "../CollaborativeWorkSelector";
+import { getBaseApiUrl } from "../../utils/apiUrl";
 import "./SubirReporteForm.css";
 
 interface DispositivoSubido {
@@ -86,7 +87,7 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
                 const fetchDeviceData = async () => {
                     try {
                         const token = localStorage.getItem('token');
-                        const response = await fetch(`http://localhost:4000/api/device-catalog/${deviceInfo.deviceId}`, {
+                        const response = await fetch(`${getBaseApiUrl()}/device-catalog/${deviceInfo.deviceId}`, {
                             headers: {
                                 Authorization: token ? `Bearer ${token}` : '',
                             },
@@ -164,7 +165,7 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
         const fetchEspecialidades = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const response = await fetch("http://localhost:4000/api/especialidades", {
+                const response = await fetch(`${getBaseApiUrl()}/especialidades`, {
                     headers: {
                         Authorization: token ? `Bearer ${token}` : "",
                     },
@@ -280,7 +281,7 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
         // VALIDACIÓN DE FECHA ACTIVA - Verificar si hay períodos activos
         try {
             const token = localStorage.getItem("token");
-            const fechaValidationRes = await fetch("http://localhost:4000/api/periodos-mp/validar-fecha-activa", {
+            const fechaValidationRes = await fetch(`${getBaseApiUrl()}/periodos-mp/validar-fecha-activa`, {
                 method: "GET",
                 headers: {
                     Authorization: token ? `Bearer ${token}` : "",
@@ -338,7 +339,7 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
 
         try {
             // PASO 1: Asegurar que el dispositivo esté en el catálogo
-            const catalogRes = await fetch("http://localhost:4000/api/device-catalog", {
+            const catalogRes = await fetch(`${getBaseApiUrl()}/device-catalog`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -417,7 +418,7 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
 
             // Solo modo de creación
             const method = "POST";
-            const url = "http://localhost:4000/api/device-reports";
+            const url = `${getBaseApiUrl()}/device-reports`;
 
             console.log('🔄 Modo: CREANDO reporte');
             console.log('🔗 URL:', url);
@@ -457,7 +458,7 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
                     });
 
                     const token = localStorage.getItem("token");
-                    const url = `http://localhost:4000/api/periodos-mp/${selectedPeriodoId}/complete-device/${selectedDeviceId}/${selectedColaboradorId}`;
+                    const url = `${getBaseApiUrl()}/periodos-mp/${selectedPeriodoId}/complete-device/${selectedDeviceId}/${selectedColaboradorId}`;
 
                     console.log('📡 URL de completado:', url);
                     console.log('🔑 Token disponible:', !!token);

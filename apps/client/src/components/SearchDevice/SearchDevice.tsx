@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import "./SearchDevice.css";
 import { toast } from "react-toastify";
+import { getBaseApiUrl } from "../../utils/apiUrl";
 
 interface DeviceType {
   identifier: string;
@@ -69,7 +70,7 @@ const SearchDevice: React.FC<SearchDeviceProps> = ({ onAddDevice }) => {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `http://localhost:4000/api/devices?${campo}=${encodeURIComponent(
+        `${getBaseApiUrl()}/devices?${campo}=${encodeURIComponent(
           value
         )}`,
         {
