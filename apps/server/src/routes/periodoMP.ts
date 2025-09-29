@@ -38,7 +38,7 @@ router.patch('/:id/fechas', actualizarFechasPeriodoMP);
 
 // Gestión de dispositivos en períodos
 router.post('/:id/assign-devices', assignDevicesToPeriodo);
-router.patch('/:periodoId/complete-device/:deviceCatalogId/:colaboradorId', (req: Request, res: Response, next: NextFunction) => {
+router.patch('/:periodoId/complete-device', (req: Request, res: Response, next: NextFunction) => {
   console.log('🎯 === REQUEST LLEGÓ AL ENDPOINT DE COMPLETION ===');
   console.log('   Method:', req.method);
   console.log('   URL:', req.url);

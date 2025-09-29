@@ -319,7 +319,7 @@ if (process.env.NODE_ENV === 'production') {
       res.status(404).json({ message: 'API endpoint not found' });
     }
   });
-}connectDB();
+} connectDB();
 
 app.use(errorHandler);
 
