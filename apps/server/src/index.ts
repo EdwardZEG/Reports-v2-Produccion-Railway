@@ -27,7 +27,9 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: process.env.NODE_ENV === 'production' 
+    ? true  // Permite todos los orígenes en producción
+    : ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
 }));
 
