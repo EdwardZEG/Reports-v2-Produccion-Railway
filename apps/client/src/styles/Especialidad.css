@@ -1,0 +1,595 @@
+/* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
+/* Layout principal del módulo de especialidades */
+.especialidad-container {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1px; /* Reducido al mínimo para subir el contenido igual que polizas */
+  align-items: flex-end; /* Alineación a la derecha igual que polizas */
+}
+
+/* ===== ESTILOS DE VALIDACIÓN Y ERRORES ===== */
+/* Estilos para campos con errores de validación */
+.input-error {
+  border: 2px solid red;
+  background-color: #ffe5e5;
+}
+
+/* Mensajes de error debajo de campos */
+.mensaje-error-poliza {
+  color: red;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+/* ===== ESTILOS PARA SELECCIÓN DE PÓLIZAS ===== */
+/* Contenedor principal para grupo de checkboxes */
+.checkbox-group {
+  display: block;
+  position: relative;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+/* Estilos individuales para cada item de checkbox */
+.checkbox-item {
+  display: flex;
+  align-content: center;
+  background-color: #f1f1f1;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease; /* Transición suave en hover */
+}
+
+/* Efecto hover para items de checkbox */
+.checkbox-item:hover {
+  background-color: #e4e4e4;
+}
+
+/* Estilo para input checkbox dentro de items */
+.checkbox-item input[type="checkbox"] {
+  position: absolute;
+  cursor: pointer;
+  display: block;
+}
+
+/* ===== HEADER LEGACY (COMPATIBILIDAD) ===== */
+/* Header original - mantenido para compatibilidad */
+.header-especialidad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* ===== ESTILOS TABLA LEGACY (VISTA ANTERIOR) ===== */
+/* Contenedor de tabla - sistema anterior mantenido para compatibilidad */
+.tabla-container-especialidad {
+  padding: 20px;
+  background-color: #f3f4f6;
+  border-radius: 10px;
+  width: 95%;
+  margin: auto;
+}
+
+/* Tabla principal con bordes redondeados y sombra */
+.tabla-especialidad {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+}
+
+/* Header de tabla con fondo gris */
+.tabla-especialidad thead {
+  background-color: #e1e1e1;
+}
+
+/* Celdas de encabezado */
+.tabla-especialidad th {
+  text-align: left;
+  color: #374151;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* Celdas de datos con overflow controlado */
+.tabla-especialidad td {
+  background: white;
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Mostrar '...' si el texto es muy largo */
+  cursor: help;
+}
+
+/* Estilo para filas resaltadas */
+.resaltado td {
+  background-color: #ffe4e6;
+  color: #7f1d1d;
+  font-weight: bold;
+}
+
+/* ===== BOTONES DE ACCIÓN LEGACY ===== */
+/* Botón principal para agregar especialidad */
+.btn-agregar-especialidad {
+  background-color: #920000;
+  color: white;
+  padding: 10px 15px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+/* Efecto hover para botón agregar */
+.btn-agregar-especialidad:hover {
+  background-color: #780808;
+}
+
+/* Contenedor para acciones de fila en tabla */
+.especialidad-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Botón de eliminar con borde rojo */
+.btn-eliminar-especialidad {
+  background-color: transparent;
+  margin-top: auto;
+  padding: 0.2rem 0.5rem;
+  border: 2px solid #7f1d1d
+}
+
+/* Efecto hover para botón eliminar */
+.btn-eliminar-especialidad:hover {
+  background-color: #650c0c;
+  border: 2px solid #650c0c;
+}
+
+/* Icono de eliminar con transición de color */
+.eliminar-icon-especialidad {
+  color: #7f1d1d;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+/* Efecto hover para icono eliminar */
+.eliminar-icon-especialidad:hover {
+  color: white;
+}
+
+/* Botón de editar con borde verde */
+.btn-editar-especialidad {
+  background-color: transparent;
+  border: 2px solid #10b981;
+  margin-top: auto;
+  padding: 0.2rem 0.5rem;
+}
+
+/* Efecto hover para botón editar */
+.btn-editar-especialidad:hover {
+  background-color: #047a55;
+  border: 2px solid #047a55;
+}
+
+/* Icono de editar con transición */
+.editar-icon-especialidad {
+  color: #10b981;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+/* Efecto hover para icono editar */
+.editar-icon-especialidad:hover {
+  color: white;
+}
+
+/* Botón agregar alternativo */
+.agregar {
+  background-color: #3b82f6;
+  margin-bottom: 15px;
+}
+
+.agregar:hover {
+  background-color: #2563eb;
+}
+
+/* ===== MODAL PARA FORMULARIOS ===== */
+/* Contenedor principal del modal con backdrop blur */
+.modal-especialidad-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(55, 55, 55, .6);
+  backdrop-filter: blur(2px); /* Efecto de desenfoque del fondo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Contenido principal del modal */
+.modal-content-especialidad {
+  background: white;
+  padding: 35px;
+  border-radius: 12px;
+  width: 300px;
+  max-width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Título del modal */
+.modal-content-especialidad h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #111827;
+}
+
+/* Etiquetas de campos del formulario */
+.modal-content-especialidad label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Inputs del formulario modal */
+.modal-content-especialidad input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  padding: 12px
+}
+
+/* Input específico para archivo de plantilla */
+.plantilla-input {
+  border: 0px;
+  outline: none;
+  appearance: none;
+}
+
+/* ===== BOTONES DEL MODAL ===== */
+/* Contenedor de botones del modal */
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Botón guardar con color azul */
+.btn-guardar-especialidad {
+  background-color: #4927F5;
+  font-size: 14px;
+}
+
+.btn-guardar-especialidad:hover {
+  background-color: #3a1fd1;
+}
+
+/* Botón cancelar con color rojo */
+.btn-cancelar-especialidad {
+  background-color: #920000;
+  font-size: 14px;
+}
+
+.btn-cancelar-especialidad:hover {
+  background-color: #780808;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+/* Adaptaciones para pantallas móviles */
+@media (max-width: 768px) {
+  .tabla-container-especialidad {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .especialidad-container {
+    overflow: hidden;
+  }
+
+  .especialidad-acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+
+/* ===== NUEVA VISTA PREVIA DE ESPECIALIDADES (SISTEMA DE CARDS) ===== */
+/* Sección principal que reemplaza el sistema de tabla */
+
+/* Contenedor principal de la vista previa con diseño neomórfico */
+.preview-section-especialidad {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem; /* Margen uniforme en las 4 direcciones */
+  box-shadow: 
+    4px 4px 12px rgba(0, 0, 0, 0.06),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.02); /* Efecto neomórfico sutil */
+  border: none;
+  width: 100%; /* Usa el ancho disponible del contenedor padre */
+  max-width: 100%;
+  margin: 0; /* Sin márgenes externos para evitar desbordamientos */
+  min-height: 0;
+  overflow: visible; /* Cambiar a visible para mostrar paginación */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: calc(100vh - 140px); /* Altura igual a polizas */
+}
+
+/* ===== HEADER DE LA SECCIÓN ===== */
+/* Header principal con título, búsqueda y botón registrar */
+.section-header-especialidad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000000; /* Línea negra como separador visual */
+}
+
+/* Título con icono */
+.section-title-especialidad {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #111827;
+}
+
+/* Icono del título (especialidades) */
+.section-title-especialidad i {
+  color: #000000; /* Negro como en Vista Previa */
+  font-size: 1.5rem; /* Mismo tamaño que Vista Previa */
+}
+
+/* Título principal */
+.section-title-especialidad h3 {
+  color: #3A0707; /* Mismo color que Vista Previa */
+  font-weight: 700; /* Misma negritas que Vista Previa */
+  font-size: 1.4rem; /* Mismo tamaño que Vista Previa */
+  margin: 0;
+  font-family: 'Open Sans', sans-serif; /* Misma tipografía */
+}
+
+/* ===== CONTROLES DE LA SECCIÓN ===== */
+/* Contenedor de controles (búsqueda y botón registrar) */
+.section-controls-especialidad {
+  display: flex;
+  align-items: center; /* Centrado vertical perfecto */
+  gap: 1rem;
+  height: 40px; /* Altura fija igual a la barra de búsqueda */
+}
+
+/* ===== SISTEMA DE BÚSQUEDA ===== */
+/* Contenedor principal de la barra de búsqueda con efecto neomórfico */
+.search-container-especialidad {
+  position: relative;
+  background: #f8f9fa;
+  border-radius: 25px;
+  box-shadow: 
+    inset 2px 2px 6px rgba(0, 0, 0, 0.08),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.9); /* Efecto hundido neomórfico */
+  border: 1px solid #e9ecef;
+  height: 40px;
+  width: 300px;
+  display: flex;
+  align-items: center;
+}
+
+/* Estado focus de la barra de búsqueda */
+.search-container-especialidad:focus-within {
+  box-shadow: 
+    inset 3px 3px 8px rgba(0, 0, 0, 0.12),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.95);
+}
+
+/* Input de búsqueda */
+.search-input-especialidad {
+  border: none;
+  background: transparent;
+  outline: none;
+  padding-left: 20px;
+  padding-right: 55px; /* Más espacio para el círculo de 42px */
+  font-size: 0.9rem;
+  color: #495057;
+  width: 100%;
+  height: 100%;
+  font-family: 'Open Sans', sans-serif;
+  border-radius: 25px;
+}
+
+/* Placeholder del input de búsqueda */
+.search-input-especialidad::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+/* ===== BOTÓN DE BÚSQUEDA ===== */
+/* Botón circular con efecto 3D y posicionamiento perfecto */
+.search-button-especialidad {
+  position: absolute;
+  right: 0px; /* Toca completamente el final de la barra */
+  top: 50%; /* Centrado verticalmente */
+  transform: translateY(-50%); /* Centrado perfecto */
+  background: linear-gradient(145deg, #333333, #000000) !important; /* Gradiente para efecto 3D */
+  color: white !important;
+  border: 2px solid #ffffff !important; /* Borde blanco */
+  width: 42px !important; /* Más grande */
+  height: 42px !important; /* Más grande */
+  min-width: 42px !important;
+  min-height: 42px !important;
+  max-width: 42px !important;
+  max-height: 42px !important;
+  border-radius: 50% !important; /* Círculo perfecto */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  font-size: 15px !important; /* Ícono un poco más grande también */
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  margin-right: -1px !important; /* Ajustado para que toque el borde */
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3) !important; /* Sombras 3D */
+  transition: all 0.2s ease !important;
+}
+
+/* Icono del botón de búsqueda con efectos visuales y transición suave */
+.search-button-especialidad i {
+  font-size: 15px !important; /* Ícono un poco más grande */
+  line-height: 1 !important;
+  width: auto !important;
+  height: auto !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important; /* Sombra del ícono */
+  transition: all 0.2s ease !important; /* Transición suave para cambio de icono */
+}
+
+/* Efecto hover del botón de búsqueda */
+.search-button-especialidad:hover {
+  background: linear-gradient(145deg, #555555, #222222) !important; /* Gradiente más claro en hover */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en hover */
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4) !important; /* Sombras más pronunciadas en hover */
+  transform: translateY(-50%) translateY(-1px) !important; /* Elevación sutil */
+}
+
+/* Efecto active del botón de búsqueda */
+.search-button-especialidad:active {
+  background: linear-gradient(145deg, #000000, #333333) !important; /* Gradiente invertido en active */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en active */
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important; /* Efecto hundido */
+  transform: translateY(-50%) scale(0.98) !important; /* Presión */
+}
+
+/* ===== BOTÓN REGISTRAR ===== */
+/* Botón principal para crear nueva especialidad - alineado con barra de búsqueda */
+.btn-registrar-especialidad {
+  background: #4927F5;
+  border: none;
+  border-radius: 50px; /* Misma forma redondeada que la barra */
+  color: white;
+  padding: 0 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.2),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(73, 39, 245, 0.3); /* Efectos neomórficos */
+  font-family: 'Open Sans', sans-serif;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  height: 40px !important; /* Exactamente la misma altura que la barra */
+  min-width: 120px; /* Comprimido pero suficiente para el texto */
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Borde sutil como la barra */
+  margin: 0 !important; /* Sin márgenes que desalineen */
+  flex-shrink: 0; /* No se comprime */
+}
+
+/* Efecto hover del botón registrar */
+.btn-registrar-especialidad:hover {
+  background: #3a1fd1;
+  transform: translateY(-1px);
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.3),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 3px 8px rgba(73, 39, 245, 0.4);
+}
+
+/* Efecto active del botón registrar */
+.btn-registrar-especialidad:active {
+  transform: translateY(0);
+  box-shadow: 
+    inset 3px 3px 7px rgba(0, 0, 0, 0.15),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.2),
+    0 1px 3px rgba(73, 39, 245, 0.3);
+}
+
+/* Icono del botón registrar */
+.btn-registrar-especialidad i {
+  font-size: 1rem;
+  color: white;
+  margin: 0 !important; /* Sin márgenes en el ícono */
+}
+
+/* ===== CONTENEDOR DE CARDS ===== */
+/* Contenedor principal donde se renderizan las cards de especialidades */
+.preview-container-especialidad {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  flex: 1; /* Ocupa el espacio restante */
+  border: none;
+  transition: all 0.3s ease;
+  overflow: hidden; /* Evita desbordamientos */
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== INDICADOR DE RESULTADOS DE BÚSQUEDA ===== */
+/* Banda informativa que muestra estadísticas de búsqueda */
+.search-results-indicator {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  margin: 1rem 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Icono del indicador de resultados */
+.search-results-indicator i {
+  font-size: 1rem;
+}
+
+/* Mensaje cuando no hay resultados */
+.search-results-indicator .no-results {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  margin-left: auto;
+  color: #ef4444;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}

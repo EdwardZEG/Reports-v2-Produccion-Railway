@@ -1,0 +1,47 @@
+/* --- Tabla --- */
+.PeriodosMP-tableWrapper {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  flex: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  width: 100%;
+  overflow-x: auto;
+}
+
+.PeriodosMP-tableTitle {
+  font-size: 18px;
+  margin-bottom: 12px;
+  text-align: center;
+  color: #333;
+}
+
+.PeriodosMP-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 500px;
+}
+
+.PeriodosMP-table th,
+.PeriodosMP-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  min-width: 100px;
+  vertical-align: middle;
+}
+
+.PeriodosMP-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  color: #222;
+}
+
+.PeriodosMP-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.PeriodosMP-table tr:hover {
+  background-color: #f1faff;
+}

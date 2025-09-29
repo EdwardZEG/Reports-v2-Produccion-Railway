@@ -1,0 +1,28 @@
+.PeriodosMP-form-label {
+  font-size: 14px;
+  color: #333;
+  margin-top: 8px;
+  display: block;
+}
+.PeriodosMP-form-input {
+  padding: 8px 10px;
+  border: 2px solid #E9383B; /* Borde rojo como solicitaste */
+  border-radius: 6px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.PeriodosMP-form-input:focus {
+  border-color: #E9383B !important;
+  outline: none !important;
+  box-shadow: 0 0 0 0.2rem rgba(233, 56, 59, 0.25) !important;
+}
+.PeriodosMP-form-dates {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.PeriodosMP-form-date-separator {
+  color: #555;
+}

@@ -1,0 +1,673 @@
+/* =================================
+   PREVIEWDOC - INTEGRADO CON DASHBOARD
+   ================================= */
+/* Importa la fuente principal de la aplicación */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap');
+
+/* =================================
+   CONTENEDOR PRINCIPAL DE VISTA PREVIA
+   ================================= */
+/* Contenedor base para la vista previa de dispositivos */
+.vista-previa {
+  background: transparent; /* Fondo transparente para integración con el dashboard */
+  border: none; /* Sin bordes para apariencia limpia */
+  border-radius: 0; /* Sin bordes redondeados en el contenedor principal */
+  padding: 0; /* Sin padding interno para aprovechamiento máximo del espacio */
+  box-shadow: none; /* Sin sombra para integración visual */
+  width: 100%; /* Ocupa todo el ancho disponible */
+  height: 100%; /* Ocupa toda la altura disponible */
+  font-family: 'Open Sans', sans-serif; /* Tipografía consistente con la aplicación */
+  overflow: visible; /* Permite que el contenido sea visible sin recortes */
+  display: flex; /* Usar flexbox para maximizar el espacio */
+  flex-direction: column; /* Orientación vertical */
+}
+
+.vista-previa__titulo {
+  display: none; /* El título ahora está en el header de la sección */
+}
+
+.vista-previa__tabla-wrapper {
+  background: transparent; /* Fondo transparente - quitar el blanco */
+  border-radius: 0; /* Sin bordes redondeados */
+  padding: 0; /* Sin padding para maximizar espacio */
+  flex: 1; /* Usar todo el espacio disponible del contenedor padre flex */
+  width: 100%; /* Usar todo el ancho disponible */
+  overflow: auto;
+  border: none; /* Sin borde */
+  box-shadow: none; /* Sin sombra - eliminar completamente el contenedor visual */
+  scrollbar-width: thin;
+  scrollbar-color: #000000 #f0f0f0; /* Scrollbar negro */
+}
+
+.vista-previa__tabla-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vista-previa__tabla-wrapper::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.vista-previa__tabla-wrapper::-webkit-scrollbar-thumb {
+  background: #000000; /* Cambio a negro */
+  border-radius: 4px;
+}
+
+.vista-previa__tabla-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #333333; /* Gris oscuro en hover */
+}
+
+.vista-previa__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  min-width: 100%; /* Usar todo el ancho disponible del contenedor */
+  font-family: 'Open Sans', sans-serif;
+  background: #FFFFFF; /* Mantener fondo blanco solo en la tabla */
+  border-radius: 8px; /* Bordes redondeados solo en la tabla */
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra más prominente para la tabla */
+  border: none; /* Sin borde */
+  table-layout: fixed; /* Layout fijo para mejor control del ancho */
+}
+
+.vista-previa__tabla th,
+.vista-previa__tabla td {
+  padding: 1rem 0.75rem; /* Más padding para hacer la tabla más grande */
+  text-align: center;
+  vertical-align: middle;
+  border: none;
+  border-bottom: 1px solid #000000; /* Cambio a líneas negras */
+  border-right: 1px solid #000000; /* Cambio a líneas negras */
+  min-width: 120px; /* Ancho mínimo más grande para celdas más amplias */
+  position: relative;
+  font-size: 0.85rem; /* Fuente ligeramente más grande */
+}
+
+.vista-previa__tabla th:last-child,
+.vista-previa__tabla td:last-child {
+  border-right: none;
+}
+
+.vista-previa__tabla tbody tr:last-child td {
+  border-bottom: 1px solid #000000; /* Cambio a grosor uniforme */
+}
+
+.vista-previa__tabla th {
+  background: #000000; /* Cambiado a negro sólido */
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #000000; /* Cambiado a grosor uniforme */
+  padding: 0.5rem 0.4rem;
+}
+
+.vista-previa__tabla th::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.vista-previa__tabla td {
+  background: #FFFFFF;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  transition: all 0.2s ease;
+  padding-bottom: 0.75rem;
+}
+
+.vista-previa__tabla tr:hover td {
+  background: #E8E8E8 !important; /* Gris sombreado más pronunciado */
+  border-bottom: 1px solid #000000 !important; /* Mantener bordes negros */
+  border-right: 1px solid #000000 !important; /* Mantener bordes negros */
+  transform: none; /* Quitar transformación para mantener bordes */
+  box-shadow: none; /* Quitar sombra para evitar interferir con bordes */
+}
+
+/* =================================
+   DISTRIBUCIÓN OPTIMIZADA DE COLUMNAS
+   ================================= */
+/* Columna de datos - reducida para dar más espacio a las imágenes */
+.vista-previa__tabla td:first-child {
+  text-align: left; /* Alineación izquierda para mejor lectura */
+  padding: 0.75rem 0.6rem; /* Espaciado interno cómodo */
+  background: #F8F8F8; /* Fondo ligeramente diferente para destacar */
+  border-right: 1px solid #000000; /* Cambio a grosor uniforme */
+  min-width: 140px; /* Ancho mínimo reducido para optimización */
+  max-width: 200px; /* Ancho máximo reducido para optimización */
+  font-size: 0.7rem; /* Tamaño de fuente adecuado para la información */
+  line-height: 1.2; /* Altura de línea para legibilidad */
+  width: 31.5%; /* Ancho optimizado: reducido 30% para dar espacio a imágenes */
+  color: #000000; /* Texto en negro */
+}
+
+/* =================================
+   COLUMNAS DE IMÁGENES OPTIMIZADAS
+   ================================= */
+/* Columnas para Foto del área, Foto del equipo, Foto del trabajo */
+.vista-previa__tabla td:nth-child(2),
+.vista-previa__tabla td:nth-child(3),
+.vista-previa__tabla td:nth-child(4) {
+  width: 22.83%; /* Espacio redistributido: divide el 68.5% restante entre 3 columnas */
+  max-width: 140px; /* Ancho máximo aumentado para mejor visualización */
+  padding: 0.5rem 0.3rem; /* Padding reducido para aprovechar el espacio */
+}
+
+/* Headers de las columnas de imágenes */
+.vista-previa__tabla th:nth-child(2),
+.vista-previa__tabla th:nth-child(3),
+.vista-previa__tabla th:nth-child(4) {
+  width: 22.83%; /* Mismo ancho que las celdas de datos */
+  max-width: 140px; /* Consistente con las celdas */
+  font-size: 0.75rem; /* Texto más compacto para ahorrar espacio vertical */
+}
+
+.vista-previa__tabla td:first-child strong {
+  color: #383BE9; /* Cambio a azul como solicitaste */
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: block;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.vista-previa__tabla td:first-child br + strong {
+  margin-top: 0.4rem;
+}
+
+/* Estilo para la información del colaborador que hizo el reporte */
+.vista-previa__colaborador {
+  margin-bottom: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  background: rgba(56, 59, 233, 0.05);
+  border-left: 3px solid #383BE9;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.7rem;
+}
+
+.vista-previa__colaborador strong {
+  color: #383BE9 !important;
+  font-weight: 600;
+  margin-right: 0.3rem;
+}
+
+.vista-previa__colaborador-rol {
+  font-size: 0.65rem;
+  color: #666;
+  font-style: italic;
+  margin-left: 0.3rem;
+}
+
+/* Estilos específicos para reportes colaborativos */
+.vista-previa__colaboradores-info {
+  margin-bottom: 0.4rem;
+}
+
+.vista-previa__colaborador--principal {
+  background: rgba(56, 59, 233, 0.1);
+  border-left: 4px solid #383BE9;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.vista-previa__colaboradores-adicionales {
+  margin-top: 0.3rem;
+}
+
+.vista-previa__colaboradores-titulo {
+  font-size: 0.65rem;
+  color: #666;
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+}
+
+.vista-previa__colaborador--secundario {
+  background: rgba(56, 59, 233, 0.03);
+  border-left: 2px solid #9DA3F0;
+  margin-bottom: 0.2rem;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.vista-previa__colaborador--secundario strong {
+  color: #6366F1 !important;
+  font-weight: 500;
+}
+
+/* =================================
+   IMÁGENES OPTIMIZADAS CON INTERACTIVIDAD
+   ================================= */
+/* Configuración base para todas las imágenes de evidencia */
+.vista-previa__img {
+  max-width: 50%; /* Tamaño optimizado: 50% del espacio de la celda */
+  max-height: 50%; /* Altura proporcional al ancho */
+  width: 50%; /* Ancho fijo relativo al contenedor */
+  height: auto; /* Altura automática para mantener proporciones */
+  object-fit: cover; /* Recorta la imagen para ajustarse sin distorsión */
+  border: none !important; /* Sin bordes para apariencia limpia */
+  outline: none !important; /* Sin contorno */
+  box-shadow: none !important; /* Sin sombra por defecto */
+  border-radius: 6px; /* Bordes ligeramente redondeados */
+  display: block; /* Comportamiento de bloque para centrado */
+  margin: 0 auto; /* Centrado horizontal en la celda */
+  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Transiciones suaves */
+}
+
+/* =================================
+   FUNCIONALIDAD DE CLIC EN IMÁGENES
+   ================================= */
+/* Clase para imágenes que abren modal al hacer clic */
+.vista-previa__img--clickable {
+  cursor: pointer; /* Cursor de mano para indicar interactividad */
+}
+
+/* Efecto hover para imágenes clickeables */
+.vista-previa__img--clickable:hover {
+  transform: scale(1.05); /* Ligero aumento de tamaño al pasar el cursor */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra para efecto de elevación */
+}
+
+/* Estado vacío */
+.vista-previa__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #A0A0A0;
+  font-style: italic;
+  gap: 0.75rem;
+}
+
+.vista-previa__empty-state i {
+  font-size: 2.5rem;
+  color: #000000; /* Cambio a negro como solicitaste */
+}
+
+.vista-previa__empty-state p {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Placeholder para celdas sin imagen */
+.vista-previa__img-placeholder {
+  width: 50%;
+  height: 40px;
+  background: #F5F5F5;
+  border: 2px dashed #000000; /* Cambio a borde negro punteado */
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  color: #A0A0A0;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .vista-previa__tabla {
+    min-width: 700px;
+  }
+  
+  .vista-previa__tabla th,
+  .vista-previa__tabla td {
+    padding: 0.75rem 0.5rem;
+    min-width: 80px;
+  }
+  
+  .vista-previa__img {
+    max-width: 70px; /* Aumentado de 54px para aprovechar más espacio */
+    max-height: 70px; /* Aumentado de 54px para aprovechar más espacio */
+  }
+}
+
+@media (max-width: 768px) {
+  .vista-previa__tabla-wrapper {
+    padding: 0.75rem 0.75rem 3rem 0.75rem;
+    max-height: calc(100vh - 160px);
+  }
+  
+  .vista-previa__tabla {
+    min-width: 600px;
+  }
+  
+  .vista-previa__tabla th,
+  .vista-previa__tabla td {
+    padding: 0.6rem 0.4rem;
+    min-width: 100px;
+    font-size: 0.8rem;
+  }
+  
+  /* Ajustar columnas en tablets */
+  .vista-previa__tabla td:first-child {
+    min-width: 140px; /* Reducido de 180px */
+    max-width: 180px; /* Reducido de 220px */
+    width: 30%; /* Reducido de 40% */
+  }
+  
+  .vista-previa__tabla td:nth-child(2),
+  .vista-previa__tabla td:nth-child(3),
+  .vista-previa__tabla td:nth-child(4) {
+    width: 23.33%; /* Aumentado de 20% (dividir 70% entre 3) */
+    max-width: 120px; /* Aumentado de 100px */
+  }
+  
+  .vista-previa__tabla td:first-child {
+    min-width: 160px;
+    max-width: 200px;
+    padding: 1rem 0.75rem;
+  }
+  
+  .vista-previa__img {
+    width: 100%; /* Aumentado de 96% para usar todo el espacio */
+    height: 100%; /* Aumentado de 96% para usar todo el espacio */
+  }
+  
+  .vista-previa__img-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 60px;
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .vista-previa__tabla-wrapper {
+    padding: 0.5rem;
+    max-height: 350px;
+  }
+  
+  .vista-previa__tabla th {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.3rem;
+  }
+  
+  .vista-previa__tabla td {
+    padding: 0.5rem 0.3rem;
+    font-size: 0.75rem;
+  }
+  
+  .vista-previa__tabla td:first-child {
+    min-width: 100px; /* Reducido de 120px */
+    max-width: 130px; /* Reducido de 150px */
+    padding: 0.75rem 0.5rem;
+    width: 28%; /* Reducido de 35% */
+  }
+  
+  /* Columnas de imágenes en móviles */
+  .vista-previa__tabla td:nth-child(2),
+  .vista-previa__tabla td:nth-child(3),
+  .vista-previa__tabla td:nth-child(4) {
+    width: 24%; /* Aumentado de 21.67% (dividir 72% entre 3) */
+    max-width: 90px; /* Aumentado de 80px */
+    padding: 0.4rem 0.2rem;
+  }
+  
+  .vista-previa__img {
+    max-width: 45px; /* Aumentado de 36px para aprovechar el espacio extra */
+    max-height: 45px; /* Aumentado de 36px para aprovechar el espacio extra */
+  }
+  
+  .vista-previa__img-placeholder {
+    width: 45px; /* Aumentado de 36px */
+    height: 45px; /* Aumentado de 36px */
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .vista-previa {
+    padding: 16px;
+  }
+
+  .vista-previa__titulo {
+    font-size: 16px;
+  }
+
+  .vista-previa__tabla {
+    font-size: 12px;
+    min-width: unset;
+  }
+  
+  .vista-previa__tabla-wrapper {
+    padding: 0.75rem 0.5rem 3rem 0.75rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vista-previa__tabla th,
+  .vista-previa__tabla td {
+    padding: 6px;
+    font-size: 11px;
+    min-width: 90px;
+  }
+}
+
+/* =================================
+   MODAL PARA VISTA AMPLIADA DE IMÁGENES
+   ================================= */
+/* Variables CSS para dimensiones del sidebar */
+:root {
+  --sidebar-collapsed-width: 80px;
+  --sidebar-expanded-width: 300px;
+}
+
+/* Overlay que cubre toda la sección de inicio respetando el sidebar */
+.image-modal {
+  position: fixed !important; /* Posición fija forzada para overlay global */
+  top: 0 !important; /* Desde la parte superior de la pantalla */
+  left: var(--sidebar-collapsed-width) !important; /* Desde después del sidebar colapsado */
+  right: 0 !important; /* Hasta el borde derecho */
+  bottom: 0 !important; /* Hasta el borde inferior */
+  width: calc(100vw - var(--sidebar-collapsed-width)) !important; /* Ancho usando viewport width */
+  height: 100vh !important; /* Altura completa del viewport */
+  z-index: 10000 !important; /* Z-index muy alto para estar sobre todo */
+  display: flex; /* Layout flexbox para centrado */
+  align-items: center; /* Centrado vertical */
+  justify-content: center; /* Centrado horizontal */
+  animation: fadeIn 0.3s ease; /* Animación de entrada suave */
+  margin: 0 !important; /* Sin márgenes */
+  padding: 0 !important; /* Sin padding */
+  /* Transición suave para sincronizar con el sidebar */
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Selector más específico para detectar sidebar expandido */
+/* Detecta cuando hay un sidebar expandido en el DOM */
+body:has(.sidebar.expanded) .image-modal {
+  left: var(--sidebar-expanded-width) !important; /* Desde después del sidebar expandido */
+  width: calc(100vw - var(--sidebar-expanded-width)) !important; /* Ancho usando viewport width */
+  /* Asegurar que la transición se mantenga suave */
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Fallback para navegadores que no soportan :has() */
+.sidebar-expanded .image-modal {
+  left: var(--sidebar-expanded-width) !important;
+  width: calc(100vw - var(--sidebar-expanded-width)) !important;
+  /* Transición suave sincronizada con el sidebar */
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Fondo semi-transparente del modal */
+.image-modal__backdrop {
+  position: absolute !important; /* Posicionamiento absoluto dentro del modal */
+  top: 0 !important; /* Cubre desde arriba */
+  left: 0 !important; /* Cubre desde la izquierda */
+  right: 0 !important; /* Cubre hasta la derecha */
+  bottom: 0 !important; /* Cubre hasta abajo */
+  width: 100% !important; /* Ancho completo */
+  height: 100% !important; /* Altura completa */
+  background: rgba(0, 0, 0, 0.8); /* Fondo negro semi-transparente */
+  backdrop-filter: blur(4px); /* Efecto de desenfoque del fondo */
+}
+
+/* Contenedor principal del modal aprovechando toda la sección de inicio */
+.image-modal__content {
+  position: relative; /* Posicionamiento relativo para elementos hijos absolutos */
+  background: white; /* Fondo blanco para contraste */
+  border-radius: 12px; /* Bordes redondeados modernos */
+  width: 90%; /* Ancho: 90% del área disponible para máximo aprovechamiento */
+  height: 90vh; /* Altura: 90% del viewport para mejor aprovechamiento */
+  max-width: none; /* Sin límite máximo para aprovechar todo el espacio */
+  min-width: 600px; /* Ancho mínimo para mantener usabilidad */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); /* Sombra pronunciada para elevación */
+  overflow: hidden; /* Oculta contenido que desborde */
+  animation: scaleIn 0.3s ease; /* Animación de entrada con escala */
+  display: flex; /* Layout flexbox para organización interna */
+  flex-direction: column; /* Organización vertical */
+}
+
+/* =================================
+   BOTÓN DE CIERRE DEL MODAL
+   ================================= */
+/* Botón X para cerrar el modal */
+.image-modal__close {
+  position: absolute; /* Posicionamiento absoluto en la esquina */
+  top: 15px; /* Distancia desde arriba */
+  right: 15px; /* Distancia desde la derecha */
+  width: 40px; /* Ancho fijo del botón */
+  height: 40px; /* Altura fija del botón */
+  background: rgba(255, 255, 255, 0.9); /* Fondo blanco semi-transparente */
+  border: none; /* Sin borde */
+  border-radius: 50%; /* Forma circular */
+  display: flex; /* Layout flex para centrar ícono */
+  align-items: center; /* Centrado vertical del ícono */
+  justify-content: center; /* Centrado horizontal del ícono */
+  cursor: pointer; /* Cursor de mano para indicar interactividad */
+  font-size: 18px; /* Tamaño del ícono X */
+  z-index: 1; /* Por encima de la imagen */
+  transition: all 0.2s ease; /* Transición suave para efectos hover */
+  color: #333; /* Color del ícono */
+}
+
+/* Efecto hover del botón de cierre */
+.image-modal__close:hover {
+  background: rgba(255, 255, 255, 1); /* Fondo completamente opaco */
+  transform: scale(1.1); /* Ligero aumento de tamaño */
+}
+
+/* =================================
+   IMAGEN PRINCIPAL DEL MODAL
+   ================================= */
+/* Configuración de la imagen para uso máximo del espacio */
+.image-modal__img {
+  width: 100%; /* Ancho completo del contenedor */
+  height: calc(100% - 60px); /* Altura: total menos espacio para caption */
+  object-fit: contain; /* Mantiene proporciones originales sin distorsión */
+  display: block; /* Comportamiento de bloque */
+  background: #f8f9fa; /* Fondo suave para contrastar */
+}
+
+.image-modal__caption {
+  padding: 15px 20px;
+  margin: 0;
+  background: #f8f9fa;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  border-top: 1px solid #000000; /* Cambio a negro */
+  height: 60px; /* Altura fija para la caption */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* No se reduce */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive para el modal */
+@media (max-width: 768px) {
+  /* En móviles, el modal puede ocupar toda la pantalla si el sidebar está oculto */
+  .image-modal {
+    left: 0 !important; /* En móviles el sidebar se oculta */
+    width: 100vw !important; /* Ancho completo en móviles */
+  }
+  
+  .image-modal__content {
+    width: 95vw;
+    height: 85vh;
+    min-width: unset; /* Quitar min-width en móviles */
+  }
+  
+  .image-modal__img {
+    height: calc(100% - 50px); /* Menos espacio para caption en móvil */
+  }
+  
+  .image-modal__close {
+    width: 35px;
+    height: 35px;
+    top: 10px;
+    right: 10px;
+    font-size: 16px;
+  }
+  
+  .image-modal__caption {
+    padding: 10px 15px;
+    font-size: 13px;
+    height: 50px; /* Altura reducida en móvil */
+  }
+}
+
+/* Animación de carga */
+@keyframes loading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spin {
+  animation: loading-spin 1s linear infinite;
+}
+
+/* =================================
+   OPTIMIZACIONES VISUALES ANTI-GLITCH
+   ================================= */
+/* Prevenir flickering y glitches visuales durante transiciones sidebar-modal */
+.image-modal {
+  /* Hardware acceleration para transiciones suaves */
+  transform: translateZ(0);
+  will-change: left, width;
+  backface-visibility: hidden;
+  
+  /* Asegurar que las transiciones no causen parpadeos */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Prevenir overflow visual durante transiciones */
+  contain: layout style paint;
+}

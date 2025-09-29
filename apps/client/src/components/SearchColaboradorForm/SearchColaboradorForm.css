@@ -1,0 +1,77 @@
+/* Estilos adicionales específicos para el formulario de colaborador */
+
+.search-form__input--readonly {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.search-form__group--checkbox {
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.search-form__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #495057;
+  transition: color 0.2s ease;
+}
+
+.search-form__checkbox-label:hover {
+  color: #2c3e50;
+}
+
+.search-form__checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #3498db;
+  cursor: pointer;
+}
+
+.search-form__checkbox-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.search-form__checkbox-text i {
+  color: #3498db;
+  font-size: 1rem;
+}
+
+.search-form__results-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+  color: #155724;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #c3e6cb;
+}
+
+.search-form__results-info i {
+  color: #28a745;
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .search-form__checkbox-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .search-form__checkbox-text {
+    font-size: 0.9rem;
+  }
+}

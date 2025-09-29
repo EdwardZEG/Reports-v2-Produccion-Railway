@@ -1,0 +1,64 @@
+/* Estilos específicos para SubirReporteForm */
+
+.collaborative-work-section {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.collaborative-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collaborative-active {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #007bff;
+  font-weight: 500;
+}
+
+.collaborative-active i {
+  color: #007bff;
+}
+
+.btn-modify-collaborative {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-modify-collaborative:hover {
+  background: #5a6268;
+}
+
+.btn-collaborative {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+  margin: 0 auto;
+}
+
+.btn-collaborative:hover {
+  background: #0056b3;
+}
+
+.btn-collaborative i {
+  color: white;
+}

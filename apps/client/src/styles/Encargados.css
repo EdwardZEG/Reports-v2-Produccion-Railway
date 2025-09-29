@@ -1,0 +1,914 @@
+/* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
+/* Layout principal del módulo de colaboradores igual que coordinadores */
+.encargados-container {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1px; /* Reducido al mínimo para subir el contenido igual que coordinadores */
+  align-items: flex-end; /* Alineación a la derecha igual que coordinadores */
+}
+
+/* ===== NUEVA VISTA PREVIA DE COLABORADORES (SISTEMA DE CARDS EXACTO DE COORDINADORES) ===== */
+/* Sección principal que reemplaza el sistema de tabla - diseño copiado de coordinadores */
+
+/* Contenedor principal de la vista previa con diseño neomórfico exacto */
+.preview-section-encargados {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem; /* Margen uniforme en las 4 direcciones */
+  box-shadow: 
+    4px 4px 12px rgba(0, 0, 0, 0.06),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.02); /* Efecto neomórfico sutil */
+  border: none;
+  width: 100%; /* Usa el ancho disponible del contenedor padre */
+  max-width: 100%;
+  margin: 0; /* Sin márgenes externos para evitar desbordamientos */
+  min-height: 0;
+  overflow: visible; /* Cambiar a visible para mostrar paginación */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: calc(100vh - 140px); /* Altura igual a coordinadores */
+}
+
+/* ===== HEADER DE LA SECCIÓN ===== */
+/* Header principal con título, búsqueda y botón registrar */
+.section-header-encargados {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000000; /* Línea negra como separador visual */
+}
+
+/* Título con icono */
+.section-title-encargados {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #111827;
+}
+
+/* Icono del título (colaboradores) */
+.section-title-encargados i {
+  color: #000000; /* Negro como en Vista Previa */
+  font-size: 1.5rem; /* Mismo tamaño que Vista Previa */
+}
+
+/* Título principal */
+.section-title-encargados h3 {
+  color: #3A0707; /* Mismo color que Vista Previa */
+  font-weight: 700; /* Misma negritas que Vista Previa */
+  font-size: 1.4rem; /* Mismo tamaño que Vista Previa */
+  margin: 0;
+  font-family: 'Open Sans', sans-serif; /* Misma tipografía */
+}
+
+/* ===== CONTROLES DE LA SECCIÓN ===== */
+/* Contenedor de controles (búsqueda y botón registrar) */
+.section-controls-encargados {
+  display: flex;
+  align-items: center; /* Centrado vertical perfecto */
+  gap: 1rem;
+  height: 40px; /* Altura fija igual a la barra de búsqueda */
+}
+
+/* ===== SISTEMA DE BÚSQUEDA ===== */
+/* Contenedor principal de la barra de búsqueda con efecto neomórfico */
+.search-container-encargados {
+  position: relative;
+  background: #f8f9fa;
+  border-radius: 25px;
+  box-shadow: 
+    inset 2px 2px 6px rgba(0, 0, 0, 0.08),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.9); /* Efecto hundido neomórfico */
+  border: 1px solid #e9ecef;
+  height: 40px;
+  width: 300px;
+  display: flex;
+  align-items: center;
+}
+
+/* Estado focus de la barra de búsqueda */
+.search-container-encargados:focus-within {
+  box-shadow: 
+    inset 3px 3px 8px rgba(0, 0, 0, 0.12),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.95);
+}
+
+/* Input de búsqueda */
+.search-input-encargados {
+  border: none;
+  background: transparent;
+  outline: none;
+  padding-left: 20px;
+  padding-right: 55px; /* Más espacio para el círculo de 42px */
+  font-size: 0.9rem;
+  color: #495057;
+  width: 100%;
+  height: 100%;
+  font-family: 'Open Sans', sans-serif;
+  border-radius: 25px;
+}
+
+/* Placeholder del input de búsqueda */
+.search-input-encargados::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+/* ===== BOTÓN DE BÚSQUEDA ===== */
+/* Botón circular con efecto 3D y posicionamiento perfecto */
+.search-button-encargados {
+  position: absolute;
+  right: 0px; /* Toca completamente el final de la barra */
+  top: 50%; /* Centrado verticalmente */
+  transform: translateY(-50%); /* Centrado perfecto */
+  background: linear-gradient(145deg, #333333, #000000) !important; /* Gradiente para efecto 3D */
+  color: white !important;
+  border: 2px solid #ffffff !important; /* Borde blanco */
+  width: 42px !important; /* Más grande */
+  height: 42px !important; /* Más grande */
+  min-width: 42px !important;
+  min-height: 42px !important;
+  max-width: 42px !important;
+  max-height: 42px !important;
+  border-radius: 50% !important; /* Círculo perfecto */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  font-size: 15px !important; /* Ícono un poco más grande también */
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  margin-right: -1px !important; /* Ajustado para que toque el borde */
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3) !important; /* Sombras 3D */
+  transition: all 0.2s ease !important;
+}
+
+/* Icono del botón de búsqueda con efectos visuales y transición suave */
+.search-button-encargados i {
+  font-size: 15px !important; /* Ícono un poco más grande */
+  line-height: 1 !important;
+  width: auto !important;
+  height: auto !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important; /* Sombra del ícono */
+  transition: all 0.2s ease !important; /* Transición suave para cambio de icono */
+}
+
+/* Efecto hover del botón de búsqueda */
+.search-button-encargados:hover {
+  background: linear-gradient(145deg, #555555, #222222) !important; /* Gradiente más claro en hover */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en hover */
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4) !important; /* Sombras más pronunciadas en hover */
+  transform: translateY(-50%) translateY(-1px) !important; /* Elevación sutil */
+}
+
+/* Efecto active del botón de búsqueda */
+.search-button-encargados:active {
+  background: linear-gradient(145deg, #000000, #333333) !important; /* Gradiente invertido en active */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en active */
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important; /* Efecto hundido */
+  transform: translateY(-50%) scale(0.98) !important; /* Presión */
+}
+
+/* ===== BOTÓN REGISTRAR ===== */
+/* Botón principal para crear nuevo colaborador - alineado con barra de búsqueda */
+.btn-registrar-encargados {
+  background: #4927F5;
+  border: none;
+  border-radius: 50px; /* Misma forma redondeada que la barra */
+  color: white;
+  padding: 0 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.2),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(73, 39, 245, 0.3); /* Efectos neomórficos */
+  font-family: 'Open Sans', sans-serif;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  height: 40px !important; /* Exactamente la misma altura que la barra */
+  min-width: 120px; /* Comprimido pero suficiente para el texto */
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Borde sutil como la barra */
+  margin: 0 !important; /* Sin márgenes que desalineen */
+  flex-shrink: 0; /* No se comprime */
+}
+
+/* Efecto hover del botón registrar */
+.btn-registrar-encargados:hover {
+  background: #3a1fd1;
+  transform: translateY(-1px);
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.3),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 3px 8px rgba(73, 39, 245, 0.4);
+}
+
+/* Icono del botón registrar - igual que coordinadores */
+.btn-registrar-encargados i {
+  font-size: 1rem;
+  color: white;
+  margin: 0 !important; /* Sin márgenes en el ícono */
+}
+
+/* ===== INDICADOR DE RESULTADOS DE BÚSQUEDA ===== */
+.search-results-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
+}
+
+.search-results-indicator i {
+  color: #9ca3af;
+}
+
+.no-results {
+  color: #dc2626;
+  font-weight: 500;
+  margin-left: 1rem;
+}
+
+/* ===== CONTENEDOR DE TABLA ===== */
+.preview-container-encargados {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  flex: 1; /* Ocupa el espacio restante */
+  border: none;
+  transition: all 0.3s ease;
+  overflow: hidden; /* Evita desbordamientos */
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== TABLA/LISTA DE COLABORADORES - FORMATO COMPACTO ADAPTADO ===== */
+
+/* Contenedor principal de la tabla */
+.encargados-tabla {
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+/* Header de la tabla - OPTIMIZADO PARA COLABORADORES (5 columnas) */
+.tabla-header {
+  background: #000000;
+  color: #FFFFFF;
+  display: grid;
+  grid-template-columns: 2fr 2fr 2.5fr 1fr 1fr; /* Ajustado para información adicional */
+  gap: 1rem;
+  padding: 1rem; /* Padding normal para mejor apariencia */
+  font-weight: 600;
+  font-size: 0.9rem; /* Fuente normal */
+  border-bottom: 2px solid #333333;
+  min-height: 50px;
+}
+
+/* Body de la tabla */
+.tabla-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fila individual - OPTIMIZADA PARA COLABORADORES */
+.tabla-fila {
+  display: grid;
+  grid-template-columns: 2fr 2fr 2.5fr 1fr 1fr; /* Misma distribución que header */
+  gap: 1rem;
+  padding: 1.25rem; /* Padding aumentado para mejor apariencia */
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+  align-items: center;
+  min-height: 70px; /* Altura aumentada para mejor distribución */
+}
+
+.tabla-fila:hover {
+  background: #f8f9fa;
+}
+
+.tabla-fila:last-child {
+  border-bottom: none;
+}
+
+/* Estilos para las columnas - ADAPTADO PARA COLABORADORES */
+.columna-nombre {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.columna-contacto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.columna-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.columna-estado {
+  display: flex;
+  justify-content: center;
+}
+
+.columna-acciones {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+/* Información de contacto - OPTIMIZADA */
+.contacto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.contacto-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.3;
+}
+
+.contacto-item i {
+  color: #6b7280;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  width: 16px;
+}
+
+/* Información del colaborador - NUEVA SECCIÓN */
+.encargado-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.encargado-icon {
+  color: #6b7280;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.encargado-nombre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.nombre-completo {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.puesto-info {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Información adicional de colaborador - PÓLIZA Y ESPECIALIDADES */
+.info-colaborador {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
+.info-item i {
+  color: #6b7280;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  width: 16px;
+}
+
+.poliza-nombre {
+  color: #374151;
+  font-weight: 500;
+}
+
+.especialidades-item {
+  align-items: flex-start; /* Para textos largos de especialidades */
+}
+
+.especialidades-lista {
+  color: #6b7280;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  word-break: break-word; /* Para especialidades muy largas */
+}
+
+/* Header de la tabla - títulos de columnas */
+.tabla-header .columna-nombre,
+.tabla-header .columna-contacto,
+.tabla-header .columna-info,
+.tabla-header .columna-estado,
+.tabla-header .columna-acciones {
+  color: #FFFFFF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.tabla-header .columna-estado,
+.tabla-header .columna-acciones {
+  justify-content: center;
+}
+
+/* Badge de estado - IGUAL QUE COORDINADORES */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.estado-badge.activo {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.estado-badge.activo i {
+  color: #22c55e;
+  font-size: 0.8rem;
+}
+
+.estado-badge.inactivo {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.estado-badge.inactivo i {
+  color: #ef4444;
+  font-size: 0.8rem;
+}
+
+/* Botones de acción - IGUALES QUE COORDINADORES */
+.btn-accion {
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: #6b7280;
+}
+
+.btn-accion:hover {
+  transform: scale(1.05);
+}
+
+.btn-accion.editar {
+  color: #3b82f6;
+}
+
+.btn-accion.editar:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.btn-accion.eliminar {
+  color: #ef4444;
+}
+
+.btn-accion.eliminar:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* ===== ESTILOS DE PAGINACIÓN - EXACTO COMO COORDINADORES ===== */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.pagination-btn {
+  border: none;
+  background: #f8f9fa;
+  color: #6c757d;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.pagination-btn:disabled {
+  background: #f8f9fa;
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Botón "Página 1" - estilo negro como en coordinadores */
+.pagination-btn.go-to-first {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  min-width: auto;
+  height: 36px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-right: 10px;
+  padding: 0 12px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pagination-btn.go-to-first:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+.pagination-btn.go-to-first i {
+  font-size: 0.875rem;
+}
+
+.pagination-btn.prev,
+.pagination-btn.next {
+  background: #000000;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.pagination-btn.prev:hover:not(:disabled),
+.pagination-btn.next:hover:not(:disabled) {
+  background: #333333;
+  transform: scale(1.05);
+}
+
+.pagination-btn.prev:disabled,
+.pagination-btn.next:disabled {
+  background: #6c757d;
+  transform: none;
+}
+
+.pagination-info {
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0 0.5rem;
+  white-space: nowrap;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-btn.number {
+  background: transparent;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  min-width: 36px;
+}
+
+.pagination-btn.number:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.pagination-btn.number.active {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  font-weight: 600;
+}
+
+.pagination-btn.number.active:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+/* Estilos para puntos suspensivos en paginación comprimida */
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 1rem;
+  user-select: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+}
+
+/* Estilo para colaboradores resaltados - igual que coordinadores */
+.tabla-fila.resaltado {
+  background-color: #dbeafe !important; /* Azul claro suave */
+  color: #1e40af !important; /* Azul oscuro */
+  font-weight: bold !important;
+  transition: background-color 0.3s ease;
+}
+
+.tabla-fila.resaltado:hover {
+  background-color: #bfdbfe !important; /* Azul ligeramente más oscuro en hover */
+}
+
+/* ===== MODAL STYLES - ACTUALIZADO PARA COORDINADORES STYLE ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(55, 55, 55, .6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-main-container {
+  background-color: white;
+  border-radius: 5px;
+  padding: 15px;
+  max-width: 90%;
+  max-height: 90vh;
+}
+
+.modal-encargados-container {
+  padding: 20px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modal-encargados-container h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #111827;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #374151;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.submit-btn {
+  background-color: #4927F5;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.submit-btn:hover {
+  background-color: #3a1fd1;
+}
+
+.close-btn {
+  background-color: #920000;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.close-btn:hover {
+  background-color: #7f0000;
+}
+
+/* Fieldset para especialidades */
+fieldset {
+  border: 1px solid #ccc;
+  padding: 10px 15px;
+  margin-bottom: 1.5rem;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+fieldset legend {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: #333;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+fieldset input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #991b1b;
+}
+
+.errores-formulario {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.errores-formulario .error {
+  color: #dc2626;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .tabla-header,
+  .tabla-fila {
+    grid-template-columns: 1.5fr 1.5fr 2fr 0.8fr 0.8fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .nombre-completo {
+    font-size: 0.9rem;
+  }
+  
+  .contacto-item,
+  .info-item {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-header-encargados {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .section-controls-encargados {
+    flex-direction: column;
+    height: auto;
+    gap: 0.75rem;
+  }
+  
+  .search-container-encargados {
+    width: 100%;
+  }
+  
+  .preview-section-encargados {
+    height: auto;
+    min-height: calc(100vh - 120px);
+  }
+  
+  .tabla-header,
+  .tabla-fila {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .tabla-fila {
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+  }
+  
+  .columna-nombre,
+  .columna-contacto,
+  .columna-info {
+    justify-content: flex-start;
+  }
+  
+  .columna-estado,
+  .columna-acciones {
+    justify-content: flex-start;
+  }
+}

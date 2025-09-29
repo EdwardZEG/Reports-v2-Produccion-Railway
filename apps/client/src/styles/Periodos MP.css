@@ -1,0 +1,69 @@
+/* Contenedor principal */
+.periodosmp-wrapper {
+  margin-top: 30px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px;
+  background: linear-gradient(to bottom right, #f2f2f2, #e6e6e6);
+  flex-wrap: wrap;
+}
+
+/* Lado izquierdo: buscador + fechas */
+.periodosmp-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 400px;
+}
+
+.periodosmp-left h2 {
+  text-align: center;
+}
+
+/* Lado derecho: tabla */
+.periodosmp-right {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Selector de fechas y botón */
+.periodosmp-periodContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Botón crear periodo */
+.periodosmp-addButton {
+  background-color: #920000;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.periodosmp-addButton:hover {
+  background-color: #0056b3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .periodosmp-wrapper {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .periodosmp-left {
+    width: 100%;
+  }
+
+  .periodosmp-right {
+    width: 100%;
+    margin-top: 16px;
+  }
+}

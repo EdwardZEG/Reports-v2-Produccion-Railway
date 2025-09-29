@@ -1,0 +1,846 @@
+/* ================================
+   LOGIN.CSS - SISTEMA DE DISEÑO PRINCIPAL PARA AUTENTICACIÓN
+   ================================
+   
+   Este archivo contiene el sistema de diseño completo para las páginas 
+   de autenticación (login y registro) de la aplicación Reports-v2.
+   
+   Estructura del archivo:
+   1. Importaciones de fuentes y librerías externas
+   2. Reset CSS y estilos base
+   3. Prevención de FOUC (Flash of Unstyled Content)
+   4. Layout principal y contenedores
+   5. Tarjeta de login con efectos neomórficos
+   6. Sistema de formularios y campos de entrada
+   7. Botones y elementos interactivos
+   8. Validación y estados de error
+   9. Elementos específicos (checkbox, toggle password)
+   10. Responsive design y media queries
+   11. Integración con componentes DVD Background
+   
+   Características principales:
+   - Diseño neomórfico moderno con sombras suaves
+   - Sistema de validación visual en tiempo real
+   - Integración con fondo animado DVD (easter egg)
+   - Optimización para prevenir FOUC
+   - Accesibilidad mejorada con ARIA labels
+   - Diseño responsivo para todos los dispositivos
+   - Compatibilidad cross-browser
+   
+   Paleta de colores:
+   - Primario: #625757, #3e3737 (grises corporativos)
+   - Secundario: #887a7a (gris medio)
+   - Accent: #b3fefc, #38E9E6 (cyan/turquesa)
+   - Error: #ef4444, #aa2628 (rojos para validación)
+   - Fondo: rgba(255, 255, 255, 0.95) con transparencias
+   
+   Tipografía: Open Sans con fallbacks del sistema
+   Efectos: Neomorfismo, sombras suaves, transiciones fluidas
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+/* ================================
+   RESET CSS Y ESTILOS BASE
+   ================================ 
+   Configuración básica para asegurar consistencia cross-browser
+*/
+* {
+    box-sizing: border-box; /* Incluye padding y border en el cálculo de ancho/alto */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden; /* Previene scroll en páginas de autenticación */
+}
+
+/* ================================
+   PREVENCIÓN DE FOUC (Flash of Unstyled Content)
+   ================================ 
+   Sistema para evitar el parpadeo de contenido sin estilo mientras cargan los recursos
+*/
+
+/* Estado inicial oculto hasta que useResourcesReady determine que está listo */
+.login-container {
+    visibility: hidden;
+}
+
+/* Visible cuando los recursos críticos (fuentes, etc.) están cargados */
+.login-container.ready {
+    visibility: visible;
+}
+
+/* ================================
+   LAYOUT PRINCIPAL Y CONTENEDORES
+   ================================ 
+   Estructura base que ocupa toda la pantalla y centra el contenido
+*/
+
+/* Contenedor principal que ocupa toda la pantalla */
+.login-container {
+    min-height: 100vh; /* Altura mínima de toda la pantalla */
+    width: 100vw; /* Ancho completo de la pantalla */
+    display: flex;
+    justify-content: center; /* Centrado horizontal */
+    align-items: center; /* Centrado vertical */
+    font-family: 'Open Sans', sans-serif !important;
+    padding: 20px; /* Padding para dispositivos móviles */
+    position: fixed; /* Fijo para evitar scroll */
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    z-index: 5; /* Por encima del fondo DVD pero debajo de modales */
+    /* Background se maneja desde DVDContext para evitar conflictos */
+}
+
+/* ================================
+   INTEGRACIÓN DVD BACKGROUND
+   ================================ 
+   Estilos para el easter egg del logo DVD animado
+   El posicionamiento y z-index se manejan desde DVDContext
+*/
+
+/* Logo flotante con tamaño específico */
+.floating-logo {
+    width: 156px;
+    height: auto;
+    opacity: 1;
+}
+
+/* ================================
+   TARJETA PRINCIPAL DE LOGIN
+   ================================ 
+   Contenedor principal del formulario con efectos neomórficos
+*/
+/* Tarjeta principal con diseño neomórfico */
+.login-card {
+    background: rgba(255, 255, 255, 0.95) !important; /* Fondo semi-transparente */
+    border-radius: 20px !important; /* Bordes redondeados modernos */
+    padding: 14px 32px 20px 32px !important; /* Padding asimétrico optimizado */
+    width: 100% !important;
+    max-width: 450px !important; /* Ancho máximo para desktop */
+    text-align: center !important;
+    position: relative !important;
+    z-index: 10 !important; /* Por encima del fondo DVD */
+    transition: all 0.3s ease !important; /* Transición suave para hover */
+    box-sizing: border-box !important;
+    /* Sombra neomórfica principal - elegante y moderna */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; /* Borde sutil */
+}
+
+/* Efecto hover en la tarjeta - elevación sutil */
+.login-card:hover {
+    transform: translateY(-2px); /* Elevación ligera */
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+}
+
+/* ================================
+   LOGO Y ELEMENTOS DE MARCA
+   ================================ 
+   Elementos relacionados con la identidad visual
+*/
+
+/* Contenedor del logo */
+.logo-container {
+    margin-bottom: 0px !important; /* Sin margen inferior por diseño compacto */
+}
+
+/* Logo principal con interactividad (easter egg) */
+.logo-image {
+    width: 168px !important; /* Tamaño optimizado para la tarjeta */
+    height: 168px !important;
+    object-fit: contain !important; /* Mantiene proporciones */
+    margin-bottom: 0px !important;
+    cursor: pointer !important; /* Indica que es clickeable (easter egg) */
+    transition: all 0.3s ease !important; /* Transición para efectos hover */
+}
+
+/* Efecto hover en el logo - feedback visual para el easter egg */
+.logo-image:hover {
+    transform: scale(1.05); /* Aumento sutil */
+    filter: brightness(1.1); /* Brillo aumentado */
+}
+
+/* ================================
+   TÍTULO Y TEXTO PRINCIPAL
+   ================================ */
+
+/* Título principal del formulario */
+
+.login-title {
+    font-size: 24px !important;
+    font-weight: 700 !important; /* Peso bold para importancia */
+    color: #1a1a1a !important; /* Negro suave, no puro */
+    margin-bottom: 16px !important;
+    margin-top: 0px !important;
+    font-family: 'Open Sans', sans-serif !important;
+    letter-spacing: -0.3px !important; /* Espaciado de letras optimizado */
+    text-align: left !important; /* Alineado a la izquierda para mejor legibilidad */
+    /* Efecto de texto neomórfico sutil */
+    text-shadow:
+        1px 1px 2px rgba(255, 255, 255, 0.8),
+        -1px -1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ================================
+   ESTRUCTURA DE FORMULARIOS
+   ================================ 
+   Layout base para todos los formularios de autenticación
+*/
+
+/* Contenedor principal del formulario */
+.login-form {
+    display: flex !important;
+    flex-direction: column !important; /* Disposición vertical */
+    gap: 14px !important; /* Espaciado consistente entre elementos */
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Grupo de campo individual (input + label + error) */
+.form-group {
+    text-align: left !important; /* Alineación natural para formularios */
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important; /* Sin margin para control total del gap */
+}
+
+/* ================================
+   CAMPOS DE ENTRADA CON NEOMORFISMO
+   ================================ 
+   Sistema de inputs con efectos visuales modernos
+*/
+
+/* Contenedor del input con efectos neomórficos */
+.input-container {
+    position: relative !important; /* Para posicionar iconos absolutamente */
+    background: #f0f0f0 !important; /* Fondo gris claro */
+    border-radius: 10px !important; /* Bordes redondeados */
+    transition: all 0.3s ease !important; /* Transición suave para todos los estados */
+    width: 100% !important;
+    height: 44px !important; /* Altura consistente */
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    /* Neomorfismo hundido - efecto de profundidad hacia adentro */
+    box-shadow:
+        inset 3px 3px 6px rgba(0, 0, 0, 0.1), /* Sombra interior superior-izquierda */
+        inset -3px -3px 6px rgba(255, 255, 255, 0.8) !important; /* Luz interior inferior-derecha */
+    border: 1px solid rgba(0, 0, 0, 0.05) !important; /* Borde sutil */
+}
+
+/* Estado focus del contenedor - cuando el usuario está escribiendo */
+.input-container:focus-within {
+    box-shadow:
+        inset 3px 3px 6px rgba(0, 0, 0, 0.12), /* Sombra más pronunciada */
+        inset -3px -3px 6px rgba(255, 255, 255, 0.9),
+        0 0 8px rgba(59, 130, 246, 0.15) !important; /* Glow azul sutil */
+    border-color: rgba(59, 130, 246, 0.3) !important; /* Borde azul */
+    background: #e8e8e8 !important; /* Fondo ligeramente más oscuro */
+}
+
+/* ================================
+   ICONOS DE CAMPOS
+   ================================ 
+   Iconos que indican el tipo de campo (email, password, etc.)
+*/
+
+/* Icono izquierdo en los campos de entrada */
+.input-icon {
+    position: absolute !important;
+    left: 14px !important; /* Posición desde la izquierda */
+    top: 50% !important;
+    transform: translateY(-50%) !important; /* Centrado vertical perfecto */
+    color: #6b7280 !important; /* Gris medio */
+    font-size: 16px !important;
+    z-index: 3 !important; /* Por encima del input pero debajo del toggle */
+    transition: color 0.3s ease !important; /* Transición de color suave */
+    pointer-events: none !important; /* No interfiere con clics */
+}
+
+/* ================================
+   CAMPOS DE ENTRADA (INPUTS)
+   ================================ */
+
+/* Input principal con diseño integrado */
+
+.form-input {
+    width: 100% !important;
+    height: 44px !important; /* Altura consistente con el contenedor */
+    padding: 0 45px 0 40px !important; /* Padding para iconos izquierdo y derecho */
+    border: none !important; /* Sin borde - lo maneja el contenedor */
+    border-radius: 10px !important; /* Coincide con el contenedor */
+    font-size: 15px !important; /* Tamaño de fuente legible */
+    font-family: 'Open Sans', sans-serif !important;
+    font-weight: 400 !important; /* Peso normal */
+    background: transparent !important; /* Transparente para mostrar el fondo del contenedor */
+    color: #1f2937 !important; /* Texto oscuro */
+    transition: all 0.3s ease !important; /* Transición suave */
+    outline: none !important; /* Sin outline nativo del browser */
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    position: relative !important;
+    z-index: 2 !important; /* Entre el fondo y los iconos */
+}
+
+/* Estado focus del input */
+.form-input:focus {
+    color: #111827; /* Color más oscuro cuando está activo */
+}
+
+/* Cambio de color del icono cuando el input está en focus */
+.form-input:focus + .input-icon {
+    color: #3b82f6 !important; /* Azul para indicar estado activo */
+}
+
+/* ================================
+   ESTADOS DE ERROR
+   ================================ 
+   Estilos para campos con errores de validación
+*/
+
+/* Input en estado de error */
+.form-input.error {
+    color: #ef4444; /* Rojo para errores */
+}
+
+/* Icono en estado de error */
+.form-input.error + .input-icon {
+    color: #ef4444; /* Icono rojo también */
+}
+
+/* Contenedor en estado de error */
+.input-container.error {
+    background: #f5e6e6 !important; /* Fondo rojizo sutil */
+    box-shadow:
+        inset 3px 3px 6px rgba(239, 68, 68, 0.15), /* Sombra rojiza */
+        inset -3px -3px 6px rgba(255, 255, 255, 0.8),
+        0 0 8px rgba(239, 68, 68, 0.1) !important; /* Glow rojizo */
+    border-color: rgba(239, 68, 68, 0.3) !important; /* Borde rojizo */
+}
+
+/* Placeholder con estilo consistente */
+.form-input::placeholder {
+    color: #6c757d !important; /* Gris medio para placeholders */
+    font-weight: 400 !important;
+}
+
+/* Mensaje de error debajo del campo */
+.error-message {
+    color: #aa2628; /* Rojo oscuro para mejor legibilidad */
+    font-size: 12px; /* Texto pequeño */
+    font-weight: 500; /* Peso medio para destacar */
+    margin-top: 6px; /* Separación del campo */
+    font-family: 'Open Sans', sans-serif !important;
+    text-align: left; /* Alineado con el campo */
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.6); /* Sombra para legibilidad */
+}
+
+/* ================================
+   BOTÓN TOGGLE PASSWORD
+   ================================ 
+   Botón para mostrar/ocultar contraseña con estados específicos
+*/
+/* Botón base para mostrar/ocultar contraseña */
+.toggle-password {
+    position: absolute !important;
+    right: 14px !important; /* Posicionado a la derecha */
+    top: 50% !important;
+    transform: translateY(-50%) !important; /* Centrado vertical */
+    background: none !important; /* Sin fondo */
+    border: none !important; /* Sin borde */
+    color: #6b7280 !important; /* Gris medio por defecto */
+    font-size: 15px !important;
+    cursor: pointer !important; /* Indica que es clickeable */
+    padding: 4px !important; /* Padding mínimo para área de click */
+    margin: 0 !important;
+    border-radius: 0 !important;
+    transition: none !important; /* Sin transiciones para evitar efectos no deseados */
+    z-index: 4 !important; /* Máximo z-index para estar por encima de todo */
+    line-height: 1 !important;
+    /* Reseteo completo de estilos para evitar interferencias */
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Estado hover del toggle - SIN CAMBIOS para evitar azul */
+.toggle-password:hover {
+    color: #6b7280 !important; /* Mantiene el mismo color */
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Estado activo - cuando la contraseña está visible */
+.toggle-password.active {
+    color: #000000 !important; /* Negro cuando está activo */
+}
+
+/* Estado activo + hover - mantiene negro sin cambios */
+.toggle-password.active:hover {
+    color: #000000 !important; /* Negro constante */
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ================================
+   SOBREESCRITURA AGRESIVA PARA TOGGLE PASSWORD
+   ================================ 
+   Múltiples selectores para asegurar que no aparezca azul
+*/
+
+/* Sobrescribir cualquier CSS externo o de framework */
+button.toggle-password:hover,
+button.toggle-password:focus,
+button.toggle-password:active {
+    color: #6b7280 !important;
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+button.toggle-password.active:hover,
+button.toggle-password.active:focus,
+button.toggle-password.active:active {
+    color: #000000 !important;
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.toggle-password:active {
+    color: #6b7280 !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+.toggle-password:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    color: #6b7280 !important;
+    background: none !important;
+    border: none !important;
+}
+
+.toggle-password.active:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    background: none !important;
+    border: none !important;
+}
+
+/* FUERZA MÁXIMA - Prevenir cualquier color azul */
+.toggle-password,
+.toggle-password:hover,
+.toggle-password:focus,
+.toggle-password:active,
+.toggle-password:visited {
+    color: #6b7280 !important;
+}
+
+.toggle-password.active,
+.toggle-password.active:hover,
+.toggle-password.active:focus,
+.toggle-password.active:active,
+.toggle-password.active:visited {
+    color: #000000 !important;
+}
+
+/* Sobrescribir Font Awesome y cualquier framework externo */
+i.toggle-password,
+i.toggle-password:hover,
+i.toggle-password:focus {
+    color: #6b7280 !important;
+}
+
+i.toggle-password.active,
+i.toggle-password.active:hover,
+i.toggle-password.active:focus {
+    color: #000000 !important;
+}
+
+/* ================================
+   OPCIONES DE CONTRASEÑA
+   ================================ 
+   Contenedor para checkbox "Recordar" y "Olvidé mi contraseña"
+*/
+
+.password-options {
+    display: flex;
+    align-items: center; /* Alineación vertical centrada */
+    justify-content: space-between; /* Distribución entre extremos */
+    margin-top: 10px; /* Separación del campo de contraseña */
+    width: 100%;
+}
+
+/* ================================
+   CHECKBOX CON DISEÑO NEOMÓRFICO
+   ================================ 
+   Sistema de checkbox personalizado para "Recordar sesión"
+*/
+
+/* Contenedor del checkbox personalizado */
+.checkbox-container {
+    display: flex !important;
+    flex-direction: row !important; /* Horizontal: checkbox + texto */
+    align-items: center !important; /* Centrado vertical */
+    cursor: pointer !important; /* Toda el área es clickeable */
+    user-select: none !important; /* Previene selección de texto */
+    margin: 0 !important;
+    width: auto !important;
+    gap: 0 !important; /* Sin gap, se controla con margin */
+}
+
+/* Input checkbox nativo - oculto */
+.checkbox-input {
+    display: none !important; /* Completamente oculto */
+}
+
+/* Checkbox visual personalizado con neomorfismo */
+.checkbox-custom {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important; /* Tamaño fijo */
+    min-height: 16px !important;
+    background: rgba(255, 255, 255, 0.9) !important; /* Fondo blanco semi-transparente */
+    border-radius: 4px !important; /* Bordes ligeramente redondeados */
+    position: relative !important;
+    transition: all 0.3s ease !important; /* Transición suave para estados */
+    flex-shrink: 0 !important; /* No se reduce en flex */
+    display: block !important;
+    margin: 0 !important;
+    /* Efecto neomórfico hundido en checkbox */
+    box-shadow:
+        inset 2px 2px 4px rgba(0, 0, 0, 0.1), /* Sombra interior */
+        inset -2px -2px 4px rgba(255, 255, 255, 0.9), /* Luz interior */
+        0 1px 2px rgba(0, 0, 0, 0.1) !important; /* Sombra exterior sutil */
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    overflow: hidden !important;
+}
+
+/* Estado checked del checkbox */
+.checkbox-container .checkbox-input:checked + .checkbox-custom {
+    background: rgb(7, 10, 243) !important; /* Azul cuando está seleccionado */
+    border-color: rgb(7, 10, 243) !important;
+    box-shadow:
+        2px 2px 4px rgba(0, 0, 0, 0.15), /* Sombra exterior más pronunciada */
+        -1px -1px 2px rgba(255, 255, 255, 0.2),
+        inset 1px 1px 2px rgba(7, 10, 243, 0.8) !important; /* Sombra interior azul */
+}
+
+/* Remover pseudoelemento ::before cuando está checked */
+.checkbox-container .checkbox-input:checked + .checkbox-custom::before {
+    display: none !important;
+}
+
+/* Checkmark (✓) personalizado */
+.checkbox-container .checkbox-input:checked + .checkbox-custom::after {
+    content: ''; /* Contenido vacío para dibujar con CSS */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg); /* Centrado y rotado */
+    width: 4px; /* Ancho del checkmark */
+    height: 7px; /* Alto del checkmark */
+    border: 2px solid white; /* Color blanco */
+    border-left: none; /* Solo bordes derecho e inferior */
+    border-top: none;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3)); /* Sombra para contraste */
+}
+
+/* Texto del checkbox */
+.checkbox-label {
+    font-size: 14px !important;
+    font-weight: 500 !important; /* Peso medio */
+    color: #625757 !important; /* Color del tema */
+    font-family: 'Open Sans', sans-serif !important;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.6) !important; /* Sombra para legibilidad */
+    white-space: nowrap !important; /* No permite salto de línea */
+    margin: 0 !important;
+    margin-left: 8px !important; /* Separación del checkbox */
+    flex-shrink: 0 !important;
+    line-height: 18px !important; /* Altura de línea específica */
+}
+
+/* ================================
+   ENLACE "OLVIDÉ MI CONTRASEÑA"
+   ================================ */
+
+/* Contenedor del enlace */
+.forgot-password {
+    text-align: right; /* Alineado a la derecha */
+}
+
+/* Enlace de recuperación de contraseña */
+.forgot-password-link {
+    color: #625757; /* Color del tema */
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none; /* Sin subrayado por defecto */
+    font-family: 'Open Sans', sans-serif !important;
+    transition: all 0.3s ease; /* Transición suave */
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.6); /* Sombra para legibilidad */
+}
+
+/* Estado hover del enlace de recuperación */
+.forgot-password-link:hover {
+    color: #3e3737; /* Color más oscuro */
+    text-decoration: underline; /* Subrayado en hover */
+    text-shadow:
+        1px 1px 2px rgba(255, 255, 255, 0.8),
+        0 0 4px rgba(59, 130, 246, 0.3); /* Glow azul sutil */
+}
+
+/* ================================
+   BOTÓN PRINCIPAL CON NEOMORFISMO
+   ================================ 
+   Botón de envío del formulario con efectos visuales avanzados
+*/
+/* Botón principal del formulario con diseño neomórfico */
+.login-submit-btn.submit-btn {
+    width: 100% !important; /* Ancho completo */
+    padding: 12px 20px !important; /* Padding cómodo */
+    background: #b3fefc !important; /* Color cyan corporativo */
+    color: #000000 !important; /* Texto negro para contraste */
+    border: none !important; /* Sin borde nativo */
+    border-radius: 10px !important; /* Bordes redondeados */
+    font-size: 15px !important;
+    font-weight: 600 !important; /* Peso semi-bold */
+    font-family: 'Open Sans', sans-serif !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important; /* Transición suave para todos los efectos */
+    display: flex !important;
+    align-items: center !important; /* Centrado vertical del contenido */
+    justify-content: center !important; /* Centrado horizontal del contenido */
+    gap: 8px !important; /* Separación entre texto e icono */
+    margin-top: 8px !important; /* Separación del elemento anterior */
+    /* Efectos neomórficos en botón principal */
+    box-shadow:
+        0 4px 8px rgba(179, 254, 252, 0.4), /* Sombra principal con color del botón */
+        0 2px 4px rgba(0, 0, 0, 0.1), /* Sombra secundaria */
+        inset 0 1px 0 rgba(255, 255, 255, 0.8), /* Luz interior superior */
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1) !important; /* Sombra interior inferior */
+    border: 1px solid rgba(179, 254, 252, 0.6) !important; /* Borde del color del botón */
+}
+
+/* Estado disabled del botón */
+.submit-btn:disabled {
+    opacity: 0.7; /* Transparencia para indicar inactividad */
+    cursor: not-allowed; /* Cursor que indica no disponible */
+    transform: none; /* Sin transformaciones en disabled */
+}
+
+/* Estado hover del botón - efectos visuales mejorados */
+.login-submit-btn.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px) !important; /* Elevación del botón */
+    background: #38E9E6 !important; /* Color más vibrante en hover */
+    box-shadow:
+        0 8px 16px rgba(56, 233, 230, 0.5), /* Sombra más pronunciada */
+        0 4px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15) !important;
+    border-color: rgba(56, 233, 230, 0.8) !important;
+}
+
+/* Estado active (click) del botón */
+.login-submit-btn.submit-btn:active:not(:disabled) {
+    transform: translateY(0) !important; /* Vuelve a posición original */
+    background: #38E9E6 !important; /* Mantiene color vibrante */
+    box-shadow:
+        0 8px 16px rgba(56, 233, 230, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15) !important;
+    border-color: rgba(56, 233, 230, 0.8) !important;
+}
+
+/* Estado disabled específico con estilos reducidos */
+.login-submit-btn.submit-btn:disabled {
+    opacity: 0.6 !important; /* Más transparente */
+    cursor: not-allowed !important;
+    transform: none !important; /* Sin efectos */
+    background: #b3fefc !important; /* Color original */
+    box-shadow:
+        0 2px 4px rgba(179, 254, 252, 0.2), /* Sombra reducida */
+        inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ================================
+   SOBREESCRITURA AGRESIVA PARA BOTONES
+   ================================ 
+   Asegura que los colores del botón no sean sobrescritos por frameworks
+*/
+
+/* Forzar colores específicos sin importar otros CSS */
+button.login-submit-btn.submit-btn {
+    background-color: #b3fefc !important;
+    background-image: none !important; /* Sin gradientes */
+    background: #b3fefc !important;
+}
+
+button.login-submit-btn.submit-btn:hover:not(:disabled) {
+    background-color: #38E9E6 !important;
+    background-image: none !important;
+    background: #38E9E6 !important;
+}
+
+button.login-submit-btn.submit-btn:active:not(:disabled) {
+    background-color: #38E9E6 !important;
+    background-image: none !important;
+    background: #38E9E6 !important;
+}
+
+/* ================================
+   ELEMENTOS DE TEXTO DEL BOTÓN
+   ================================ */
+
+/* Texto principal del botón */
+.btn-text {
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Open Sans', sans-serif !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8); /* Sombra para legibilidad */
+}
+
+/* Icono del botón */
+.btn-icon {
+    font-size: 14px;
+    transition: transform 0.3s ease; /* Transición para efecto hover */
+    filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.8)); /* Sombra del icono */
+}
+
+/* Animación del icono en hover */
+.login-submit-btn.submit-btn:hover:not(:disabled) .btn-icon {
+    transform: translateX(3px); /* Desplazamiento hacia la derecha */
+}
+
+/* ================================
+   SECCIÓN DE REGISTRO (REUTILIZADA)
+   ================================ 
+   Estilos para el enlace al registro, usado tanto en login como en register
+*/
+.register-section {
+    text-align: center; /* Centrado del contenido */
+    margin-top: 24px; /* Separación del formulario */
+    font-family: 'Open Sans', sans-serif;
+}
+
+/* Texto informativo de la sección */
+.register-text {
+    color: #887a7a; /* Gris medio para texto secundario */
+    font-size: 15px;
+    font-weight: 400;
+    margin-right: 6px; /* Separación del enlace */
+    font-family: 'Open Sans', sans-serif !important;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.6); /* Sombra para legibilidad */
+}
+
+/* Enlace a página de registro/login */
+.register-link {
+    color: #625757; /* Color del tema */
+    font-size: 15px;
+    font-weight: 600; /* Peso mayor para destacar */
+    text-decoration: none; /* Sin subrayado por defecto */
+    font-family: 'Open Sans', sans-serif !important;
+    transition: all 0.3s ease; /* Transición suave */
+}
+
+/* Estado hover del enlace */
+.register-link:hover {
+    color: #3e3737; /* Color más oscuro */
+    text-decoration: underline; /* Subrayado en hover */
+}
+
+/* ================================
+   DISEÑO RESPONSIVO - MEDIA QUERIES
+   ================================ 
+   Adaptaciones para diferentes tamaños de pantalla
+*/
+
+/* Pantallas móviles - hasta 480px */
+@media (max-width: 480px) {
+    /* Ajustes de la tarjeta principal */
+    .login-card {
+        padding: 8px 24px 16px 24px; /* Padding reducido */
+        margin: 16px; /* Margen para evitar que toque los bordes */
+        max-width: calc(100vw - 32px); /* Ancho máximo considerando margins */
+    }
+
+    /* Reducción del logo en móviles */
+    .logo-container {
+        width: 150px;
+        height: 150px;
+    }
+
+    .logo-image {
+        width: 130px;
+        height: 130px;
+    }
+
+    /* Ajuste del título */
+    .login-title {
+        font-size: 22px; /* Ligeramente menor */
+        margin-bottom: 24px;
+    }
+
+    /* Ajustes de campos de entrada */
+    .form-input {
+        font-size: 15px; /* Mantiene tamaño legible */
+        padding: 9px 12px 9px 38px; /* Padding ajustado */
+    }
+
+    /* Reposicionamiento de iconos */
+    .input-icon {
+        left: 12px; /* Más cerca del borde */
+        font-size: 14px; /* Icono ligeramente menor */
+    }
+
+    .toggle-password {
+        right: 12px; /* Más cerca del borde derecho */
+        font-size: 14px;
+    }
+
+    /* Ajuste del botón */
+    .submit-btn {
+        padding: 11px 18px; /* Padding reducido */
+        font-size: 14px;
+    }
+
+    /* Espaciado del formulario */
+    .login-form {
+        gap: 16px; /* Gap ligeramente mayor para móviles */
+    }
+}
+
+/* Pantallas muy pequeñas - hasta 360px */
+@media (max-width: 360px) {
+    /* Ajustes extremos para pantallas muy pequeñas */
+    .login-card {
+        padding: 24px 18px; /* Padding mínimo */
+    }
+
+    /* Logo aún más pequeño */
+    .logo-container {
+        width: 120px;
+        height: 120px;
+    }
+
+    .logo-image {
+        width: 100px;
+        height: 100px;
+    }
+
+    /* Título más compacto */
+    .login-title {
+        font-size: 20px; /* Tamaño mínimo legible */
+    }
+}

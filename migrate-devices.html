@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migración de Dispositivos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            color: #007bff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔧 Migración de Dispositivos</h1>
+        <p>Esta herramienta convierte los campos <code>colaborador</code> y <code>especialidad</code> de string a
+            ObjectId en todos los dispositivos existentes.</p>
+
+        <h3>⚠️ Importante:</h3>
+        <ul>
+            <li>Esta operación solo debe ejecutarse una vez</li>
+            <li>Asegúrate de que el servidor esté corriendo en http://localhost:4000</li>
+            <li>La migración puede tomar algunos segundos dependiendo del número de dispositivos</li>
+        </ul>
+
+        <button id="migrateBtn" class="btn" onclick="executeMigration()">
+            🚀 Ejecutar Migración
+        </button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function executeMigration() {
+            const btn = document.getElementById('migrateBtn');
+            const result = document.getElementById('result');
+
+            // Deshabilitar botón y mostrar loading
+            btn.disabled = true;
+            btn.textContent = '⏳ Ejecutando migración...';
+            result.innerHTML = '<div class="result loading">Ejecutando migración, por favor espera...</div>';
+
+            try {
+                const response = await fetch('http://localhost:4000/api/devices/migrate-ids', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    result.innerHTML = `
+                        <div class="result success">
+                            <h4>✅ Migración completada exitosamente</h4>
+                            <p><strong>Mensaje:</strong> ${data.message}</p>
+                            <p><strong>Dispositivos migrados:</strong> ${data.migratedCount}</p>
+                            <p><strong>Total de dispositivos:</strong> ${data.totalDevices}</p>
+                            ${data.errors ? `<p><strong>Errores:</strong> ${data.errors.length}</p>` : ''}
+                        </div>
+                    `;
+                    btn.textContent = '✅ Migración Completada';
+                } else {
+                    throw new Error(data.message || 'Error desconocido');
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="result error">
+                        <h4>❌ Error en la migración</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Asegúrate de que el servidor esté corriendo en http://localhost:4000</p>
+                    </div>
+                `;
+                btn.disabled = false;
+                btn.textContent = '🔄 Reintentar Migración';
+            }
+        }
+    </script>
+</body>
+
+</html>

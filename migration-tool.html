@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Ejecutar Migración</title>
+</head>
+
+<body>
+    <h1>Migración de Base de Datos</h1>
+    <button onclick="ejecutarMigracion()">Ejecutar Migración</button>
+    <button onclick="validarMigracion()">Validar Migración</button>
+    <button onclick="revertirMigracion()">Revertir Migración</button>
+
+    <div id="resultado"></div>
+
+    <script>
+        async function ejecutarMigracion() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = 'Ejecutando migración...';
+
+            try {
+                const response = await fetch('http://localhost:4000/api/migration/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                resultado.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                resultado.innerHTML = 'Error: ' + error.message;
+            }
+        }
+
+        async function validarMigracion() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = 'Validando migración...';
+
+            try {
+                const response = await fetch('http://localhost:4000/api/migration/validate');
+                const data = await response.json();
+                resultado.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                resultado.innerHTML = 'Error: ' + error.message;
+            }
+        }
+
+        async function revertirMigracion() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = 'Revirtiendo migración...';
+
+            try {
+                const response = await fetch('http://localhost:4000/api/migration/rollback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                resultado.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                resultado.innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+
+</html>

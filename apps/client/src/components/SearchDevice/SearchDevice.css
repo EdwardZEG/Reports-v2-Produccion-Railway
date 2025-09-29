@@ -1,0 +1,117 @@
+/* --- Search Form --- */
+.PeriodosMP-searchForm {
+  background-color: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 400px;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.PeriodosMP-searchForm__title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.PeriodosMP-formGroup {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.PeriodosMP-formLabel {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.PeriodosMP-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.PeriodosMP-input:focus {
+  outline: none;
+  border-color: #920000;
+  box-shadow: 0 0 0 2px rgba(146, 0, 0, 0.2);
+}
+
+.PeriodosMP-input.is-disabled {
+  background-color: #f0f0f0;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Autocomplete */
+.PeriodosMP-autocompleteList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.PeriodosMP-autocompleteList li {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.PeriodosMP-autocompleteList li:hover {
+  background-color: #f0f0f0;
+}
+
+/* Botón */
+.PeriodosMP-addButton {
+  background-color: #920000;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.PeriodosMP-addButton:hover {
+  background-color: #b00000;
+}
+
+/* --- Responsividad --- */
+@media (max-width: 480px) {
+  .PeriodosMP-searchForm {
+    padding: 16px;
+    max-width: 100%;
+  }
+
+  .PeriodosMP-searchForm__title {
+    font-size: 18px;
+  }
+
+  .PeriodosMP-input {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .PeriodosMP-addButton {
+    padding: 10px;
+    font-size: 14px;
+  }
+}

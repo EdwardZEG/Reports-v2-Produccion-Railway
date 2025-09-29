@@ -1,0 +1,1581 @@
+/* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
+/* Layout principal del módulo de coordinadores igual que polizas */
+.coordinadores-container {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1px; /* Reducido al mínimo para subir el contenido igual que polizas */
+  align-items: flex-end; /* Alineación a la derecha igual que polizas */
+}
+
+/* ===== NUEVA VISTA PREVIA DE COORDINADORES (SISTEMA DE CARDS EXACTO DE ESPECIALIDADES) ===== */
+/* Sección principal que reemplaza el sistema de tabla - diseño copiado de especialidades */
+
+/* Contenedor principal de la vista previa con diseño neomórfico exacto */
+.preview-section-coordinadores {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem; /* Margen uniforme en las 4 direcciones */
+  box-shadow: 
+    4px 4px 12px rgba(0, 0, 0, 0.06),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.02); /* Efecto neomórfico sutil */
+  border: none;
+  width: 100%; /* Usa el ancho disponible del contenedor padre */
+  max-width: 100%;
+  margin: 0; /* Sin márgenes externos para evitar desbordamientos */
+  min-height: 0;
+  overflow: visible; /* Cambiar a visible para mostrar paginación */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: calc(100vh - 140px); /* Altura igual a polizas */
+}
+
+/* ===== HEADER DE LA SECCIÓN ===== */
+/* Header principal con título, búsqueda y botón registrar */
+.section-header-coordinadores {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000000; /* Línea negra como separador visual */
+}
+
+/* Título con icono */
+.section-title-coordinadores {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #111827;
+}
+
+/* Icono del título (coordinadores) */
+.section-title-coordinadores i {
+  color: #000000; /* Negro como en Vista Previa */
+  font-size: 1.5rem; /* Mismo tamaño que Vista Previa */
+}
+
+/* Título principal */
+.section-title-coordinadores h3 {
+  color: #3A0707; /* Mismo color que Vista Previa */
+  font-weight: 700; /* Misma negritas que Vista Previa */
+  font-size: 1.4rem; /* Mismo tamaño que Vista Previa */
+  margin: 0;
+  font-family: 'Open Sans', sans-serif; /* Misma tipografía */
+}
+
+/* ===== CONTROLES DE LA SECCIÓN ===== */
+/* Contenedor de controles (búsqueda y botón registrar) */
+.section-controls-coordinadores {
+  display: flex;
+  align-items: center; /* Centrado vertical perfecto */
+  gap: 1rem;
+  height: 40px; /* Altura fija igual a la barra de búsqueda */
+}
+
+/* ===== SISTEMA DE BÚSQUEDA ===== */
+/* Contenedor principal de la barra de búsqueda con efecto neomórfico */
+.search-container-coordinadores {
+  position: relative;
+  background: #f8f9fa;
+  border-radius: 25px;
+  box-shadow: 
+    inset 2px 2px 6px rgba(0, 0, 0, 0.08),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.9); /* Efecto hundido neomórfico */
+  border: 1px solid #e9ecef;
+  height: 40px;
+  width: 300px;
+  display: flex;
+  align-items: center;
+}
+
+/* Estado focus de la barra de búsqueda */
+.search-container-coordinadores:focus-within {
+  box-shadow: 
+    inset 3px 3px 8px rgba(0, 0, 0, 0.12),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.95);
+}
+
+/* Input de búsqueda */
+.search-input-coordinadores {
+  border: none;
+  background: transparent;
+  outline: none;
+  padding-left: 20px;
+  padding-right: 55px; /* Más espacio para el círculo de 42px */
+  font-size: 0.9rem;
+  color: #495057;
+  width: 100%;
+  height: 100%;
+  font-family: 'Open Sans', sans-serif;
+  border-radius: 25px;
+}
+
+/* Placeholder del input de búsqueda */
+.search-input-coordinadores::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+/* ===== BOTÓN DE BÚSQUEDA ===== */
+/* Botón circular con efecto 3D y posicionamiento perfecto */
+.search-button-coordinadores {
+  position: absolute;
+  right: 0px; /* Toca completamente el final de la barra */
+  top: 50%; /* Centrado verticalmente */
+  transform: translateY(-50%); /* Centrado perfecto */
+  background: linear-gradient(145deg, #333333, #000000) !important; /* Gradiente para efecto 3D */
+  color: white !important;
+  border: 2px solid #ffffff !important; /* Borde blanco */
+  width: 42px !important; /* Más grande */
+  height: 42px !important; /* Más grande */
+  min-width: 42px !important;
+  min-height: 42px !important;
+  max-width: 42px !important;
+  max-height: 42px !important;
+  border-radius: 50% !important; /* Círculo perfecto */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  font-size: 15px !important; /* Ícono un poco más grande también */
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  margin-right: -1px !important; /* Ajustado para que toque el borde */
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3) !important; /* Sombras 3D */
+  transition: all 0.2s ease !important;
+}
+
+/* Icono del botón de búsqueda con efectos visuales y transición suave */
+.search-button-coordinadores i {
+  font-size: 15px !important; /* Ícono un poco más grande */
+  line-height: 1 !important;
+  width: auto !important;
+  height: auto !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important; /* Sombra del ícono */
+  transition: all 0.2s ease !important; /* Transición suave para cambio de icono */
+}
+
+/* Efecto hover del botón de búsqueda */
+.search-button-coordinadores:hover {
+  background: linear-gradient(145deg, #555555, #222222) !important; /* Gradiente más claro en hover */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en hover */
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4) !important; /* Sombras más pronunciadas en hover */
+  transform: translateY(-50%) translateY(-1px) !important; /* Elevación sutil */
+}
+
+/* Efecto active del botón de búsqueda */
+.search-button-coordinadores:active {
+  background: linear-gradient(145deg, #000000, #333333) !important; /* Gradiente invertido en active */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en active */
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important; /* Efecto hundido */
+  transform: translateY(-50%) scale(0.98) !important; /* Presión */
+}
+
+/* ===== BOTÓN REGISTRAR ===== */
+/* Botón principal para crear nuevo coordinador - alineado con barra de búsqueda */
+.btn-registrar-coordinadores {
+  background: #4927F5;
+  border: none;
+  border-radius: 50px; /* Misma forma redondeada que la barra */
+  color: white;
+  padding: 0 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.2),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(73, 39, 245, 0.3); /* Efectos neomórficos */
+  font-family: 'Open Sans', sans-serif;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  height: 40px !important; /* Exactamente la misma altura que la barra */
+  min-width: 120px; /* Comprimido pero suficiente para el texto */
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Borde sutil como la barra */
+  margin: 0 !important; /* Sin márgenes que desalineen */
+  flex-shrink: 0; /* No se comprime */
+}
+
+/* Efecto hover del botón registrar */
+.btn-registrar-coordinadores:hover {
+  background: #3a1fd1;
+  transform: translateY(-1px);
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.3),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 3px 8px rgba(73, 39, 245, 0.4);
+}
+
+/* Icono del botón registrar - igual que polizas */
+.btn-registrar-coordinadores i {
+  font-size: 1rem;
+  color: white;
+  margin: 0 !important; /* Sin márgenes en el ícono */
+}
+
+/* ===== INDICADOR DE RESULTADOS DE BÚSQUEDA ===== */
+.search-results-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
+}
+
+.search-results-indicator i {
+  color: #9ca3af;
+}
+
+.no-results {
+  color: #dc2626;
+  font-weight: 500;
+  margin-left: 1rem;
+}
+
+/* ===== CONTENEDOR DE TABLA ===== */
+.preview-container-coordinadores {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  flex: 1; /* Ocupa el espacio restante */
+  border: none;
+  transition: all 0.3s ease;
+  overflow: hidden; /* Evita desbordamientos */
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== HEADER DE LA CARD ===== */
+.card-header-coordinadores {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.card-title-coordinadores {
+  color: #111827;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* ===== BOTONES DE ACCIÓN ===== */
+.card-actions-coordinadores {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-action-coordinadores {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-edit-coordinadores {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.btn-edit-coordinadores:hover {
+  background: #10b981;
+  color: white;
+}
+
+.btn-delete-coordinadores {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.btn-delete-coordinadores:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* ===== CONTENIDO DE LA CARD ===== */
+.card-content-coordinadores {
+  margin-top: 0.5rem;
+}
+
+.card-field-coordinadores {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.field-label-coordinadores {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.field-value-coordinadores {
+  color: #111827;
+  text-align: right;
+  max-width: 60%;
+  word-break: break-word;
+}
+
+/* ===== ESTADO DEL COORDINADOR ===== */
+.status-coordinadores {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.5rem;
+}
+
+.status-coordinadores.activo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-coordinadores.inactivo {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ===== ESTILOS DE PAGINACIÓN - EXACTO COMO POLIZAS ===== */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.pagination-btn {
+  border: none;
+  background: #f8f9fa;
+  color: #6c757d;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.pagination-btn:disabled {
+  background: #f8f9fa;
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Botón "Página 1" - estilo negro como en la imagen */
+.pagination-btn.go-to-first {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  min-width: auto;
+  height: 36px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-right: 10px;
+  padding: 0 12px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pagination-btn.go-to-first:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+.pagination-btn.go-to-first i {
+  font-size: 0.875rem;
+}
+
+.pagination-btn.prev,
+.pagination-btn.next {
+  background: #000000;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.pagination-btn.prev:hover:not(:disabled),
+.pagination-btn.next:hover:not(:disabled) {
+  background: #333333;
+  transform: scale(1.05);
+}
+
+.pagination-btn.prev:disabled,
+.pagination-btn.next:disabled {
+  background: #6c757d;
+  transform: none;
+}
+
+.pagination-info {
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0 0.5rem;
+  white-space: nowrap;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-btn.number {
+  background: transparent;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  min-width: 36px;
+}
+
+.pagination-btn.number:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.pagination-btn.number.active {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  font-weight: 600;
+}
+
+.pagination-btn.number.active:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+/* Estilos para puntos suspensivos en paginación comprimida */
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 1rem;
+  user-select: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+}
+.loading-coordinadores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.error-coordinadores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #dc2626;
+  font-size: 1rem;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+/* Estilo para coordinadores resaltados - igual que polizas */
+.tabla-fila.resaltado {
+  background-color: #dbeafe !important; /* Azul claro suave */
+  color: #1e40af !important; /* Azul oscuro */
+  font-weight: bold !important;
+  transition: background-color 0.3s ease;
+}
+
+.tabla-fila.resaltado:hover {
+  background-color: #bfdbfe !important; /* Azul ligeramente más oscuro en hover */
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .section-header-coordinadores {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .section-controls-coordinadores {
+    flex-direction: column;
+    height: auto;
+    gap: 0.75rem;
+  }
+  
+  .search-container-coordinadores {
+    width: 100%;
+  }
+  
+  .coordinadores-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .preview-section-coordinadores {
+    height: auto;
+    min-height: calc(100vh - 120px);
+  }
+}
+
+.input-error {
+  border: 1px solid red;
+  background-color: #ffe6e6;
+}
+
+.error-text {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.error-message-coordinador {
+  color: #920000;
+  font-size: 1rem;
+  margin-top: 15px;
+  padding-left: 20px;
+  text-align: justify;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  padding: 22px;
+  background-color: #f3f4f6;
+  border-radius: 10px;
+  width: 95%;
+}
+
+.table-coordinadores {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+}
+
+.table-coordinadores th,
+.table-coordinadores td {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.table-coordinadores th {
+  background-color: #e1e1e1;
+}
+
+.estado {
+  padding: 6px 10px;
+  border-radius: 15px;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.estado.activo {
+  background-color: #4ade80;
+  color: #065f46;
+}
+
+.estado.inactivo {
+  background-color: #fecaca;
+  color: #7f1d1d;
+}
+
+.acciones-coordinador {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.editar-btn {
+  background-color: transparent;
+  padding: 0.2rem 0.5rem;
+  margin-top: auto;
+  border: 2px solid #10b981;
+}
+
+.editar-btn:hover {
+  background-color: #047a55;
+  border: 2px solid #047a55;
+}
+
+.editar-icon-coordinador {
+  color: #10b981;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+.editar-icon-coordinador:hover {
+  color: white;
+}
+
+.delete-btn {
+  background-color: transparent;
+  margin-top: auto;
+  padding: 0.2rem 0.5rem;
+  border: 2px solid #7f1d1d
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 36px 8px 12px;
+  border-radius: 4px;
+}
+
+.delete-btn:hover {
+  background-color: #650c0c;
+  border: 2px solid #650c0c;
+}
+
+.eliminar-icon-coordinador {
+  color: #7f1d1d;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+.eliminar-icon-coordinador:hover {
+  color: white;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nuevo-btn {
+  background-color: #920000;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.nuevo-btn:hover {
+  background-color: #951212;
+}
+
+.modal-main-container {
+  background-color: white;
+  border-radius: 5px;
+  padding: 15px;
+  max-width: 90%;
+  max-height: 90vh;
+}
+
+.modal-coordinadores-container {
+  padding: 20px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.close-btn {
+  background: none;
+  background-color: #920000;
+  border: none;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  padding: 12px,
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.submit-btn {
+  background-color: #4927F5;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background-color: #3a1fd1;
+}
+
+@media (max-width: 768px) {
+  .table-container-coordinadores {
+    display: inline-grid;
+    overflow: hidden;
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  .table-coordinadores {
+    font-size: 0.85rem;
+  }
+
+  .table-coordinadores th,
+  .table-coordinadores td {
+    padding: 10px;
+  }
+
+  .acciones-coordinador {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+
+/* ===== TABLA/LISTA DE COORDINADORES - FORMATO COMPACTO ===== */
+
+/* Contenedor principal de la tabla - EXTIENDE HASTA ABAJO */
+.coordinadores-tabla {
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  height: 100%; /* Ocupa toda la altura disponible del contenedor padre */
+  width: 100%; /* Ocupa todo el ancho disponible */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header de la tabla - PROPORCIONAL AL CONTENEDOR */
+.tabla-header {
+  background: #000000;
+  color: #FFFFFF;
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1fr 1fr;
+  gap: clamp(0.5rem, 1.5vmin, 1.5rem); /* Gap escalable igual que las filas */
+  padding: clamp(0.8rem, 2vmin, 1.5rem) clamp(0.8rem, 1.5vmin, 1.2rem); /* Padding escalable */
+  font-weight: 600;
+  font-size: clamp(0.7rem, 2.5vmin, 1.2rem); /* Escala más agresivamente */
+  border-bottom: 2px solid #333333;
+  flex-shrink: 0; /* El header mantiene su tamaño fijo */
+  height: auto; /* Altura automática basada en contenido */
+}
+
+/* Body de la tabla - DISTRIBUCIÓN UNIFORME DE FILAS */
+.tabla-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Ocupa todo el espacio restante después del header */
+  height: 100%; /* Asegura que use toda la altura disponible */
+  min-height: 0; /* Permite el cálculo correcto del flex */
+}
+
+/* Fila individual - TAMAÑO UNIFORME Y ADAPTABLE */
+.tabla-fila {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1fr 1fr;
+  gap: clamp(0.5rem, 1.5vmin, 1.5rem); /* Gap escalable */
+  padding: clamp(0.8rem, 2vmin, 1.8rem) clamp(0.8rem, 1.5vmin, 1.2rem); /* Padding escalable */
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+  align-items: center;
+  flex: 1; /* Cada fila ocupa una porción igual del espacio disponible */
+  min-height: 0; /* Permite que flex determine el tamaño */
+  overflow: hidden;
+}
+
+.tabla-fila:hover {
+  background: #f8f9fa;
+}
+
+.tabla-fila:last-child {
+  border-bottom: none;
+  flex: 1; /* Asegurar que tenga el mismo flex que las demás */
+}
+
+/* Estilos para las columnas DE CONTENIDO (no header) - ALINEACIÓN PERFECTA */
+.tabla-fila .columna-nombre {
+  display: flex !important;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+.tabla-fila .columna-contacto {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: flex-start !important;
+  text-align: left !important;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+.tabla-fila .columna-poliza {
+  display: flex !important;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+/* Cuando NO tiene póliza asignada - texto e icono en gris */
+.poliza-no-asignada {
+  color: #6b7280 !important; /* Gris para texto e icono */
+  font-weight: normal !important;
+}
+
+/* Cuando SÍ tiene póliza asignada - texto e icono en negro y negritas */
+.poliza-asignada {
+  color: #000000 !important; /* Negro para texto e icono */
+  font-weight: 700 !important; /* Negritas */
+}
+
+.tabla-fila .columna-estado {
+  display: flex !important;
+  justify-content: center !important; /* Centrar el switch */
+  align-items: center;
+  text-align: center !important;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+.tabla-fila .columna-acciones {
+  display: flex !important;
+  gap: 0.75rem;
+  justify-content: flex-start !important;
+  align-items: center;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+/* Información de contacto - ULTRA COMPACTA */
+.contacto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem; /* Gap mínimo */
+  justify-content: center; /* Centrar verticalmente */
+}
+
+.contacto-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.2rem, 0.5vmin, 0.4rem); /* Gap escalable */
+  font-size: clamp(0.55rem, 2vmin, 0.9rem); /* Escala más agresivamente */
+  color: #6b7280;
+  line-height: 1.1; /* Línea adaptable */
+  margin: 0 !important; /* Quitar cualquier margen */
+  padding: 0 !important; /* Quitar cualquier padding */
+}
+
+.contacto-item i {
+  color: #6b7280;
+  font-size: 0.7rem; /* Icono más pequeño para altura reducida */
+  flex-shrink: 0;
+  width: 12px; /* Ancho reducido para proporcionalidad */
+}
+
+/* Información del coordinador - ULTRA COMPACTA */
+.coordinador-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem; /* Gap reducido */
+  justify-content: flex-start;
+  height: 100%;
+  margin: 0 !important; /* Quitar cualquier margen */
+  padding: 0 !important; /* Quitar cualquier padding interno */
+}
+
+.coordinador-icon {
+  color: #6b7280;
+  font-size: 0.9rem; /* Icono más pequeño */
+  flex-shrink: 0;
+}
+
+.coordinador-nombre {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centrar verticalmente */
+}
+
+.nombre-completo {
+  font-weight: 600;
+  color: #111827;
+  font-size: clamp(0.65rem, 2.5vmin, 1.1rem); /* Escala más agresivamente con viewport */
+  line-height: 1.1; /* Línea adaptable */
+}
+
+/* Iconos en las columnas - COMPACTOS */
+.columna-poliza i {
+  color: #6b7280;
+  font-size: 0.9rem; /* Icono más pequeño */
+  flex-shrink: 0;
+}
+
+/* ===== SWITCH ESTILO APPLE PARA ESTADO ===== */
+/* Switch toggle inspirado en el diseño de iOS para cambiar estado activo/inactivo */
+/* Implementa animaciones suaves y colores distintivos para cada estado */
+.estado-switch {
+  position: relative;
+  display: inline-block;
+  width: clamp(45px, 6vmin, 60px); /* Ancho escalable según viewport */
+  height: clamp(24px, 3.2vmin, 32px); /* Alto escalable según viewport */
+}
+
+.estado-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s ease;
+  border-radius: clamp(12px, 1.6vmin, 16px); /* Border radius escalable */
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: clamp(18px, 2.4vmin, 24px); /* Alto del círculo escalable */
+  width: clamp(18px, 2.4vmin, 24px); /* Ancho del círculo escalable */
+  left: clamp(3px, 0.4vmin, 4px); /* Posición izquierda escalable */
+  bottom: clamp(3px, 0.4vmin, 4px); /* Posición inferior escalable */
+  background-color: white;
+  transition: 0.3s ease;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estado activo (verde) */
+input:checked + .switch-slider {
+  background-color: #3BE938; /* Verde para activo */
+}
+
+input:checked + .switch-slider:before {
+  transform: translateX(clamp(21px, 2.8vmin, 28px)); /* Desplazamiento escalable */
+}
+
+/* Estado inactivo (rojo) */
+input:not(:checked) + .switch-slider {
+  background-color: #E9383B; /* Rojo para inactivo */
+}
+
+/* Hover effect */
+.switch-slider:hover {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Contenedor del switch con texto */
+.estado-switch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.3rem, 0.8vmin, 0.5rem);
+}
+
+/* Texto del estado debajo del switch */
+.estado-texto {
+  font-size: clamp(0.6rem, 1.8vmin, 0.8rem);
+  font-weight: 500;
+  text-transform: capitalize; /* Primera letra mayúscula */
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.2rem, 0.5vmin, 0.3rem); /* Espacio entre ícono y texto */
+}
+
+/* Colores del texto según el estado */
+.estado-texto.activo {
+  color: #3BE938;
+}
+
+.estado-texto.inactivo {
+  color: #E9383B;
+}
+
+/* Íconos del estado en círculo */
+.estado-texto i {
+  font-size: clamp(0.7rem, 2vmin, 0.9rem); /* Tamaño del ícono escalable */
+  flex-shrink: 0; /* Evita que el ícono se comprima */
+}
+
+/* ===== MODAL DE CONFIRMACIÓN DESACTIVAR ===== */
+/* Modal especializado para confirmar cambios de estado de coordinadores */
+/* Diseño limpio sin backdrop blur para mayor claridad en la decisión */
+.modal-overlay-coordinadores {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: none !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.modal-content-coordinadores {
+  background: white;
+  border-radius: 8px;
+  padding: 28px;
+  width: 550px;
+  max-width: 95vw;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+  position: relative;
+  pointer-events: all;
+}
+
+/* Botón cerrar */
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+/* Título del modal */
+.modal-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+  margin-bottom: 18px;
+  line-height: 1.3;
+  text-align: left;
+  padding-right: 40px;
+  word-break: keep-all;
+  hyphens: none;
+}
+
+.modal-title strong {
+  font-weight: 700;
+  color: #000;
+}
+
+/* Información del usuario */
+.modal-user-info {
+  margin-bottom: 20px;
+}
+
+.modal-user-info p {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  color: #000;
+  line-height: 1.4;
+}
+
+.modal-user-info p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-user-info strong {
+  color: #000;
+  font-weight: 700;
+}
+
+/* Botones del modal */
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.modal-btn-cancelar {
+  background-color: #6c757d;
+  color: white;
+}
+
+.modal-btn-cancelar:hover {
+  background-color: #5a6268;
+}
+
+.modal-btn-confirmar {
+  background-color: #F5B027;
+  color: white;
+}
+
+.modal-btn-confirmar:hover {
+  background-color: #e09a1f;
+}
+
+/* Animaciones */
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header de la tabla - títulos con iconos alineados a la izquierda ESPECÍFICOS */
+.tabla-header .columna-nombre,
+.tabla-header .columna-contacto,
+.tabla-header .columna-poliza,
+.tabla-header .columna-acciones {
+  color: #FFFFFF !important;
+  text-transform: none !important;
+  letter-spacing: 0.3px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex !important;
+  flex-direction: row !important; /* FORZAR dirección horizontal para TODOS los headers */
+  align-items: center !important;
+  justify-content: flex-start !important; /* Todos alineados a la izquierda */
+  text-align: left !important;
+  height: 100%;
+  gap: 0.5rem; /* Espacio entre icono y texto */
+  padding-left: 0.5rem; /* Alineación consistente */
+}
+
+/* Header específico para Estado - centrado */
+.tabla-header .columna-estado {
+  color: #FFFFFF !important;
+  text-transform: none !important;
+  letter-spacing: 0.3px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important; /* Centrado para el switch */
+  text-align: center !important;
+  height: 100%;
+  gap: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+/* Iconos dentro del header */
+.tabla-header i {
+  font-size: 1rem;
+  color: #FFFFFF !important; /* Forzar color blanco para TODOS los iconos del header */
+  opacity: 1 !important; /* Opacidad completa para que se vean bien */
+  flex-shrink: 0; /* Evitar que se compriman */
+}
+
+/* Badge de estado - OPTIMIZADO PARA 6 FILAS */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* Gap normal */
+  padding: 0.25rem 0.75rem; /* Padding normal */
+  border-radius: 20px; /* Radio normal */
+  font-size: 0.8rem; /* Fuente normal */
+  font-weight: 600;
+  text-transform: none;
+}
+
+.estado-badge.activo {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.estado-badge.activo i {
+  color: #22c55e;
+  font-size: 0.8rem; /* Icono normal */
+}
+
+.estado-badge.inactivo {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.estado-badge.inactivo i {
+  color: #ef4444;
+  font-size: 0.8rem; /* Icono normal */
+}
+
+/* Botones de acción - OPTIMIZADOS */
+.btn-accion {
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px; /* Radio normal */
+  padding: 0.5rem; /* Padding normal */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; /* Ancho normal */
+  height: 32px; /* Alto normal */
+  color: #6b7280;
+}
+
+.btn-accion:hover {
+  transform: scale(1.05);
+}
+
+.btn-accion.editar {
+  color: #3b82f6;
+}
+
+.btn-accion.editar:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.btn-accion.eliminar {
+  color: #ef4444;
+}
+
+.btn-accion.eliminar:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* Responsive - adaptar para pantallas pequeñas */
+@media (max-width: 1024px) {
+  .tabla-header,
+  .tabla-fila {
+    grid-template-columns: 1.5fr 1.5fr 1fr 0.8fr 0.8fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .nombre-completo {
+    font-size: 0.9rem;
+  }
+  
+  .contacto-item,
+  .columna-poliza {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .tabla-header,
+  .tabla-fila {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .tabla-fila {
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+  }
+  
+  .columna-nombre,
+  .columna-contacto,
+  .columna-poliza {
+    justify-content: flex-start;
+  }
+  
+  .columna-estado,
+  .columna-acciones {
+    justify-content: flex-start;
+  }
+}
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.pagination-btn {
+  border: none;
+  background: #f8f9fa;
+  color: #6c757d;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.pagination-btn:disabled {
+  background: #f8f9fa;
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Botón "Página 1" - estilo negro como en la imagen */
+.pagination-btn.go-to-first {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  min-width: auto;
+  height: 36px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-right: 10px;
+  padding: 0 12px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pagination-btn.go-to-first:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+.pagination-btn.go-to-first i {
+  font-size: 0.875rem;
+}
+
+.pagination-btn.prev,
+.pagination-btn.next {
+  background: #000000;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.pagination-btn.prev:hover:not(:disabled),
+.pagination-btn.next:hover:not(:disabled) {
+  background: #333333;
+  transform: scale(1.05);
+}
+
+.pagination-btn.prev:disabled,
+.pagination-btn.next:disabled {
+  background: #6c757d;
+  transform: none;
+}
+
+.pagination-info {
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0 0.5rem;
+  white-space: nowrap;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-btn.number {
+  background: transparent;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  min-width: 36px;
+}
+
+.pagination-btn.number:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.pagination-btn.number.active {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  font-weight: 600;
+}
+
+.pagination-btn.number.active:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+/* Estilos para puntos suspensivos en paginación comprimida */
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 1rem;
+  user-select: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+} 
+ / *   E s t i l o   p a r a   e l   i n d i c a d o r   d e   p � � g i n a   a c t u a l   -   c u a d r o   s i m p l e   * /  
+ . p a g i n a t i o n - c u r r e n t - p a g e   {  
+     d i s p l a y :   i n l i n e - f l e x ;  
+     a l i g n - i t e m s :   c e n t e r ;  
+     j u s t i f y - c o n t e n t :   c e n t e r ;  
+     m i n - w i d t h :   4 0 p x ;  
+     h e i g h t :   4 0 p x ;  
+     b a c k g r o u n d :   # 4 f 4 6 e 5 ;  
+     c o l o r :   w h i t e ;  
+     b o r d e r :   2 p x   s o l i d   # 4 f 4 6 e 5 ;  
+     b o r d e r - r a d i u s :   6 p x ;  
+     f o n t - w e i g h t :   6 0 0 ;  
+     f o n t - s i z e :   1 r e m ;  
+     u s e r - s e l e c t :   n o n e ;  
+     b o x - s h a d o w :   0   2 p x   4 p x   r g b a ( 0 ,   0 ,   0 ,   0 . 1 ) ;  
+ }  
+ 

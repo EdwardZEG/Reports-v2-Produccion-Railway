@@ -1,0 +1,814 @@
+/* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
+/* Layout principal del módulo de pólizas */
+.poliza-container {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1px; /* Reducido al mínimo para subir el contenido */
+  align-items: flex-end; /* Alineación a la derecha */
+}
+
+/* ===== ESTILOS DE VALIDACIÓN Y ERRORES ===== */
+/* Estilos para campos con errores de validación */
+.input-error {
+  border: 2px solid red;
+  background-color: #ffe5e5;
+}
+
+/* Mensajes de error debajo de campos */
+.mensaje-error-poliza {
+  color: red;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+/* ===== HEADER LEGACY (COMPATIBILIDAD) ===== */
+/* Header original - mantenido para compatibilidad */
+.header-poliza {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* ===== ESTILOS TABLA LEGACY (VISTA ANTERIOR) ===== */
+/* Contenedor de tabla - sistema anterior mantenido para compatibilidad */
+.tabla-container-poliza {
+  padding: 20px;
+  background-color: #f3f4f6;
+  border-radius: 10px;
+  width: 95%;
+  margin: auto;
+}
+
+/* Tabla principal con bordes redondeados y sombra */
+.tabla-poliza {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+}
+
+/* Header de tabla con fondo gris */
+.tabla-poliza thead {
+  background-color: #e1e1e1;
+}
+
+/* Celdas de encabezado */
+.tabla-poliza th {
+  text-align: left;
+  color: #374151;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* Celdas de datos con overflow controlado */
+.tabla-poliza td {
+  background: white;
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Mostrar '...' si el texto es muy largo */
+  cursor: help;
+}
+
+/* Estilo para filas resaltadas */
+.resaltado td {
+  background-color: #ffe4e6;
+  color: #7f1d1d;
+  font-weight: bold;
+}
+
+/* ===== BOTONES DE ACCIÓN LEGACY ===== */
+/* Botón principal para agregar póliza */
+.btn-agregar-poliza {
+  background-color: #920000;
+  color: white;
+  padding: 10px 15px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+/* Efecto hover para botón agregar */
+.btn-agregar-poliza:hover {
+  background-color: #780808;
+}
+
+/* Contenedor para acciones de fila en tabla */
+.poliza-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Botón de eliminar con borde rojo */
+.btn-eliminar-poliza {
+  background-color: transparent;
+  margin-top: auto;
+  padding: 0.2rem 0.5rem;
+  border: 2px solid #7f1d1d
+}
+
+/* Efecto hover para botón eliminar */
+.btn-eliminar-poliza:hover {
+  background-color: #650c0c;
+  border: 2px solid #650c0c;
+}
+
+/* Icono de eliminar con transición de color */
+.eliminar-icon-poliza {
+  color: #7f1d1d;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+/* Efecto hover para icono eliminar */
+.eliminar-icon-poliza:hover {
+  color: white;
+}
+
+/* Botón de editar con borde verde */
+.btn-editar-poliza {
+  background-color: transparent;
+  border: 2px solid #10b981;
+  margin-top: auto;
+  padding: 0.2rem 0.5rem;
+}
+
+/* Efecto hover para botón editar */
+.btn-editar-poliza:hover {
+  background-color: #047a55;
+  border: 2px solid #047a55;
+}
+
+/* Icono de editar con transición */
+.editar-icon-poliza {
+  color: #10b981;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+/* Efecto hover para icono editar */
+.editar-icon-poliza:hover {
+  color: white;
+}
+
+/* Botón agregar alternativo */
+.agregar {
+  background-color: #3b82f6;
+  margin-bottom: 15px;
+}
+
+.agregar:hover {
+  background-color: #2563eb;
+}
+
+/* ===== MODAL PARA FORMULARIOS ===== */
+/* Contenedor principal del modal con backdrop blur */
+.modal-poliza-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(55, 55, 55, .6);
+  backdrop-filter: blur(2px); /* Efecto de desenfoque del fondo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Contenido principal del modal */
+.modal-content-poliza {
+  background: white;
+  padding: 35px;
+  border-radius: 12px;
+  width: 300px;
+  max-width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Título del modal */
+.modal-content-poliza h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #111827;
+}
+
+/* Etiquetas de campos del formulario */
+.modal-content-poliza label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Inputs del formulario modal */
+.modal-content-poliza input,
+.modal-content-poliza select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+}
+
+/* ===== BOTONES DEL MODAL ===== */
+/* Contenedor de botones del modal */
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Botón guardar con color azul */
+.btn-guardar-poliza {
+  background-color: #4927F5;
+  font-size: 14px;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-guardar-poliza:hover {
+  background-color: #3a1fd1;
+}
+
+/* Botón cancelar con color rojo */
+.btn-cancelar-poliza {
+  background-color: #920000;
+  font-size: 14px;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-cancelar-poliza:hover {
+  background-color: #780808;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+/* Adaptaciones para pantallas móviles */
+@media (max-width: 768px) {
+  .tabla-container-poliza {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .poliza-container {
+    overflow: hidden;
+  }
+
+  .poliza-acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+
+/* ===== NUEVA VISTA PREVIA DE PÓLIZAS (SISTEMA DE CARDS) ===== */
+/* Sección principal que reemplaza el sistema de tabla */
+
+/* Contenedor principal de la vista previa con diseño neomórfico */
+.preview-section-poliza {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem; /* Margen uniforme en las 4 direcciones */
+  box-shadow: 
+    4px 4px 12px rgba(0, 0, 0, 0.06),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.02); /* Efecto neomórfico sutil */
+  border: none;
+  width: 100%; /* Usa el ancho disponible del contenedor padre */
+  max-width: 100%;
+  margin: 0; /* Sin márgenes externos para evitar desbordamientos */
+  min-height: 0;
+  overflow: visible; /* Cambiar a visible para mostrar paginación */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: calc(100vh - 140px); /* Altura aumentada para mostrar más cards */
+}
+
+/* ===== HEADER DE LA SECCIÓN ===== */
+/* Header principal con título, búsqueda y botón registrar */
+.section-header-poliza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000000; /* Línea negra como separador visual */
+}
+
+/* Título con icono */
+.section-title-poliza {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #111827;
+}
+
+/* Icono del título (pólizas) */
+.section-title-poliza i {
+  color: #000000; /* Negro como en Vista Previa */
+  font-size: 1.5rem; /* Mismo tamaño que Vista Previa */
+}
+
+/* Título principal */
+.section-title-poliza h3 {
+  color: #3A0707; /* Mismo color que Vista Previa */
+  font-weight: 700; /* Misma negritas que Vista Previa */
+  font-size: 1.4rem; /* Mismo tamaño que Vista Previa */
+  margin: 0;
+  font-family: 'Open Sans', sans-serif; /* Misma tipografía */
+}
+
+/* ===== CONTROLES DE LA SECCIÓN ===== */
+/* Contenedor de controles (búsqueda y botón registrar) */
+.section-controls-poliza {
+  display: flex;
+  align-items: center; /* Centrado vertical perfecto */
+  gap: 1rem;
+  height: 40px; /* Altura fija igual a la barra de búsqueda */
+}
+
+/* ===== SISTEMA DE BÚSQUEDA ===== */
+/* Contenedor principal de la barra de búsqueda con efecto neomórfico */
+.search-container-poliza {
+  position: relative;
+  background: #f8f9fa;
+  border-radius: 25px;
+  box-shadow: 
+    inset 2px 2px 6px rgba(0, 0, 0, 0.08),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.9); /* Efecto hundido neomórfico */
+  border: 1px solid #e9ecef;
+  height: 40px;
+  width: 300px;
+  display: flex;
+  align-items: center;
+}
+
+/* Estado focus de la barra de búsqueda */
+.search-container-poliza:focus-within {
+  box-shadow: 
+    inset 3px 3px 8px rgba(0, 0, 0, 0.12),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.95);
+}
+
+/* Input de búsqueda */
+.search-input-poliza {
+  border: none;
+  background: transparent;
+  outline: none;
+  padding-left: 20px;
+  padding-right: 55px; /* Más espacio para el círculo de 42px */
+  font-size: 0.9rem;
+  color: #495057;
+  width: 100%;
+  height: 100%;
+  font-family: 'Open Sans', sans-serif;
+  border-radius: 25px;
+}
+
+/* Placeholder del input de búsqueda */
+.search-input-poliza::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+/* ===== BOTÓN DE BÚSQUEDA ===== */
+/* Botón circular con efecto 3D y posicionamiento perfecto */
+.search-button-poliza {
+  position: absolute;
+  right: 0px; /* Toca completamente el final de la barra */
+  top: 50%; /* Centrado verticalmente */
+  transform: translateY(-50%); /* Centrado perfecto */
+  background: linear-gradient(145deg, #333333, #000000) !important; /* Gradiente para efecto 3D */
+  color: white !important;
+  border: 2px solid #ffffff !important; /* Borde blanco */
+  width: 42px !important; /* Más grande */
+  height: 42px !important; /* Más grande */
+  min-width: 42px !important;
+  min-height: 42px !important;
+  max-width: 42px !important;
+  max-height: 42px !important;
+  border-radius: 50% !important; /* Círculo perfecto */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  font-size: 15px !important; /* Ícono un poco más grande también */
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  margin-right: -1px !important; /* Ajustado para que toque el borde */
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3) !important; /* Sombras 3D */
+  transition: all 0.2s ease !important;
+}
+
+/* Icono del botón de búsqueda con efectos visuales y transición suave */
+.search-button-poliza i {
+  font-size: 15px !important; /* Ícono un poco más grande */
+  line-height: 1 !important;
+  width: auto !important;
+  height: auto !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important; /* Sombra del ícono */
+  transition: all 0.2s ease !important; /* Transición suave para cambio de icono */
+}
+
+/* Efecto hover del botón de búsqueda */
+.search-button-poliza:hover {
+  background: linear-gradient(145deg, #555555, #222222) !important; /* Gradiente más claro en hover */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en hover */
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4) !important; /* Sombras más pronunciadas en hover */
+  transform: translateY(-50%) translateY(-1px) !important; /* Elevación sutil */
+}
+
+/* Efecto active del botón de búsqueda */
+.search-button-poliza:active {
+  background: linear-gradient(145deg, #000000, #333333) !important; /* Gradiente invertido en active */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en active */
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important; /* Efecto hundido */
+  transform: translateY(-50%) scale(0.98) !important; /* Presión */
+}
+
+/* ===== BOTÓN REGISTRAR ===== */
+/* Botón principal para crear nueva póliza - alineado con barra de búsqueda */
+.btn-registrar-poliza {
+  background: #4927F5;
+  border: none;
+  border-radius: 50px; /* Misma forma redondeada que la barra */
+  color: white;
+  padding: 0 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.2),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(73, 39, 245, 0.3); /* Efectos neomórficos */
+  font-family: 'Open Sans', sans-serif;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  height: 40px !important; /* Exactamente la misma altura que la barra */
+  min-width: 120px; /* Comprimido pero suficiente para el texto */
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Borde sutil como la barra */
+  margin: 0 !important; /* Sin márgenes que desalineen */
+  flex-shrink: 0; /* No se comprime */
+}
+
+/* Efecto hover del botón registrar */
+.btn-registrar-poliza:hover {
+  background: #3a1fd1;
+  transform: translateY(-1px);
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.3),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 3px 8px rgba(73, 39, 245, 0.4);
+}
+
+/* Efecto active del botón registrar */
+.btn-registrar-poliza:active {
+  transform: translateY(0);
+  box-shadow: 
+    inset 3px 3px 7px rgba(0, 0, 0, 0.15),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.2),
+    0 1px 3px rgba(73, 39, 245, 0.3);
+}
+
+/* Icono del botón registrar */
+.btn-registrar-poliza i {
+  font-size: 1rem;
+  color: white;
+  margin: 0 !important; /* Sin márgenes en el ícono */
+}
+
+/* ===== CONTENEDOR DE CARDS ===== */
+/* Contenedor principal donde se renderizan las cards de pólizas */
+.preview-container-poliza {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  flex: 1; /* Ocupa el espacio restante */
+  border: none;
+  transition: all 0.3s ease;
+  overflow: hidden; /* Evita desbordamientos */
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== INDICADOR DE RESULTADOS DE BÚSQUEDA ===== */
+/* Banda informativa que muestra estadísticas de búsqueda */
+.search-results-indicator {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  margin: 1rem 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Icono del indicador de resultados */
+.search-results-indicator i {
+  font-size: 1rem;
+}
+
+/* Mensaje cuando no hay resultados */
+.search-results-indicator .no-results {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  margin-left: auto;
+  color: #ef4444;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.agregar {
+  background-color: #3b82f6;
+  margin-bottom: 15px;
+}
+
+.agregar:hover {
+  background-color: #2563eb;
+}
+
+.modal-poliza-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(55, 55, 55, .6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 35px;
+  border-radius: 12px;
+  width: 300px;
+  max-width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #111827;
+}
+
+.modal-content label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  padding: 12px
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-guardar {
+  background-color: #4927F5;
+  font-size: 14px;
+}
+
+.btn-guardar:hover {
+  background-color: #3a1fd1;
+}
+
+.btn-cancelar {
+  background-color: #920000;
+  font-size: 14px;
+}
+
+.btn-cancelar:hover {
+  background-color: #780808;
+}
+
+@media (max-width: 768px) {
+  .tabla-container {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .polizas-container {
+    overflow: hidden;
+  }
+
+  .polizas-acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+
+/* ===== ESTILOS DE PAGINACIÓN ===== */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.pagination-btn {
+  border: none;
+  background: #f8f9fa;
+  color: #6c757d;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.pagination-btn:disabled {
+  background: #f8f9fa;
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Botón "Página 1" - estilo negro como en la imagen */
+.pagination-btn.go-to-first {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  min-width: auto;
+  height: 36px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-right: 10px;
+  padding: 0 12px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pagination-btn.go-to-first:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+.pagination-btn.go-to-first i {
+  font-size: 0.875rem;
+}
+
+.pagination-btn.prev,
+.pagination-btn.next {
+  background: #000000;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.pagination-btn.prev:hover:not(:disabled),
+.pagination-btn.next:hover:not(:disabled) {
+  background: #333333;
+  transform: scale(1.05);
+}
+
+.pagination-btn.prev:disabled,
+.pagination-btn.next:disabled {
+  background: #6c757d;
+  transform: none;
+}
+
+.pagination-info {
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0 0.5rem;
+  white-space: nowrap;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-btn.number {
+  background: transparent;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  min-width: 36px;
+}
+
+.pagination-btn.number:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.pagination-btn.number.active {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  font-weight: 600;
+}
+
+.pagination-btn.number.active:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+/* Estilos para puntos suspensivos en paginación comprimida */
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 1rem;
+  user-select: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+}

@@ -1,0 +1,112 @@
+:root {
+  --sidebar-bg: #f8f8f8;
+  --sidebar-border: #ddd;
+  --sidebar-hover: #eee;
+  --sidebar-active: #920000;
+  --sidebar-text: #000000; /* Cambio: Color negro para mejor legibilidad del texto del sidebar */
+}
+
+.sidebar {
+  position: fixed;
+  top: 40px; /* altura del navbar */
+  left: 0;
+  width: clamp(60px, 20vw, 200px); /* ancho adaptable */
+  height: calc(100vh - 60px); /* ocupa todo excepto el navbar */
+  background-color: var(--sidebar-bg, #fff);
+  border-right: 1px solid var(--sidebar-border, #ddd);
+  padding-top: 20px;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+  z-index: 999;
+}
+
+.sidebar .sidebar-item-text {
+  display: inline-block;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar__menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar__item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: #000000; /* Cambio: Texto negro para items del sidebar (mayor contraste y legibilidad) */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.sidebar__item:hover {
+  background-color: var(--sidebar-hover);
+}
+
+.sidebar__item--icon {
+  margin-right: 12px;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.sidebar__item--active {
+  background-color: var(--sidebar-active);
+  color: white;
+}
+
+.sidebar__item--active:hover {
+  background-color: var(--sidebar-active);
+  color: white;
+}
+
+.sidebar__item span {
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar--collapsed {
+  width: 60px;
+}
+
+.sidebar--collapsed .sidebar__item {
+  justify-content: center;
+  padding: 12px 10px;
+}
+
+.sidebar--collapsed .sidebar__item--icon {
+  margin-right: 0;
+}
+
+.sidebar--collapsed .sidebar__item span {
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+}
+
+/* Responsive: colapsar automáticamente en pantallas pequeñas */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px;
+  }
+
+  .sidebar .sidebar-item-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+  }
+
+  .sidebar .sidebar__item {
+    justify-content: center;
+    padding: 12px 10px;
+  }
+
+  .sidebar .sidebar__item span {
+    display: none;
+  }
+
+  .sidebar .sidebar__item--icon {
+    margin-right: 0;
+  }
+}

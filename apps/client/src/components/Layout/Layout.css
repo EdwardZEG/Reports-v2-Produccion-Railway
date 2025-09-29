@@ -1,0 +1,29 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 97vh;
+  background: linear-gradient(to bottom right, #f2f2f2, #e6e6e6);
+}
+
+.layout__body {
+  flex: 1;
+}
+
+.layout__content {
+  flex: 1;
+  margin-left: clamp(60px, 20vw, 200px);
+  padding: 20px;
+  background: linear-gradient(to bottom right, #f2f2f2, #e6e6e6);
+}
+
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .layout__content {
+    margin-left: 60px;
+  }
+
+  .layout__content {
+    max-height: unset;
+  }
+}

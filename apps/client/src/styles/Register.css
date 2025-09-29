@@ -1,0 +1,72 @@
+/* ================================
+   REGISTRO CSS - ESTILOS ESPECÍFICOS PARA LA PÁGINA DE REGISTRO
+   ================================ 
+   
+   Este archivo contiene estilos específicos para la página de registro.
+   Reutiliza la mayoría de clases del sistema de diseño de login.css
+   para mantener consistencia visual en toda la aplicación.
+   
+   Estrategia de diseño:
+   - Herencia de estilos base de login.css
+   - Personalización mínima para elementos específicos
+   - Optimización FOUC (Flash of Unstyled Content)
+   - Consistencia en la experiencia de usuario
+   
+   Nota: Las fuentes ya están importadas en login.css
+*/
+
+/* ================================
+   PREVENCIÓN DE FOUC (Flash of Unstyled Content)
+   ================================ 
+   Los elementos se ocultan inicialmente hasta que los recursos estén listos
+   Esto asegura una carga visual suave sin parpadeos de contenido sin estilo
+   El background se maneja desde DVDContext para evitar conflictos
+*/
+.login-container {
+    visibility: hidden; /* Oculto hasta que useResourcesReady determine que está listo */
+}
+
+.login-container.ready {
+    visibility: visible; /* Visible cuando los recursos críticos están cargados */
+}
+
+/* ================================
+   SECCIÓN DE ENLACE AL LOGIN
+   ================================ 
+   Estilos específicos para la sección que redirige a la página de login
+   Ubicada al final del formulario de registro
+*/
+
+/* Contenedor principal de la sección de enlace */
+.register-section {
+    text-align: center;
+    margin-top: 24px;
+    font-family: 'Open Sans', sans-serif;
+}
+
+/* Texto informativo "¿Ya tienes cuenta?" */
+.register-text {
+    color: #887a7a; /* Color gris medio para texto secundario */
+    font-size: 15px;
+    font-weight: 400;
+    margin-right: 6px; /* Separación del enlace */
+    font-family: 'Open Sans', sans-serif !important;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.6); /* Sombra sutil para legibilidad */
+}
+
+/* Enlace clicable "Inicia sesión aquí" */
+.register-link {
+    color: #625757; /* Color principal del tema */
+    font-size: 15px;
+    font-weight: 600; /* Peso mayor para destacar la acción */
+    text-decoration: none; /* Sin subrayado por defecto */
+    font-family: 'Open Sans', sans-serif !important;
+    transition: all 0.3s ease; /* Transición suave para efectos hover */
+}
+
+/* Estado hover del enlace con feedback visual */
+.register-link:hover {
+    color: #3e3737; /* Color más oscuro al hacer hover */
+    text-decoration: underline; /* Subrayado para indicar interactividad */
+}
+  

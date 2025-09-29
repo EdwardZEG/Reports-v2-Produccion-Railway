@@ -1,0 +1,604 @@
+/* ===== PREVIEW ESPECIALIDAD - SISTEMA DE CARDS BASADO EN PREVIEWDOC ===== */
+/* Sistema de vista previa completamente rediseñado para mostrar especialidades como cards */
+
+/* Importa la fuente principal de la aplicación */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap');
+
+/* ===== CONTENEDOR PRINCIPAL DE VISTA PREVIA ===== */
+/* Contenedor base para la vista previa de especialidades con layout moderno */
+.preview-especialidad {
+  background: transparent; /* Fondo transparente para integración con contenedor padre */
+  border: none; /* Sin bordes para apariencia limpia */
+  border-radius: 0; /* Sin bordes redondeados en el contenedor principal */
+  padding: 0; /* Sin padding interno para aprovechamiento máximo del espacio */
+  box-shadow: none; /* Sin sombra para integración visual */
+  width: 100%; /* Ocupa todo el ancho disponible del contenedor padre */
+  height: 100%; /* Ocupa toda la altura disponible del contenedor padre */
+  font-family: 'Open Sans', sans-serif; /* Tipografía consistente con la aplicación */
+  overflow: hidden; /* Evita desbordamientos horizontales */
+  box-sizing: border-box;
+}
+
+/* Título principal ocultado - ahora se maneja desde el header de la sección */
+.preview-especialidad__titulo {
+  display: none; /* El título ahora está en el header de la sección padre */
+}
+
+/* ===== CONTENEDOR DE TABLA/GRID ===== */
+/* Wrapper principal que contiene el grid de cards con scroll optimizado */
+.preview-especialidad__tabla-wrapper {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 0;
+  height: 100%;
+  overflow: auto; /* Scroll cuando sea necesario */
+  border: 2px solid #000000; /* Borde negro distintivo */
+  box-shadow: 
+    inset 1px 1px 4px rgba(0, 0, 0, 0.03),
+    0 2px 6px rgba(0, 0, 0, 0.08); /* Sombras sutiles para profundidad */
+  scrollbar-width: thin;
+  scrollbar-color: #000000 #f0f0f0; /* Scrollbar negro para consistencia visual */
+}
+
+/* ===== ESTILOS DE SCROLLBAR WEBKIT ===== */
+/* Personalización del scrollbar para navegadores webkit (Chrome, Safari, Edge) */
+.preview-especialidad__tabla-wrapper::-webkit-scrollbar {
+  width: 8px; /* Ancho del scrollbar */
+}
+
+/* Track del scrollbar */
+.preview-especialidad__tabla-wrapper::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+/* Thumb del scrollbar */
+.preview-especialidad__tabla-wrapper::-webkit-scrollbar-thumb {
+  background: #000000; /* Negro para consistencia con el diseño */
+  border-radius: 4px;
+}
+
+/* Thumb del scrollbar en hover */
+.preview-especialidad__tabla-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #333333; /* Gris oscuro en hover */
+}
+
+/* Estado del wrapper cuando tiene contenido */
+.preview-especialidad__tabla-wrapper:has(.preview-especialidad__tabla tr:not(:first-child)) {
+  border-color: #000000; /* Borde negro cuando hay datos */
+  background: #FFFFFF; /* Fondo blanco sólido */
+}
+
+/* ===== CONTENEDOR PRINCIPAL CON AJUSTE A PANTALLA ===== */
+/* Redefinición del contenedor principal para mejor control de layout */
+.preview-especialidad {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  width: 100%; /* Ancho del contenedor padre */
+  max-width: 100%;
+  margin: 0; /* Sin márgenes para evitar desbordamientos */
+  font-family: 'Open Sans', sans-serif;
+  overflow: hidden; /* Evita desbordamientos horizontales */
+  box-sizing: border-box;
+}
+
+/* ===== WRAPPER PRINCIPAL ===== */
+/* Contenedor que aloja el grid de cards con scroll optimizado */
+.preview-especialidad__wrapper {
+  background: #FFFFFF;
+  border-radius: 8px;
+  height: 100%; /* Usa toda la altura del contenedor padre */
+  overflow: auto; /* Scroll vertical cuando sea necesario */
+  border: none; /* Sin borde para apariencia más limpia */
+  box-shadow: 
+    inset 1px 1px 4px rgba(0, 0, 0, 0.03),
+    0 2px 6px rgba(0, 0, 0, 0.08);
+  scrollbar-width: thin;
+  scrollbar-color: #000000 #f0f0f0;
+  padding: 1rem; /* Margen interno uniforme para las cards */
+  margin: 0; /* Sin márgenes externos */
+  box-sizing: border-box;
+}
+
+/* ===== SCROLLBAR PERSONALIZADO PARA WRAPPER ===== */
+/* Mismos estilos de scrollbar aplicados al wrapper principal */
+.preview-especialidad__wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.preview-especialidad__wrapper::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.preview-especialidad__wrapper::-webkit-scrollbar-thumb {
+  background: #000000;
+  border-radius: 4px;
+}
+
+.preview-especialidad__wrapper::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}
+
+/* ===== GRID DE CARDS - LAYOUT DE 2 COLUMNAS ===== */
+/* Sistema de grid CSS para distribución uniforme de cards */
+.preview-especialidad__cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 columnas de igual ancho */
+  gap: 1.5rem; /* Espaciado uniforme entre cards */
+  padding: 0.5rem;
+  grid-auto-rows: 1fr; /* Todas las filas tienen la misma altura para uniformidad */
+}
+
+/* ===== CARDS INDIVIDUALES ===== */
+/* Tarjetas rectangulares con tamaño fijo y diseño uniforme */
+.preview-especialidad__card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.07),
+    0 1px 3px rgba(0, 0, 0, 0.06); /* Sombras sutiles para profundidad */
+  transition: all 0.3s ease; /* Transiciones suaves para interacciones */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ocupa toda la altura disponible del grid */
+  min-height: 350px; /* Altura mínima uniforme para todas las cards */
+}
+
+/* Efecto hover para las cards */
+.preview-especialidad__card:hover {
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.12),
+    0 3px 6px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  border-color: #d1d5db;
+}
+
+/* Card resaltada */
+.preview-especialidad__card.resaltado {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #fca5a5;
+  box-shadow: 
+    0 4px 12px rgba(220, 38, 38, 0.15),
+    0 1px 4px rgba(220, 38, 38, 0.1);
+}
+
+.preview-especialidad__card.resaltado:hover {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-color: #f87171;
+  box-shadow: 
+    0 8px 25px rgba(220, 38, 38, 0.2),
+    0 3px 8px rgba(220, 38, 38, 0.15);
+}
+
+/* =================================
+   HEADER DE CADA CARD CON ICONO
+   ================================= */
+.preview-especialidad__card-header {
+  background: #000000; /* Fondo completamente negro */
+  color: #FFFFFF;
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #333333;
+  flex-shrink: 0; /* No se comprime */
+}
+
+.preview-especialidad__card-title-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  margin-right: 1rem;
+}
+
+.preview-especialidad__card-icon {
+  font-size: 1.5rem;
+  color: #FFFFFF; /* Iconos blancos como solicitaste */
+  flex-shrink: 0;
+}
+
+.preview-especialidad__card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #FFFFFF;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.preview-especialidad__card-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-editar-card,
+.btn-eliminar-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  padding: 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.btn-editar-card:hover {
+  background: #383BE9;
+  border-color: #383BE9;
+  transform: scale(1.05);
+}
+
+.btn-eliminar-card:hover {
+  background: #E9383B;
+  border-color: #E9383B;
+  transform: scale(1.05);
+}
+
+/* =================================
+   CONTENIDO DE CADA CARD
+   ================================= */
+.preview-especialidad__card-content {
+  padding: 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* =================================
+   SECCIÓN DE DESCRIPCIÓN (SIEMPRE VISIBLE)
+   ================================= */
+.preview-especialidad__description-section {
+  margin-bottom: 1rem;
+  padding-top: 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.preview-especialidad__descripcion {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #4b5563;
+  margin: 0;
+  text-align: justify;
+  margin-left: 0; /* Sin margen izquierdo para la descripción */
+  padding: 0; /* Sin padding adicional */
+}
+
+/* Removido contenido expandible - ya no es necesario */
+
+/* =================================
+   SECCIONES DENTRO DEL CONTENIDO
+   ================================= */
+.preview-especialidad__section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.preview-especialidad__section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.preview-especialidad__section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preview-especialidad__section-header i {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.preview-especialidad__section-content {
+  margin-left: 0; /* Mismo margen que la descripción */
+}
+
+/* =================================
+   CONTENIDO ESPECÍFICO DE SECCIONES
+   ================================= */
+
+/* Pólizas */
+.preview-especialidad__polizas {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Estado de plantilla */
+.preview-especialidad__plantilla-status {
+  display: flex;
+  align-items: center;
+}
+
+.preview-especialidad__status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.preview-especialidad__status-badge.activo {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border-color: #059669;
+}
+
+.preview-especialidad__status-badge.inactivo {
+  background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%);
+  color: #991b1b;
+  border-color: #dc2626;
+}
+
+/* =================================
+   ESTADO VACÍO
+   ================================= */
+.preview-especialidad__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #A0A0A0;
+  font-style: italic;
+  gap: 0.75rem;
+  grid-column: 1 / -1; /* Ocupa todas las columnas */
+}
+
+.preview-especialidad__empty-state i {
+  font-size: 2.5rem;
+  color: #000000;
+}
+
+.preview-especialidad__empty-state p {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Animación de carga */
+.loading-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* =================================
+   RESPONSIVE DESIGN
+   ================================= */
+
+/* Tablets grandes */
+@media (max-width: 1200px) {
+  .preview-especialidad__cards-grid {
+    gap: 1.25rem;
+  }
+  
+  .preview-especialidad__card {
+    min-height: 260px;
+  }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .preview-especialidad__wrapper {
+    margin: 0.75rem 0;
+    padding: 0.75rem;
+  }
+  
+  .preview-especialidad__cards-grid {
+    grid-template-columns: 1fr; /* Una sola columna en tablets */
+    gap: 1rem;
+    padding: 0.25rem;
+  }
+  
+  .preview-especialidad__card {
+    min-height: 240px;
+  }
+  
+  .preview-especialidad__card-header {
+    padding: 0.875rem 1rem;
+  }
+  
+  .preview-especialidad__card-title {
+    font-size: 1rem;
+  }
+  
+  .preview-especialidad__card-content {
+    padding: 1rem;
+    gap: 0.875rem;
+  }
+}
+
+/* Móviles */
+@media (max-width: 480px) {
+  .preview-especialidad__wrapper {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+  }
+  
+  .preview-especialidad__cards-grid {
+    gap: 0.75rem;
+    padding: 0;
+  }
+  
+  .preview-especialidad__card {
+    min-height: 220px;
+  }
+  
+  .preview-especialidad__card-header {
+    padding: 0.75rem;
+  }
+  
+  .preview-especialidad__card-title {
+    font-size: 0.95rem;
+  }
+  
+  .preview-especialidad__card-content {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .preview-especialidad__section-header {
+    font-size: 0.8rem;
+  }
+  
+  .preview-especialidad__descripcion {
+    font-size: 0.875rem;
+  }
+  
+  .preview-especialidad__polizas {
+    font-size: 0.85rem;
+  }
+  
+  .btn-editar-card,
+  .btn-eliminar-card {
+    padding: 0.3rem;
+  }
+}
+
+/* =================================
+   ESTADO VACÍO
+   ================================= */
+.preview-especialidad__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #A0A0A0;
+  font-style: italic;
+  gap: 0.75rem;
+}
+
+.preview-especialidad__empty-state i {
+  font-size: 2.5rem;
+  color: #000000; /* Negro como en la imagen */
+}
+
+.preview-especialidad__empty-state p {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Animación de carga */
+.loading-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* =================================
+   RESPONSIVE DESIGN
+   ================================= */
+@media (max-width: 1024px) {
+  .preview-especialidad__tabla {
+    min-width: 700px;
+  }
+  
+  .preview-especialidad__tabla th,
+  .preview-especialidad__tabla td {
+    padding: 0.75rem 0.5rem;
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .preview-especialidad__tabla-wrapper {
+    padding: 0.75rem 0.75rem 3rem 0.75rem;
+    max-height: calc(100vh - 160px);
+  }
+  
+  .preview-especialidad__tabla {
+    min-width: 600px;
+  }
+  
+  .preview-especialidad__tabla th,
+  .preview-especialidad__tabla td {
+    padding: 0.6rem 0.4rem;
+    min-width: 100px;
+    font-size: 0.8rem;
+  }
+  
+  .preview-especialidad__tabla td:first-child {
+    min-width: 140px;
+    max-width: 180px;
+    padding: 1rem 0.75rem;
+  }
+  
+  .preview-especialidad__acciones {
+    gap: 0.3rem;
+  }
+  
+  .btn-editar-preview,
+  .btn-eliminar-preview {
+    padding: 0.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .preview-especialidad__tabla-wrapper {
+    padding: 0.5rem;
+    max-height: 350px;
+  }
+  
+  .preview-especialidad__tabla th {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.3rem;
+  }
+  
+  .preview-especialidad__tabla td {
+    padding: 0.5rem 0.3rem;
+    font-size: 0.75rem;
+  }
+  
+  .preview-especialidad__tabla td:first-child {
+    min-width: 100px;
+    max-width: 130px;
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .preview-especialidad__acciones {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  
+  .btn-editar-preview,
+  .btn-eliminar-preview {
+    padding: 0.25rem;
+  }
+}
