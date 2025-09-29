@@ -59,7 +59,8 @@ const SubirReporte: React.FC = () => {
         const fetchDeviceData = async () => {
           try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:4000/api/device-catalog/${deviceInfo.deviceId}`, {
+            const apiUrl = import.meta.env.PROD ? '/api' : 'http://localhost:4000/api';
+            const response = await fetch(`${apiUrl}/device-catalog/${deviceInfo.deviceId}`, {
               headers: {
                 Authorization: token ? `Bearer ${token}` : '',
               },

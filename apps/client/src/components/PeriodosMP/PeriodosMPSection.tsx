@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { jwtDecode } from 'jwt-decode';
 import { formatDateRangeUTC, formatDateUTC, inputDateToUTC } from '../../utils/dateUtils';
+import { getBaseApiUrl } from '../../utils/apiUrl';
 import './PeriodosMPSection.css';
 
 interface Colaborador {
@@ -110,7 +111,8 @@ const PeriodosMPSection: React.FC = () => {
   const fetchPeriodos = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/api/periodos-mp?coordinador=${coordinadorId}`, {
+      const apiUrl = import.meta.env.PROD ? '/api' : 'http://localhost:4000/api';
+      const response = await fetch(`${apiUrl}/periodos-mp?coordinador=${coordinadorId}`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : '',
         },
@@ -138,7 +140,8 @@ const PeriodosMPSection: React.FC = () => {
   const fetchColaboradores = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:4000/api/colaboradores', {
+      const apiUrl = import.meta.env.PROD ? '/api' : 'http://localhost:4000/api';
+      const response = await fetch(`${apiUrl}/colaboradores`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : '',
         },
@@ -171,7 +174,8 @@ const PeriodosMPSection: React.FC = () => {
 
   const fetchDispositivos = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/all-catalog-devices');
+      const apiUrl = import.meta.env.PROD ? '/api' : 'http://localhost:4000/api';
+      const response = await fetch(`${apiUrl}/all-catalog-devices`);
 
       if (response.ok) {
         const data = await response.json();

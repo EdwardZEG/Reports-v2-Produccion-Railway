@@ -105,7 +105,8 @@ const DispositivosAsignadosSection: React.FC = () => {
       const token = localStorage.getItem('token');
       console.log('🔑 Token disponible:', !!token);
 
-      const url = `http://localhost:4000/api/periodos-mp/colaborador/${colaboradorId}/all-devices`;
+      const apiUrl = import.meta.env.PROD ? '/api' : 'http://localhost:4000/api';
+      const url = `${apiUrl}/periodos-mp/colaborador/${colaboradorId}/all-devices`;
       console.log('📡 Llamando a:', url);
 
       const response = await fetch(url, {
