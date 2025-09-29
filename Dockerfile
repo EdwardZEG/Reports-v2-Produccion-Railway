@@ -1,5 +1,5 @@
-# Dockerfile optimizado para Railway
-FROM node:18-alpine AS base
+# Dockerfile simplificado para Railway - Single stage
+FROM node:18-alpine
 
 # Instalar pnpm globalmente
 RUN npm install -g pnpm@9.0.0
@@ -20,24 +20,12 @@ RUN pnpm install --frozen-lockfile
 # Build completo con turbo
 RUN pnpm run build
 
-# Etapa de producción simplificada
-FROM node:18-alpine AS production
-
-RUN npm install -g pnpm@9.0.0
-
-WORKDIR /app
-
-# Copiar todo lo necesario desde la etapa de build
-COPY --from=base /app/apps/server/dist ./dist
-COPY --from=base /app/apps/client/dist ./public
-COPY --from=base /app/apps/server/package.json ./package.json
-COPY --from=base /app/node_modules ./node_modules
-
 # Crear directorio temporal para archivos
 RUN mkdir -p temp
 
 # Exponer puerto
 EXPOSE $PORT
 
-# Comando de inicio
+# Comando de inicio - ejecutar desde el directorio del servidor
+WORKDIR /app/apps/server
 CMD ["node", "dist/index.js"]

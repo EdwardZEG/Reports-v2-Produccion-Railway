@@ -307,21 +307,19 @@ app.use('/api/migration', migrationRoutes);
 
 // Servir archivos estáticos del cliente React en producción
 if (process.env.NODE_ENV === 'production') {
-  // Servir archivos estáticos del build del cliente
-  app.use(express.static(path.join(__dirname, '../public')));
-
+  // Servir archivos estáticos del build del cliente (desde la estructura del monorepo)
+  app.use(express.static(path.join(__dirname, '../../client/dist')));
+  
   // Catch all handler: enviar el index.html para todas las rutas no-API
   app.get('*', (req: Request, res: Response) => {
     // Si la ruta no es una API, servir el index.html para React Router
     if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(__dirname, '../public/index.html'));
+      res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
     } else {
       res.status(404).json({ message: 'API endpoint not found' });
     }
   });
-}
-
-connectDB();
+}connectDB();
 
 app.use(errorHandler);
 
