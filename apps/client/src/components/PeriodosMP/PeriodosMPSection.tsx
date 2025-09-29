@@ -377,7 +377,7 @@ const PeriodosMPSection: React.FC = () => {
       if (editingAssignment) {
         const assignment = deviceAssignments[0]; // Solo hay una asignación en modo edición
 
-        const response = await fetch(`http://localhost:4000/api/periodos-mp/${periodoId}/devices/${editingAssignment.deviceId}/collaborator`, {
+        const response = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoId}/devices/${editingAssignment.deviceId}/collaborator`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -421,7 +421,7 @@ const PeriodosMPSection: React.FC = () => {
 
         console.log('📋 Enviando asignaciones procesadas:', requestBody);
 
-        const response = await fetch(`http://localhost:4000/api/periodos-mp/${periodoId}/assign-devices`, {
+        const response = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoId}/assign-devices`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -486,7 +486,7 @@ const PeriodosMPSection: React.FC = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/api/periodos-mp/${periodoId}`, {
+      const response = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoId}`, {
         method: 'DELETE',
         headers: {
           Authorization: token ? `Bearer ${token}` : '',
@@ -542,7 +542,7 @@ const PeriodosMPSection: React.FC = () => {
       const token = localStorage.getItem('token');
 
       const response = await fetch(
-        `http://localhost:4000/api/periodos-mp/${periodoId}/dispositivos/${deviceCatalogId}/${colaboradorId}`,
+        `${getBaseApiUrl()}/periodos-mp/${periodoId}/dispositivos/${deviceCatalogId}/${colaboradorId}`,
         {
           method: 'DELETE',
           headers: {
@@ -590,7 +590,7 @@ const PeriodosMPSection: React.FC = () => {
       const token = localStorage.getItem('token');
 
       const response = await fetch(
-        `http://localhost:4000/api/periodos-mp/${periodoId}/dispositivos/${deviceCatalogId}/multiple`,
+        `${getBaseApiUrl()}/periodos-mp/${periodoId}/dispositivos/${deviceCatalogId}/multiple`,
         {
           method: 'DELETE',
           headers: {
@@ -685,7 +685,7 @@ const PeriodosMPSection: React.FC = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/api/periodos-mp/${periodoId}/force`, {
+      const response = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoId}/force`, {
         method: 'DELETE',
         headers: {
           Authorization: token ? `Bearer ${token}` : '',
@@ -720,7 +720,7 @@ const PeriodosMPSection: React.FC = () => {
 
       console.log('🗑️ Eliminando reporte:', { periodoId, deviceId, deviceIdentifier });
 
-      const response = await fetch(`http://localhost:4000/api/device-reports/periodo/${periodoId}/device/${deviceId}`, {
+      const response = await fetch(`${getBaseApiUrl()}/device-reports/periodo/${periodoId}/device/${deviceId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
