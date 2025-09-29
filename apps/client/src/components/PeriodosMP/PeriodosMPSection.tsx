@@ -111,8 +111,7 @@ const PeriodosMPSection: React.FC = () => {
   const fetchPeriodos = async () => {
     try {
       const token = localStorage.getItem('token');
-      const apiUrl = import.meta.env.PROD ? '/api' : 'http://localhost:4000/api';
-      const response = await fetch(`${apiUrl}/periodos-mp?coordinador=${coordinadorId}`, {
+      const response = await fetch(`${getBaseApiUrl()}/periodos-mp?coordinador=${coordinadorId}`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : '',
         },
@@ -140,8 +139,7 @@ const PeriodosMPSection: React.FC = () => {
   const fetchColaboradores = async () => {
     try {
       const token = localStorage.getItem('token');
-      const apiUrl = import.meta.env.PROD ? '/api' : 'http://localhost:4000/api';
-      const response = await fetch(`${apiUrl}/colaboradores`, {
+      const response = await fetch(`${getBaseApiUrl()}/colaboradores`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : '',
         },
@@ -174,8 +172,7 @@ const PeriodosMPSection: React.FC = () => {
 
   const fetchDispositivos = async () => {
     try {
-      const apiUrl = import.meta.env.PROD ? '/api' : 'http://localhost:4000/api';
-      const response = await fetch(`${apiUrl}/all-catalog-devices`);
+      const response = await fetch(`${getBaseApiUrl()}/all-catalog-devices`);
 
       if (response.ok) {
         const data = await response.json();
@@ -301,8 +298,8 @@ const PeriodosMPSection: React.FC = () => {
       // Determinar endpoint y método según el modo
       const isEditing = isEditMode && editingPeriodoId;
       const url = isEditing
-        ? `http://localhost:4000/api/periodos-mp/${editingPeriodoId}`
-        : 'http://localhost:4000/api/periodos-mp';
+        ? `${getBaseApiUrl()}/periodos-mp/${editingPeriodoId}`
+        : `${getBaseApiUrl()}/periodos-mp`;
       const method = isEditing ? 'PATCH' : 'POST';
 
       const response = await fetch(url, {
