@@ -2,6 +2,7 @@
  * Utilidades para gestionar períodos MP
  * Incluye funciones para eliminación segura de períodos
  */
+import { getBaseApiUrl } from './apiUrl';
 
 interface EliminarPeriodoResponse {
     success: boolean;
@@ -18,7 +19,7 @@ interface EliminarPeriodoResponse {
 export const eliminarPeriodoMP = async (periodoId: string): Promise<EliminarPeriodoResponse> => {
     const token = localStorage.getItem('token');
 
-    const response = await fetch(`http://localhost:4000/api/periodos-mp/${periodoId}`, {
+    const response = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoId}`, {
         method: 'DELETE',
         headers: {
             Authorization: token ? `Bearer ${token}` : '',
@@ -37,7 +38,7 @@ export const eliminarPeriodoMP = async (periodoId: string): Promise<EliminarPeri
 export const forzarEliminacionPeriodoMP = async (periodoId: string): Promise<EliminarPeriodoResponse> => {
     const token = localStorage.getItem('token');
 
-    const response = await fetch(`http://localhost:4000/api/periodos-mp/${periodoId}/force`, {
+    const response = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoId}/force`, {
         method: 'DELETE',
         headers: {
             Authorization: token ? `Bearer ${token}` : '',

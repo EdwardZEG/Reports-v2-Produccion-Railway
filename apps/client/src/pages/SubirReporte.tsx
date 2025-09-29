@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import "../styles/SubirReporte.css";
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
+import { getBaseApiUrl } from "../utils/apiUrl";
 
 const SubirReporte: React.FC = () => {
   const [deviceData, setDeviceData] = useState({
@@ -265,7 +266,7 @@ const SubirReporte: React.FC = () => {
 
       if (selectedDeviceId) {
         // Actualizar dispositivo existente
-        resDevice = await fetch(`http://localhost:4000/api/devices/${selectedDeviceId}`, {
+        resDevice = await fetch(`${getBaseApiUrl()}/devices/${selectedDeviceId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -282,7 +283,7 @@ const SubirReporte: React.FC = () => {
         idDevice = selectedDeviceId;
       } else {
         // Crear nuevo dispositivo
-        resDevice = await fetch("http://localhost:4000/api/devices", {
+        resDevice = await fetch(`${getBaseApiUrl()}/devices`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -314,7 +315,7 @@ const SubirReporte: React.FC = () => {
         formImages.append("manualUploadReason", manualUploadReason.trim());
       }
 
-      await fetch(`http://localhost:4000/api/devices/${idDevice}/images`, {
+      await fetch(`${getBaseApiUrl()}/devices/${idDevice}/images`, {
         method: "POST",
         body: formImages,
       });
@@ -369,7 +370,7 @@ const SubirReporte: React.FC = () => {
           });
 
           const token = localStorage.getItem("token");
-          const url = `http://localhost:4000/api/periodos-mp/${selectedPeriodoId}/complete-device/${selectedDeviceId}/${selectedColaboradorId}`;
+          const url = `${getBaseApiUrl()}/periodos-mp/${selectedPeriodoId}/complete-device/${selectedDeviceId}/${selectedColaboradorId}`;
 
           console.log('📡 URL de completado:', url);
           console.log('🔑 Token disponible:', !!token);
@@ -458,7 +459,7 @@ const SubirReporte: React.FC = () => {
         const colaboradorId = decoded.userId;
 
         const res = await fetch(
-          `http://localhost:4000/api/especialidades/colaboradores/${colaboradorId}/especialidades`,
+          `${getBaseApiUrl()}/especialidades/colaboradores/${colaboradorId}/especialidades`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -491,7 +492,7 @@ const SubirReporte: React.FC = () => {
     }
     try {
       const token = localStorage.getItem("token");
-      const url = `http://localhost:4000/api/devices?${campo}=${encodeURIComponent(value)}`;
+      const url = `${getBaseApiUrl()}/devices?${campo}=${encodeURIComponent(value)}`;
 
       const res = await fetch(url, {
         headers: {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { jwtDecode } from 'jwt-decode';
 import { formatDateUTC } from '../../utils/dateUtils';
+import { getBaseApiUrl } from '../../utils/apiUrl';
 import './DispositivosAsignadosSection.css';
 
 interface DeviceCatalog {
@@ -187,7 +188,7 @@ const DispositivosAsignadosSection: React.FC = () => {
 
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:4000/api/device-reports/periodo/${dispositivo.periodoMP._id}/device/${dispositivo.deviceCatalog._id}`,
+        `${getBaseApiUrl()}/device-reports/periodo/${dispositivo.periodoMP._id}/device/${dispositivo.deviceCatalog._id}`,
         {
           method: 'DELETE',
           headers: {

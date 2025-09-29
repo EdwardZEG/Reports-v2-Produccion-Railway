@@ -5,6 +5,7 @@ import api from "../../api";
 import { toast } from "react-toastify";
 import { getToken } from "../../auth/authService";
 import { useData } from "../../context/DataContext";
+import { getBaseApiUrl } from "../../utils/apiUrl";
 
 // Interface para dispositivos encontrados en la búsqueda
 interface Device {
@@ -122,7 +123,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
       const nombreArchivo = `Reporte_${polizaLimpia}_${especialidadLimpia}_${periodo}.docx`;
 
       // Usar fetch con stream reader para recibir eventos SSE
-      fetch('http://localhost:4000/api/reportes/generar-con-progreso', {
+      fetch(`${getBaseApiUrl()}/reportes/generar-con-progreso`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +181,8 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
                       // Manejar evento de completado
                       if (data.downloadUrl) {
                         // Usar URL de descarga del servidor (archivos temporales)
-                        const fullDownloadUrl = `http://localhost:4000${data.downloadUrl}`;
+                        const apiUrl = import.meta.env.PROD ? '' : 'http://localhost:4000';
+                        const fullDownloadUrl = `${apiUrl}${data.downloadUrl}`;
                         resolve({ nombre: nombreArchivo, url: fullDownloadUrl });
                         return;
                       }
