@@ -788,16 +788,41 @@ export const debugDumpReportesColaborador = async (req: Request, res: Response, 
 export const obtenerReportesColaborador = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   try {
     const colaboradorId = req.params.colaboradorId;
+    console.log('🔍 === DIAGNÓSTICO COMPLETO COLABORADOR ===');
     console.log('🔍 Buscando reportes de DeviceReport para colaborador:', colaboradorId);
 
+    // DIAGNÓSTICO: Verificar si existen DeviceReports en general
+    const totalReportes = await DeviceReport.countDocuments();
+    console.log('📊 Total DeviceReports en BD:', totalReportes);
+
+    // DIAGNÓSTICO: Verificar si el colaborador existe
+    const Colaborador = require('../models/Colaborador').default;
+    const colaboradorExiste = await Colaborador.findById(colaboradorId);
+    console.log('👤 Colaborador existe:', colaboradorExiste ? 'SÍ' : 'NO');
+    if (colaboradorExiste) {
+      console.log('👤 Datos del colaborador:', {
+        nombre: colaboradorExiste.nombre,
+        correo: colaboradorExiste.correo,
+        especialidades: colaboradorExiste.especialidad?.length || 0
+      });
+    }
+
+    // DIAGNÓSTICO: Buscar reportes SIN filtros primero
+    const reportesSinFiltro = await DeviceReport.find({}).limit(5);
+    console.log('📊 Primeros 5 DeviceReports (muestra):', reportesSinFiltro.map(r => ({
+      id: r._id,
+      colaborador: r.colaborador,
+      esColaborativo: r.esColaborativo,
+      tieneParticipacion: (r.tipoParticipacion && r.tipoParticipacion.length > 0) || false
+    })));
+
     // Buscar reportes en la colección DeviceReport donde el colaborador participó
+    // ❌ CORREGIDO: El campo 'colaboradores' no existe en DeviceReport
     const todosLosReportes = await DeviceReport.find({
       $or: [
         // Colaborador principal (campo directo)
         { colaborador: colaboradorId },
-        // Colaborador en trabajo colaborativo
-        { colaboradores: colaboradorId },
-        // En tipoParticipacion
+        // En tipoParticipacion (colaborativo)
         { 'tipoParticipacion.colaborador': colaboradorId }
       ]
     })
