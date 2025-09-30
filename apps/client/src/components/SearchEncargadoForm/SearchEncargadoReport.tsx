@@ -1,10 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./SearchEncargadoReport.css";
+import api from "../../api";
+
+interface Especialidad {
+  _id: string;
+  nombre: string;
+}
 
 const SearchEncargadoReport = () => {
   const [especialidad, setEspecialidad] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFinal, setFechaFinal] = useState('');
+  const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
+
+  useEffect(() => {
+    const fetchEspecialidades = async () => {
+      try {
+        const response = await api.get("/especialidades");
+        setEspecialidades(response.data);
+      } catch (error) {
+        console.error("Error al cargar especialidades:", error);
+      }
+    };
+    fetchEspecialidades();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +44,11 @@ const SearchEncargadoReport = () => {
         onChange={(e) => setEspecialidad(e.target.value)}
       >
         <option value="">Seleccione una especialidad</option>
-        <option value="Electricidad">VSS</option>
-        <option value="CCTV">GMS</option>
-        <option value="Redes">FAS</option>
+        {especialidades.map((esp) => (
+          <option key={esp._id} value={esp._id}>
+            {esp.nombre}
+          </option>
+        ))}
       </select>
 
       <label className="search-form__label">Período de reporte</label>

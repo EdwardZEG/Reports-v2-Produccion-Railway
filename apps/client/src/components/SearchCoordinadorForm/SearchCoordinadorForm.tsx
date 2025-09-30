@@ -1,11 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import "./SeachCoordinadorStyle.css";
+import api from "../../api";
+
+interface Especialidad {
+  _id: string;
+  nombre: string;
+}
+
+interface Colaborador {
+  _id: string;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+}
 
 const SearchCoordinadorForm = () => {
   const [encargado, setEncargado] = useState('');
   const [especialidad, setEspecialidad] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFinal, setFechaFinal] = useState('');
+  const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
+  const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [especResponse, colabResponse] = await Promise.all([
+          api.get("/especialidades"),
+          api.get("/colaboradores")
+        ]);
+        setEspecialidades(especResponse.data);
+        setColaboradores(colabResponse.data);
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,9 +60,11 @@ const SearchCoordinadorForm = () => {
         onChange={(e) => setEspecialidad(e.target.value)}
       >
         <option value="">Seleccione una especialidad</option>
-        <option value="Electricidad">VSS</option>
-        <option value="CCTV">GMS</option>
-        <option value="Redes">FAS</option>
+        {especialidades.map((esp) => (
+          <option key={esp._id} value={esp._id}>
+            {esp.nombre}
+          </option>
+        ))}
       </select>
 
       <label className="search-form-coordinador__label">Encargado</label>
@@ -41,8 +74,11 @@ const SearchCoordinadorForm = () => {
         onChange={(e) => setEncargado(e.target.value)}
       >
         <option value="">Seleccione un encargado</option>
-        <option value="P001">Abizahil Rodriguez Nogales</option>
-        <option value="P002">Jose Daniel Ortega Bahena</option>
+        {colaboradores.map((colab) => (
+          <option key={colab._id} value={colab._id}>
+            {`${colab.nombre} ${colab.apellido_paterno} ${colab.apellido_materno}`}
+          </option>
+        ))}
       </select>
 
       <label className="search-form-coordinador__label">Período de reporte</label>

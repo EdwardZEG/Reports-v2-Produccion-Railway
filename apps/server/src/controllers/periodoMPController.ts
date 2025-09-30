@@ -28,6 +28,40 @@ export const createPeriodoMP = async (
       return next(new AppError('nombre, coordinador, fechaInicio y fechaFin son requeridos', 400));
     }
 
+    // 🔒 VALIDACIÓN DE PÓLIZA PARA COORDINADORES
+    const user = (req as any).user;
+    console.log('👤 Usuario creando período MP:', { rol: user?.rol, polizaId: user?.polizaId });
+
+    if (user?.rol === 'coordinador' && user?.polizaId) {
+      // Validar que el coordinador especificado es el mismo usuario autenticado
+      if (coordinador !== user.id) {  // proteger usa 'id'
+        return next(new AppError('Solo puedes crear períodos para ti mismo', 403));
+      }
+
+      // Validar que todos los colaboradores en dispositivos pertenecen a su póliza
+      if (dispositivos.length > 0) {
+        const idsColaboradores = dispositivos
+          .filter((d: any) => d.colaboradorId)
+          .map((d: any) => d.colaboradorId);
+
+        if (idsColaboradores.length > 0) {
+          const colaboradoresValidos = await Colaborador.find({
+            _id: { $in: idsColaboradores },
+            poliza: user.polizaId
+          }).select('_id nombre');
+
+          console.log('🔒 Validando colaboradores en creación de período:', {
+            solicitados: idsColaboradores.length,
+            válidos: colaboradoresValidos.length
+          });
+
+          if (colaboradoresValidos.length !== idsColaboradores.length) {
+            return next(new AppError('Algunos colaboradores no pertenecen a tu póliza', 400));
+          }
+        }
+      }
+    }
+
     // Validar fechas
     const inicio = new Date(fechaInicio);
     const fin = new Date(fechaFin);
@@ -107,8 +141,20 @@ export const getPeriodosMP = async (
   next: NextFunction
 ) => {
   try {
+    console.log('🚀 === SOLICITUD getPeriodosMP RECIBIDA ===');
+
     // Auto-desactivar períodos vencidos antes de obtener la lista
     await desactivarPeriodosVencidos();
+
+    // 🔒 OBTENER DATOS DEL USUARIO AUTENTICADO
+    const user = (req as any).user;
+    console.log('👤 Usuario obteniendo períodos MP:', {
+      rol: user?.rol,
+      polizaId: user?.polizaId,
+      id: user?.id,  // proteger usa 'id'
+      tipo: user?.tipo,
+      exists: !!user
+    });
 
     const {
       page = 1,
@@ -121,8 +167,28 @@ export const getPeriodosMP = async (
 
     const filter: any = {};
 
-    if (coordinador) {
+    // 🔒 FILTRADO AUTOMÁTICO POR PÓLIZA PARA COORDINADORES
+    if (user?.rol === 'coordinador' && user?.polizaId) {
+      console.log('🔒 Coordinador detectado - aplicando filtrado por póliza...');
+
+      // Solo mostrar períodos donde el coordinador autenticado es el que los creó
+      const coordinadorObjectId = new mongoose.Types.ObjectId(user.id); // proteger usa 'id'
+      filter.coordinador = coordinadorObjectId;
+      console.log('✅ Filtro aplicado: solo períodos creados por coordinador ObjectId:', coordinadorObjectId);
+
+      // DEBUG: Verificar si el id está definido
+      if (!user.id) {
+        console.error('❌ ERROR: user.id es undefined/null en filtrado MP');
+        return next(new AppError('Error de autenticación: ID de usuario no definido', 401));
+      }
+    }
+
+    // ✅ FILTRADO POR PARÁMETRO COORDINADOR (solo para no-coordinadores o admins)
+    if (coordinador && user?.rol !== 'coordinador') {
       filter.coordinador = new mongoose.Types.ObjectId(coordinador as string);
+      console.log('🔍 Filtro aplicado por parámetro coordinador (usuario admin):', coordinador);
+    } else if (coordinador && user?.rol === 'coordinador') {
+      console.log('⚠️ INFO: Coordinador ya tiene filtrado automático - parámetro coordinador ignorado');
     }
 
     if (activo !== undefined) {
@@ -141,6 +207,9 @@ export const getPeriodosMP = async (
 
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
 
+    // DEBUG: Mostrar filtro final aplicado
+    console.log('🔍 Filtro final aplicado a PeriodoMP.find:', JSON.stringify(filter, null, 2));
+
     const [periodos, total] = await Promise.all([
       PeriodoMP.find(filter)
         .populate('coordinador', 'nombre correo')
@@ -154,6 +223,15 @@ export const getPeriodosMP = async (
         .sort({ createdAt: -1 }),
       PeriodoMP.countDocuments(filter)
     ]);
+
+    // DEBUG: Mostrar resultados obtenidos
+    console.log('📊 Períodos MP encontrados:', total);
+    console.log('📋 Detalles de los períodos:', periodos.map(p => ({
+      _id: p._id,
+      nombre: p.nombre,
+      coordinador: (p.coordinador as any)?.nombre || 'Sin coordinador',
+      coordinadorId: p.coordinador
+    })));
 
     res.status(200).json({
       success: true,
@@ -225,6 +303,10 @@ export const assignDevicesToPeriodo = async (
       return next(new AppError('Se requiere un array de colaboradores para asignación múltiple', 400));
     }
 
+    // 🔒 VALIDACIÓN DE PÓLIZA PARA COORDINADORES
+    const user = (req as any).user;
+    console.log('👤 Usuario creando período MP:', { rol: user?.rol, polizaId: user?.polizaId });
+
     const periodo = await PeriodoMP.findById(id);
     if (!periodo) {
       return next(new AppError('Período MP no encontrado', 404));
@@ -235,13 +317,33 @@ export const assignDevicesToPeriodo = async (
       return next(new AppError('No se pueden asignar dispositivos a un período inactivo', 400));
     }
 
+    // 🔒 FILTRAR COLABORADORES POR PÓLIZA SI ES COORDINADOR
+    let colaboradoresValidados = colaboradores;
+    if (assignToAll && user?.rol === 'coordinador' && user?.polizaId && colaboradores) {
+      console.log('🔒 Validando colaboradores por póliza del coordinador...');
+
+      const colaboradoresEncontrados = await Colaborador.find({
+        _id: { $in: colaboradores },
+        poliza: user.polizaId // Solo colaboradores de la misma póliza
+      }).select('_id nombre poliza');
+
+      colaboradoresValidados = colaboradoresEncontrados.map((c: any) => c._id.toString());
+
+      console.log('✅ Colaboradores validados:', colaboradoresValidados.length, 'de', colaboradores.length, 'solicitados');
+      console.log('📋 Colaboradores finales:', colaboradoresEncontrados.map((c: any) => ({ id: c._id, nombre: c.nombre })));
+
+      if (colaboradoresValidados.length === 0) {
+        return next(new AppError('No se encontraron colaboradores válidos para tu póliza', 400));
+      }
+    }
+
     // Preparar nuevas asignaciones
     const nuevasAsignaciones: any[] = [];
 
-    dispositivos.forEach((disp: any) => {
-      if (disp.assignToAll && colaboradores) {
-        // Crear UNA SOLA asignación múltiple con la lista de colaboradores
-        console.log('📝 Asignando dispositivo:', disp.deviceCatalogId, 'para TODOS los colaboradores (', colaboradores.length, 'personas)');
+    for (const disp of dispositivos) {
+      if (disp.assignToAll && colaboradoresValidados) {
+        // Crear UNA SOLA asignación múltiple con la lista de colaboradores VALIDADOS POR PÓLIZA
+        console.log('📝 Asignando dispositivo:', disp.deviceCatalogId, 'para TODOS los colaboradores de la póliza (', colaboradoresValidados.length, 'personas)');
         nuevasAsignaciones.push({
           deviceCatalog: disp.deviceCatalogId,
           colaboradorAsignado: null, // Sin colaborador específico asignado
@@ -251,15 +353,32 @@ export const assignDevicesToPeriodo = async (
           asignacionMultiple: true,
           completadoPor: null,
           esColaborativo: false,
-          colaboradores: colaboradores, // Lista de todos los colaboradores elegibles
-          colaboradoresElegibles: colaboradores // Para referencia futura
+          colaboradores: colaboradoresValidados, // Lista de colaboradores VALIDADOS por póliza
+          colaboradoresElegibles: colaboradoresValidados // Para referencia futura
         });
       } else {
-        // Asignación individual normal
+        // Asignación individual normal - TAMBIÉN VALIDAR PÓLIZA
         console.log('📝 Asignando dispositivo:', disp.deviceCatalogId, 'a colaborador:', disp.colaboradorId);
+
+        // 🔒 Para asignaciones individuales también validar póliza si es coordinador
+        let colaboradorValidado = disp.colaboradorId;
+        if (user?.rol === 'coordinador' && user?.polizaId && disp.colaboradorId) {
+          // Validar que el colaborador individual también pertenece a la póliza
+          const colaboradorIndividual = await Colaborador.findOne({
+            _id: disp.colaboradorId,
+            poliza: user.polizaId
+          }).select('_id nombre');
+
+          if (!colaboradorIndividual) {
+            console.log('❌ Colaborador individual no válido para la póliza:', disp.colaboradorId);
+            continue; // Saltar esta asignación
+          }
+          colaboradorValidado = colaboradorIndividual._id;
+        }
+
         nuevasAsignaciones.push({
           deviceCatalog: disp.deviceCatalogId,
-          colaboradorAsignado: disp.colaboradorId,
+          colaboradorAsignado: colaboradorValidado,
           estado: 'pendiente' as const,
           fechaAsignacion: new Date(),
           notas: disp.notas || '',
@@ -268,7 +387,7 @@ export const assignDevicesToPeriodo = async (
           esColaborativo: false
         });
       }
-    });
+    }
 
     // Agregar a la lista existente
     periodo.dispositivos.push(...nuevasAsignaciones);

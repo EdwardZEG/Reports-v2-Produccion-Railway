@@ -111,6 +111,7 @@ const PeriodosMPSection: React.FC = () => {
   const fetchPeriodos = async () => {
     try {
       const token = localStorage.getItem('token');
+      // ✅ REVERTIDO: Volviendo al sistema original que funcionaba
       const response = await fetch(`${getBaseApiUrl()}/periodos-mp?coordinador=${coordinadorId}`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : '',

@@ -15,7 +15,7 @@ const CollaborativeWorkSelector: React.FC<CollaborativeWorkSelectorProps> = ({
     onSelectionChange,
     onClose
 }) => {
-    const { encargados, fetchEncargados } = useEncargadosData();
+    const { encargados, fetchEncargadosParaColaborativo } = useEncargadosData(); // 🤝 Usar función específica
     const [colaboradores, setColaboradores] = useState<Encargado[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedColaboradores, setSelectedColaboradores] = useState<string[]>([]);
@@ -38,7 +38,8 @@ const CollaborativeWorkSelector: React.FC<CollaborativeWorkSelectorProps> = ({
     const loadColaboradores = async () => {
         try {
             setLoading(true);
-            await fetchEncargados();
+            console.log('🤝 Cargando colaboradores para trabajo colaborativo...');
+            await fetchEncargadosParaColaborativo(); // 🔒 Usar endpoint con filtrado estricto
         } catch (error) {
             console.error('Error cargando colaboradores:', error);
             setLoading(false);

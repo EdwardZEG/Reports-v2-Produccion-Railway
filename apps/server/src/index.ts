@@ -64,6 +64,29 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Servidor funcionando correctamente', timestamp: new Date().toISOString() });
 });
 
+// Ruta para optimizar base de datos (crear índices)
+app.get('/api/optimize-database', async (req, res) => {
+  try {
+    const { optimizeDatabase } = await import('./scripts/optimizeDatabase');
+
+    console.log('🚀 Iniciando optimización de base de datos...');
+    await optimizeDatabase();
+
+    res.json({
+      success: true,
+      message: 'Base de datos optimizada correctamente',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('❌ Error optimizando base de datos:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error optimizando base de datos',
+      error: error.message
+    });
+  }
+});
+
 // Ruta directa para ejecutar migración
 app.get('/api/execute-migration', async (req, res) => {
   try {
@@ -309,7 +332,7 @@ app.use('/api/migration', migrationRoutes);
 if (process.env.NODE_ENV === 'production') {
   // Servir archivos estáticos del build del cliente (desde la estructura del monorepo)
   app.use(express.static(path.join(__dirname, '../../client/dist')));
-  
+
   // Catch all handler: enviar el index.html para todas las rutas no-API
   app.get('*', (req: Request, res: Response) => {
     // Si la ruta no es una API, servir el index.html para React Router

@@ -18,8 +18,12 @@ import {
   eliminarDispositivoAsignacionMultiple,
   editarAsignacionDispositivo
 } from '../controllers/periodoMPController';
+import { authenticate, proteger } from '../middlewares/auth';
 
 const router = Router();
+
+// 🔐 Aplicar autenticación a todas las rutas - REVIRTIENDO A PROTEGER que funcionaba antes
+router.use(proteger);
 
 // CRUD básico
 router.post('/', createPeriodoMP);

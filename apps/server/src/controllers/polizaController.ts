@@ -72,10 +72,13 @@ export const crearPoliza: RequestHandler = async (req, res, next) => {
 
 export const obtenerPolizas: RequestHandler = async (req, res, next) => {
   try {
-    const polizas = await Poliza.find().populate({
-      path: "coordinador",
-      select: "nombre apellido_paterno apellido_materno",
-    });
+    const polizas = await Poliza.find()
+      .populate({
+        path: "coordinador",
+        select: "nombre apellido_paterno apellido_materno", // Solo campos necesarios
+      })
+      .lean(); // Mejor rendimiento
+
     res.json(polizas);
   } catch (error) {
     next(new AppError("Error al obtener las pólizas", 500));

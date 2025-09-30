@@ -100,21 +100,51 @@ export const getDevices = async (req: Request, res: Response) => {
       ubication
     });
 
+    // 🔒 VALIDACIÓN DE PÓLIZA PARA COORDINADORES
+    const user = (req as any).user;
+    console.log('👤 Usuario autenticado:', { rol: user?.rol, polizaId: user?.polizaId });
+
     // CAMBIO PRINCIPAL: Usar DeviceReport en lugar de Device
     const mongoose = require('mongoose');
 
     const filtro: any = {};
 
-    // Filtrar por colaboradores
+    // Filtrar por colaboradores CON VALIDACIÓN DE PÓLIZA
     if (colaboradores) {
       const ids = (colaboradores as string).split(",");
       const objectIds = ids.map(id => new mongoose.Types.ObjectId(id));
 
-      // Para DeviceReport: filtrar por colaborador directo O en tipoParticipacion
-      filtro.$or = [
-        { colaborador: { $in: objectIds } },
-        { 'tipoParticipacion.colaborador': { $in: objectIds } }
-      ];
+      // 🔒 SI ES COORDINADOR: Validar que los colaboradores pertenecen a su póliza
+      if (user?.rol === 'coordinador' && user?.polizaId) {
+        console.log('🔒 Validando que los colaboradores pertenecen a la póliza del coordinador...');
+
+        const Colaborador = require('../models/Colaborador').default;
+        const colaboradoresValidos = await Colaborador.find({
+          _id: { $in: objectIds },
+          poliza: user.polizaId // Solo colaboradores de la misma póliza
+        }).select('_id');
+
+        const idsValidos = colaboradoresValidos.map((c: any) => c._id);
+        console.log('✅ Colaboradores válidos para la póliza:', idsValidos.length, 'de', objectIds.length, 'solicitados');
+
+        if (idsValidos.length === 0) {
+          console.log('❌ Ningún colaborador válido encontrado para la póliza del coordinador');
+          res.status(200).json([]);
+          return;
+        }
+
+        // Usar solo los IDs válidos
+        filtro.$or = [
+          { colaborador: { $in: idsValidos } },
+          { 'tipoParticipacion.colaborador': { $in: idsValidos } }
+        ];
+      } else {
+        // Para administradores o sin restricciones de póliza
+        filtro.$or = [
+          { colaborador: { $in: objectIds } },
+          { 'tipoParticipacion.colaborador': { $in: objectIds } }
+        ];
+      }
     }
 
     // Filtrar por especialidad

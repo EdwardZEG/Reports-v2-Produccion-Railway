@@ -272,6 +272,9 @@ export const actualizarColaborador: RequestHandler = async (req, res, next) => {
 
 export const obtenerColaboradores: RequestHandler = async (req, res, next) => {
   try {
+    const inicioTiempo = Date.now();
+    console.log('⏱️ [RENDIMIENTO] Iniciando obtenerColaboradores...');
+
     const user = (req as any).user;
     const filtro: any = {};
 
@@ -281,13 +284,72 @@ export const obtenerColaboradores: RequestHandler = async (req, res, next) => {
       filtro.poliza = user.polizaId;
     }
 
+    const tiempoFiltro = Date.now();
+    console.log('⏱️ [RENDIMIENTO] Filtro preparado en:', tiempoFiltro - inicioTiempo, 'ms');
+
+    const { limit = 100, page = 1 } = req.query; // Agregar paginación para mejorar rendimiento
+
     const colaboradores = await Colaborador.find(filtro)
-      .populate("poliza coordinador especialidad");
+      .select('nombre apellido_paterno apellido_materno correo estado rol poliza coordinador especialidad') // Solo campos necesarios
+      .populate("poliza", "nombre ubicacion") // Solo campos necesarios
+      .populate("coordinador", "nombre apellido_paterno apellido_materno") // Solo campos necesarios
+      .populate("especialidad", "nombre") // Solo campo necesario
+      .limit(parseInt(limit as string))
+      .skip((parseInt(page as string) - 1) * parseInt(limit as string))
+      .lean(); // Usar lean() para mejor rendimiento
+
+    const tiempoConsulta = Date.now();
+    console.log('⏱️ [RENDIMIENTO] Consulta completada en:', tiempoConsulta - tiempoFiltro, 'ms');
+    console.log('⏱️ [RENDIMIENTO] Total colaboradores encontrados:', colaboradores.length);
+    console.log('⏱️ [RENDIMIENTO] Tiempo total:', tiempoConsulta - inicioTiempo, 'ms');
 
     res.json(colaboradores);
   } catch (error) {
     console.error('Error obteniendo colaboradores:', error);
     next(new AppError("Error al obtener colaboradores", 500));
+  }
+};
+
+/**
+ * Obtener colaboradores para trabajo colaborativo - SIEMPRE filtrado por póliza para coordinadores
+ * GET /api/colaboradores/para-colaborativo
+ */
+export const obtenerColaboradoresParaColaborativo: RequestHandler = async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    const filtro: any = {};
+
+    console.log('🤝 === OBTENIENDO COLABORADORES PARA TRABAJO COLABORATIVO ===');
+    console.log('👤 Usuario solicitante:', { rol: user?.rol, polizaId: user?.polizaId, tipo: user?.tipo });
+
+    // 🔒 FILTRADO OBLIGATORIO POR PÓLIZA PARA COORDINADORES
+    if (user?.rol === 'coordinador' && user?.polizaId) {
+      filtro.poliza = user.polizaId;
+      console.log('🔒 Filtro aplicado: solo colaboradores de póliza', user.polizaId);
+    } else if (user?.rol === 'coordinador' && !user?.polizaId) {
+      console.error('❌ Coordinador sin póliza asignada');
+      return next(new AppError('Coordinador sin póliza asignada', 403));
+    }
+
+    // Para administradores, mostrar todos (sin filtro)
+    if (user?.rol === 'admin') {
+      console.log('👑 Usuario admin: mostrando todos los colaboradores');
+    }
+
+    const colaboradores = await Colaborador.find(filtro)
+      .populate("poliza coordinador especialidad")
+      .select('nombre apellido_paterno apellido_materno correo poliza especialidad rol estado');
+
+    console.log('📊 Colaboradores encontrados:', colaboradores.length);
+    console.log('📋 Resumen pólizas:', colaboradores.map(c => ({
+      nombre: c.nombre,
+      poliza: (c.poliza as any)?.nombre || 'Sin póliza'
+    })));
+
+    res.json(colaboradores);
+  } catch (error) {
+    console.error('Error obteniendo colaboradores para colaborativo:', error);
+    next(new AppError("Error al obtener colaboradores para trabajo colaborativo", 500));
   }
 };
 

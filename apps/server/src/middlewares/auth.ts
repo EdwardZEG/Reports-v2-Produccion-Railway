@@ -42,11 +42,12 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     // Carga solo campos necesarios y sin contraseña
     req.user = {
       _id: usuario._id,
+      userId: usuario._id.toString(), // ✅ Agregar userId como string para compatibilidad
       nombre: usuario.nombre,
       correo: usuario.correo,
       rol: (usuario as any).rol ?? undefined,
       tipo: payload.tipo,
-      polizaId: (usuario as any).poliza ? (usuario as any).poliza._id : null,
+      polizaId: (usuario as any).poliza ? (usuario as any).poliza._id?.toString() : null,
       // agrega más campos si necesitas
     };
 
@@ -60,12 +61,21 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 export const proteger = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
-     res.status(401).json({ message: 'No token proporcionado' });
-     return;
+    res.status(401).json({ message: 'No token proporcionado' });
+    return;
   }
   const token = authHeader.split(' ')[1];
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any;
+
+    // 🔍 DEBUG: Log del token decodificado
+    console.log('🔍 [PROTEGER] Token decodificado:', {
+      userId: payload.userId,
+      rol: payload.rol,
+      tipo: payload.tipo,
+      polizaId: payload.polizaId
+    });
+
     (req as any).user = {
       id: payload.userId,
       rol: payload.rol,
@@ -74,7 +84,7 @@ export const proteger = (req: Request, res: Response, next: NextFunction) => {
     };
     next();
   } catch (err) {
-     res.status(401).json({ message: 'Token inválido' });
-     return;
+    res.status(401).json({ message: 'Token inválido' });
+    return;
   }
 };

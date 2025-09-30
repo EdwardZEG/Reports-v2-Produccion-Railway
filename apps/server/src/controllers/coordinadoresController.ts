@@ -159,8 +159,9 @@ export const obtenerCoordinadores: RequestHandler = async (req, res, next: NextF
       .select('+correo')
       .populate({
         path: "poliza",
-        select: "nombre ubicacion",
-      });
+        select: "nombre ubicacion", // Solo campos necesarios
+      })
+      .lean(); // Mejor rendimiento
 
     res.json(coordinadores);
   } catch (error) {

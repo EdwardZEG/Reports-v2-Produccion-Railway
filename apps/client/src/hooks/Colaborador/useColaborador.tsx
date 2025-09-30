@@ -48,6 +48,25 @@ export const useEncargadosData = () => {
     }
   };
 
+  // 🤝 Nueva función específica para trabajo colaborativo
+  const fetchEncargadosParaColaborativo = async () => {
+    try {
+      console.log('🤝 Obteniendo colaboradores para trabajo colaborativo...');
+      const [resEncargados, resPolizas, resEspecialidades] = await Promise.all([
+        api.get("/colaboradores/para-colaborativo"), // 🔒 Endpoint con filtrado estricto por póliza
+        api.get("/polizas"),
+        api.get("/especialidades"),
+      ]);
+      console.log('✅ Colaboradores para colaborativo obtenidos:', resEncargados.data.length);
+      setEncargados(resEncargados.data);
+      setPolizas(resPolizas.data);
+      setEspecialidades(resEspecialidades.data);
+    } catch (err) {
+      toast.error("Error al cargar colaboradores para trabajo colaborativo");
+      console.error("Error al cargar colaboradores para trabajo colaborativo", err);
+    }
+  };
+
   /**
    * Función para marcar un colaborador como recién creado con resaltado temporal
    * Utilizada cuando se crea un colaborador desde el modal
@@ -117,6 +136,7 @@ export const useEncargadosData = () => {
     polizas,
     especialidades,
     fetchEncargados,
+    fetchEncargadosParaColaborativo, // 🤝 Nueva función para trabajo colaborativo
     actualizarEncargado,
     eliminarEncargado,
     marcarColaboradorCreado, // Nueva función para resaltado
