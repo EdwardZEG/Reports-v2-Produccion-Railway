@@ -320,15 +320,24 @@ export const obtenerColaboradoresParaColaborativo: RequestHandler = async (req, 
     const filtro: any = {};
 
     console.log('🤝 === OBTENIENDO COLABORADORES PARA TRABAJO COLABORATIVO ===');
-    console.log('👤 Usuario solicitante:', { rol: user?.rol, polizaId: user?.polizaId, tipo: user?.tipo });
+    console.log('👤 Usuario solicitante completo:', JSON.stringify(user, null, 2));
+    console.log('🔍 Datos específicos:', {
+      rol: user?.rol,
+      polizaId: user?.polizaId,
+      tipo: user?.tipo,
+      id: user?.id,
+      userId: user?.userId
+    });
 
-    // 🔒 FILTRADO OBLIGATORIO POR PÓLIZA PARA COORDINADORES
-    if (user?.rol === 'coordinador' && user?.polizaId) {
+    // 🔒 FILTRADO OBLIGATORIO POR PÓLIZA PARA COORDINADORES Y COLABORADORES
+    if ((user?.rol === 'coordinador' || user?.tipo === 'colaborador') && user?.polizaId) {
       filtro.poliza = user.polizaId;
       console.log('🔒 Filtro aplicado: solo colaboradores de póliza', user.polizaId);
-    } else if (user?.rol === 'coordinador' && !user?.polizaId) {
-      console.error('❌ Coordinador sin póliza asignada');
-      return next(new AppError('Coordinador sin póliza asignada', 403));
+      console.log('🔒 Tipo de usuario:', user?.tipo, '| Rol:', user?.rol);
+    } else if ((user?.rol === 'coordinador' || user?.tipo === 'colaborador') && !user?.polizaId) {
+      console.error('❌ Usuario sin póliza asignada');
+      console.error('❌ Datos del usuario problemático:', JSON.stringify(user, null, 2));
+      return next(new AppError('Usuario sin póliza asignada', 403));
     }
 
     // Para administradores, mostrar todos (sin filtro)
@@ -336,14 +345,20 @@ export const obtenerColaboradoresParaColaborativo: RequestHandler = async (req, 
       console.log('👑 Usuario admin: mostrando todos los colaboradores');
     }
 
+    console.log('🔍 Filtro MongoDB que se aplicará:', JSON.stringify(filtro, null, 2));
+
     const colaboradores = await Colaborador.find(filtro)
       .populate("poliza coordinador especialidad")
       .select('nombre apellido_paterno apellido_materno correo poliza especialidad rol estado');
 
     console.log('📊 Colaboradores encontrados:', colaboradores.length);
-    console.log('📋 Resumen pólizas:', colaboradores.map(c => ({
+    console.log('📋 Resumen completo:', colaboradores.map(c => ({
+      _id: c._id,
       nombre: c.nombre,
-      poliza: (c.poliza as any)?.nombre || 'Sin póliza'
+      apellido_paterno: c.apellido_paterno,
+      correo: c.correo,
+      poliza: (c.poliza as any)?.nombre || 'Sin póliza',
+      polizaId: (c.poliza as any)?._id || 'Sin ID póliza'
     })));
 
     res.json(colaboradores);

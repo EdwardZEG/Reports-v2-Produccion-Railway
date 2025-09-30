@@ -58,7 +58,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 };
 
 
-export const proteger = (req: Request, res: Response, next: NextFunction) => {
+export const proteger = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
     res.status(401).json({ message: 'No token proporcionado' });
@@ -76,12 +76,36 @@ export const proteger = (req: Request, res: Response, next: NextFunction) => {
       polizaId: payload.polizaId
     });
 
+    // 🔒 OBTENER PÓLIZA ACTUALIZADA DESDE BD PARA COORDINADORES
+    let polizaIdActualizada = payload.polizaId;
+
+    if (payload.tipo === 'coordinador') {
+      const Coordinador = require('../models/Coordinador').default;
+      const coordinador = await Coordinador.findById(payload.userId).populate('poliza');
+
+      if (coordinador && coordinador.poliza) {
+        polizaIdActualizada = coordinador.poliza._id.toString();
+        console.log('🔒 [PROTEGER] Póliza actualizada desde BD:', polizaIdActualizada);
+      } else {
+        console.log('⚠️ [PROTEGER] Coordinador sin póliza asignada en BD');
+        polizaIdActualizada = null;
+      }
+    }
+
     (req as any).user = {
       id: payload.userId,
       rol: payload.rol,
       tipo: payload.tipo,
-      polizaId: payload.polizaId
+      polizaId: polizaIdActualizada
     };
+
+    console.log('✅ [PROTEGER] Usuario final:', {
+      id: payload.userId,
+      rol: payload.rol,
+      tipo: payload.tipo,
+      polizaId: polizaIdActualizada
+    });
+
     next();
   } catch (err) {
     res.status(401).json({ message: 'Token inválido' });

@@ -8,7 +8,7 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 5000, // Mantener intentando enviar operaciones por 5 segundos
       socketTimeoutMS: 45000, // Cerrar conexiones después de 45 segundos de inactividad
       maxIdleTimeMS: 30000, // Cerrar conexiones después de 30 segundos de inactividad
-      bufferCommands: false, // Deshabilitar el almacenamiento en buffer de comandos de mongoose
+      // bufferCommands: false, // ❌ REMOVIDO - Causaba errores de conexión
     } as any);
 
     // Configuraciones adicionales para rendimiento
