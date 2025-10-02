@@ -1,10 +1,14 @@
-/* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
+﻿/* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
 /* Layout principal del módulo de coordinadores igual que polizas */
 .coordinadores-container {
   display: flex;
   flex-direction: column;
-  padding-top: 1px; /* Reducido al mínimo para subir el contenido igual que polizas */
-  align-items: flex-end; /* Alineación a la derecha igual que polizas */
+  padding: 20px 40px; /* Más padding horizontal para centrar mejor */
+  align-items: center; /* Centrar el contenido */
+  width: 100%;
+  max-width: 1400px; /* Ancho máximo para contenedores grandes */
+  margin: 0 auto; /* Centrar horizontalmente */
+  height: 100% !important; /* Forzar altura completa para consistencia */
 }
 
 /* ===== NUEVA VISTA PREVIA DE COORDINADORES (SISTEMA DE CARDS EXACTO DE ESPECIALIDADES) ===== */
@@ -21,13 +25,13 @@
   border: none;
   width: 100%; /* Usa el ancho disponible del contenedor padre */
   max-width: 100%;
-  margin: 0; /* Sin márgenes externos para evitar desbordamientos */
+  margin: 40px auto 0 auto; /* Centrado horizontal y vertical igual que pólizas */
   min-height: 0;
   overflow: visible; /* Cambiar a visible para mostrar paginación */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  height: calc(100vh - 140px); /* Altura igual a polizas */
+  height: calc(100vh - 200px); /* Altura exacta igual que pólizas */
 }
 
 /* ===== HEADER DE LA SECCIÓN ===== */
@@ -996,7 +1000,7 @@
 .nombre-completo {
   font-weight: 600;
   color: #111827;
-  font-size: clamp(0.65rem, 2.5vmin, 1.1rem); /* Escala más agresivamente con viewport */
+  font-size: clamp(0.55rem, 2vmin, 0.9rem); /* Mismo tamaño que el resto de la tabla */
   line-height: 1.1; /* Línea adaptable */
 }
 
@@ -1382,7 +1386,7 @@ input:not(:checked) + .switch-slider {
   }
   
   .nombre-completo {
-    font-size: 0.9rem;
+    font-size: 0.8rem; /* Mismo tamaño que contacto-item para consistencia */
   }
   
   .contacto-item,
@@ -1413,169 +1417,51 @@ input:not(:checked) + .switch-slider {
   
   .columna-estado,
   .columna-acciones {
-    justify-content: flex-start;
+    justify-content: center;
   }
 }
-.pagination-container {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 0.5rem;
+
+/* ===== RESPONSIVE DESIGN - IGUAL QUE PÓLIZAS ===== */
+/* Media queries para diferentes tamaños de pantalla */
+
+/* Pantallas grandes (escritorio) */
+@media (min-width: 1200px) {
+  .preview-section-coordinadores {
+    margin: 40px 0 0 0;
+    height: calc(100vh - 160px);
+  }
+  
+  .pagination-container {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-family: 'Open Sans', sans-serif;
+/* Pantallas medianas (tabletas) */
+@media (max-width: 1199px) and (min-width: 768px) {
+  .preview-section-coordinadores {
+    margin: 30px 0 0 0;
+    height: calc(100vh - 140px);
+  }
+  
+  .pagination-container {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
 }
 
-.pagination-btn {
-  border: none;
-  background: #f8f9fa;
-  color: #6c757d;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px;
-  height: 36px;
+/* Pantallas pequeñas (móviles) */
+@media (max-width: 767px) {
+  .preview-section-coordinadores {
+    margin: 20px auto 0 auto; /* Centrado horizontal igual que pólizas */
+    height: calc(100vh - 120px);
+    min-height: 400px;
+    padding: 1rem;
+  }
+  
+  .pagination-container {
+    justify-content: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
 }
-
-.pagination-btn:hover:not(:disabled) {
-  background: #e9ecef;
-  color: #495057;
-}
-
-.pagination-btn:disabled {
-  background: #f8f9fa;
-  color: #adb5bd;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-/* Botón "Página 1" - estilo negro como en la imagen */
-.pagination-btn.go-to-first {
-  background: #000000;
-  color: #ffffff;
-  border: 1px solid #000000;
-  min-width: auto;
-  height: 36px;
-  border-radius: 6px;
-  font-weight: 600;
-  margin-right: 10px;
-  padding: 0 12px;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.pagination-btn.go-to-first:hover {
-  background: #333333;
-  border-color: #333333;
-}
-
-.pagination-btn.go-to-first i {
-  font-size: 0.875rem;
-}
-
-.pagination-btn.prev,
-.pagination-btn.next {
-  background: #000000;
-  color: #ffffff;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-}
-
-.pagination-btn.prev:hover:not(:disabled),
-.pagination-btn.next:hover:not(:disabled) {
-  background: #333333;
-  transform: scale(1.05);
-}
-
-.pagination-btn.prev:disabled,
-.pagination-btn.next:disabled {
-  background: #6c757d;
-  transform: none;
-}
-
-.pagination-info {
-  color: #495057;
-  font-weight: 600;
-  font-size: 0.875rem;
-  margin: 0 0.5rem;
-  white-space: nowrap;
-}
-
-.pagination-numbers {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.pagination-btn.number {
-  background: transparent;
-  color: #6c757d;
-  border: 1px solid #dee2e6;
-  min-width: 36px;
-}
-
-.pagination-btn.number:hover {
-  background: #e9ecef;
-  border-color: #adb5bd;
-  color: #495057;
-}
-
-.pagination-btn.number.active {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
-  font-weight: 600;
-}
-
-.pagination-btn.number.active:hover {
-  background: #333333;
-  border-color: #333333;
-}
-
-/* Estilos para puntos suspensivos en paginación comprimida */
-.pagination-ellipsis {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px;
-  height: 36px;
-  color: #6c757d;
-  font-weight: 600;
-  font-size: 1rem;
-  user-select: none;
-  padding: 0;
-  margin: 0;
-  vertical-align: middle;
-} 
- / *   E s t i l o   p a r a   e l   i n d i c a d o r   d e   p � � g i n a   a c t u a l   -   c u a d r o   s i m p l e   * /  
- . p a g i n a t i o n - c u r r e n t - p a g e   {  
-     d i s p l a y :   i n l i n e - f l e x ;  
-     a l i g n - i t e m s :   c e n t e r ;  
-     j u s t i f y - c o n t e n t :   c e n t e r ;  
-     m i n - w i d t h :   4 0 p x ;  
-     h e i g h t :   4 0 p x ;  
-     b a c k g r o u n d :   # 4 f 4 6 e 5 ;  
-     c o l o r :   w h i t e ;  
-     b o r d e r :   2 p x   s o l i d   # 4 f 4 6 e 5 ;  
-     b o r d e r - r a d i u s :   6 p x ;  
-     f o n t - w e i g h t :   6 0 0 ;  
-     f o n t - s i z e :   1 r e m ;  
-     u s e r - s e l e c t :   n o n e ;  
-     b o x - s h a d o w :   0   2 p x   4 p x   r g b a ( 0 ,   0 ,   0 ,   0 . 1 ) ;  
- }  
- 

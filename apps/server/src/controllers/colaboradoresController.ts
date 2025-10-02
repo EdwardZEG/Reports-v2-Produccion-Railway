@@ -290,7 +290,7 @@ export const obtenerColaboradores: RequestHandler = async (req, res, next) => {
     const { limit = 100, page = 1 } = req.query; // Agregar paginación para mejorar rendimiento
 
     const colaboradores = await Colaborador.find(filtro)
-      .select('nombre apellido_paterno apellido_materno correo estado rol poliza coordinador especialidad') // Solo campos necesarios
+      .select('nombre apellido_paterno apellido_materno correo telefono estado rol poliza coordinador especialidad') // Agregado telefono
       .populate("poliza", "nombre ubicacion") // Solo campos necesarios
       .populate("coordinador", "nombre apellido_paterno apellido_materno") // Solo campos necesarios
       .populate("especialidad", "nombre") // Solo campo necesario
@@ -349,7 +349,7 @@ export const obtenerColaboradoresParaColaborativo: RequestHandler = async (req, 
 
     const colaboradores = await Colaborador.find(filtro)
       .populate("poliza coordinador especialidad")
-      .select('nombre apellido_paterno apellido_materno correo poliza especialidad rol estado');
+      .select('nombre apellido_paterno apellido_materno correo telefono poliza especialidad rol estado');
 
     console.log('📊 Colaboradores encontrados:', colaboradores.length);
     console.log('📋 Resumen completo:', colaboradores.map(c => ({

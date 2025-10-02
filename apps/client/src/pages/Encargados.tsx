@@ -18,6 +18,7 @@ const Encargados = () => {
     actualizarEncargado,
     eliminarEncargado,
     marcarColaboradorCreado, // Nueva función para resaltado
+    getPolizaNombre,
   } = useEncargadosData();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,6 +32,13 @@ const Encargados = () => {
   // Estados para paginación - igual que coordinadores
   const [paginaActual, setPaginaActual] = useState(1);
   const CARDS_POR_PAGINA = 5; // 5 colaboradores por página para mejor proporción visual
+
+  // Estados para modal de confirmación de desactivar
+  const [showModalDesactivar, setShowModalDesactivar] = useState(false);
+  const [encargadoADesactivar, setEncargadoADesactivar] = useState<any>(null);
+
+  // Estado para prevenir clicks múltiples en switches
+  const [switchesEnProceso, setSwitchesEnProceso] = useState<Set<string>>(new Set());
 
   // ===== FUNCIONES PARA BÚSQUEDA INTELIGENTE - EXACTO COMO COORDINADORES =====
   // Sistema de búsqueda avanzada con normalización de texto, coincidencias difusas
@@ -229,6 +237,75 @@ const Encargados = () => {
     }
   };
 
+  // ===== FUNCIONES PARA CAMBIO DE ESTADO =====
+  const manejarCambioEstado = (encargado: any, nuevoEstado: boolean) => {
+    // Prevenir clicks múltiples mientras se procesa
+    if (switchesEnProceso.has(encargado._id)) {
+      return;
+    }
+
+    // Marcar como en proceso
+    setSwitchesEnProceso(prev => new Set(prev).add(encargado._id));
+
+    if (!nuevoEstado) {
+      // Si se está desactivando, mostrar modal de confirmación
+      setEncargadoADesactivar(encargado);
+      setShowModalDesactivar(true);
+      // No removemos de switchesEnProceso aquí porque el modal maneja la finalización
+    } else {
+      // Si se está activando, cambiar directamente
+      actualizarEstadoEncargado(encargado._id, "Activo").finally(() => {
+        // Remover de switches en proceso cuando termine
+        setSwitchesEnProceso(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(encargado._id);
+          return newSet;
+        });
+      });
+    }
+  };
+
+  const confirmarDesactivacion = async () => {
+    if (encargadoADesactivar) {
+      await actualizarEstadoEncargado(encargadoADesactivar._id, "Inactivo");
+      // Remover de switches en proceso
+      setSwitchesEnProceso(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(encargadoADesactivar._id);
+        return newSet;
+      });
+      setShowModalDesactivar(false);
+      setEncargadoADesactivar(null);
+    }
+  };
+
+  const cancelarDesactivacion = () => {
+    // Remover de switches en proceso al cancelar
+    if (encargadoADesactivar) {
+      setSwitchesEnProceso(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(encargadoADesactivar._id);
+        return newSet;
+      });
+    }
+    setShowModalDesactivar(false);
+    setEncargadoADesactivar(null);
+  };
+
+  const actualizarEstadoEncargado = async (id: string, nuevoEstado: string) => {
+    try {
+      // Encontrar el encargado actual
+      const encargado = encargados.find(e => e._id === id);
+      if (encargado) {
+        await actualizarEncargado({ ...encargado, estado: nuevoEstado });
+      }
+      // Toast messages removed as requested
+    } catch (error) {
+      toast.error("Error al actualizar el estado del encargado");
+      console.error("Error:", error);
+    }
+  };
+
 
 
   // Funciones para búsqueda - exacto como coordinadores
@@ -405,11 +482,26 @@ const Encargados = () => {
           <div className="encargados-tabla">
             {/* Header de la tabla */}
             <div className="tabla-header">
-              <div className="columna-nombre">Colaborador</div>
-              <div className="columna-contacto">Contacto</div>
-              <div className="columna-info">Información</div>
-              <div className="columna-estado">Estado</div>
-              <div className="columna-acciones">Acciones</div>
+              <div className="columna-nombre">
+                <i className="bi bi-person-badge"></i>
+                Nombre
+              </div>
+              <div className="columna-contacto">
+                <i className="bi bi-envelope-at"></i>
+                Contacto
+              </div>
+              <div className="columna-poliza">
+                <i className="bi bi-shield-check"></i>
+                Póliza
+              </div>
+              <div className="columna-estado">
+                <i className="bi bi-check-circle"></i>
+                Estado
+              </div>
+              <div className="columna-acciones">
+                <i className="bi bi-gear"></i>
+                Acciones
+              </div>
             </div>
 
             {/* Filas de colaboradores */}
@@ -417,14 +509,11 @@ const Encargados = () => {
               {encargadosPaginados.map((encargado) => (
                 <div key={encargado._id} className={`tabla-fila ${encargado.resaltado ? 'resaltado' : ''}`}>
                   <div className="columna-nombre">
-                    <div className="encargado-info">
-                      <i className="bi bi-person-badge encargado-icon"></i>
-                      <div className="encargado-nombre">
+                    <div className="coordinador-info">
+                      <i className="bi bi-person-badge coordinador-icon"></i>
+                      <div className="coordinador-nombre">
                         <span className="nombre-completo">
                           {encargado.nombre} {encargado.apellido_paterno || ""} {encargado.apellido_materno || ""}
-                        </span>
-                        <span className="puesto-info">
-                          {encargado.rol}
                         </span>
                       </div>
                     </div>
@@ -443,27 +532,40 @@ const Encargados = () => {
                     </div>
                   </div>
 
-                  <div className="columna-info">
-                    <div className="info-colaborador">
-                      <div className="info-item">
-                        <i className="bi bi-shield-check"></i>
-                        <span className="poliza-nombre">
-                          {encargado.poliza?.nombre || 'Sin póliza'}
-                        </span>
-                      </div>
-                      <div className="info-item especialidades-item">
-                        <i className="bi bi-tools"></i>
-                        <span className="especialidades-lista">
-                          {(encargado.especialidad ?? []).map((es: any) => es.nombre).join(", ") || 'Sin especialidades'}
-                        </span>
-                      </div>
-                    </div>
+                  <div className="columna-poliza">
+                    {(() => {
+                      const polizaText = typeof encargado.poliza === 'object' && encargado.poliza ?
+                        encargado.poliza.nombre :
+                        getPolizaNombre(encargado.poliza as string) || 'No asignada';
+
+                      const tienePoliza = polizaText !== 'Sin póliza' && polizaText !== 'No asignada';
+
+                      return (
+                        <>
+                          <i className={`bi bi-shield-check ${tienePoliza ? 'poliza-asignada' : 'poliza-no-asignada'}`}></i>
+                          <span className={tienePoliza ? 'poliza-asignada' : 'poliza-no-asignada'}>
+                            {polizaText}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   <div className="columna-estado">
-                    <div className={`estado-badge ${(encargado.estado || "activo").toLowerCase()}`}>
-                      <i className={`bi ${(encargado.estado || "activo").toLowerCase() === 'activo' ? 'bi-check-circle' : 'bi-x-circle'}`}></i>
-                      <span>{encargado.estado || "Activo"}</span>
+                    <div className="estado-switch-container">
+                      <label className="estado-switch">
+                        <input
+                          type="checkbox"
+                          checked={(encargado.estado || "activo").toLowerCase() === 'activo'}
+                          onChange={(e) => manejarCambioEstado(encargado, e.target.checked)}
+                          disabled={switchesEnProceso.has(encargado._id)}
+                        />
+                        <span className="switch-slider"></span>
+                      </label>
+                      <span className={`estado-texto ${(encargado.estado || "activo").toLowerCase()}`}>
+                        <i className={`bi ${(encargado.estado || "activo").toLowerCase() === 'activo' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}`}></i>
+                        {(encargado.estado || "activo").toLowerCase() === 'activo' ? 'Activo' : 'Inactivo'}
+                      </span>
                     </div>
                   </div>
 
@@ -661,6 +763,37 @@ const Encargados = () => {
                 <button type="button" className="close-btn" onClick={cerrarModal}>Cancelar</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para desactivar */}
+      {showModalDesactivar && encargadoADesactivar && (
+        <div className="modal-overlay-coordinadores">
+          <div className="modal-content-coordinadores">
+            <button className="modal-close" onClick={cancelarDesactivacion}>
+              ×
+            </button>
+
+            <div className="modal-title">
+              ¿Seguro que quieres <strong>desactivar</strong> este Encargado?
+            </div>
+
+            <div className="modal-user-info">
+              <p><strong>Encargado:</strong> {encargadoADesactivar.nombre} {encargadoADesactivar.apellido_paterno} {encargadoADesactivar.apellido_materno}</p>
+              <p><strong>Correo:</strong> {encargadoADesactivar.correo}</p>
+            </div>
+
+            <div className="modal-buttons">
+              <button className="modal-btn modal-btn-cancelar" onClick={cancelarDesactivacion}>
+                <i className="bi bi-x-circle"></i>
+                Cancelar
+              </button>
+              <button className="modal-btn modal-btn-confirmar" onClick={confirmarDesactivacion}>
+                <i className="bi bi-check-circle"></i>
+                Confirmar
+              </button>
+            </div>
           </div>
         </div>
       )}

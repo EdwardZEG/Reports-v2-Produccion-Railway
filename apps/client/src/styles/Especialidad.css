@@ -1,10 +1,13 @@
 /* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
-/* Layout principal del módulo de especialidades */
+/* Layout principal del módulo de especialidades igual que colaboradores */
 .especialidad-container {
   display: flex;
   flex-direction: column;
-  padding-top: 1px; /* Reducido al mínimo para subir el contenido igual que polizas */
-  align-items: flex-end; /* Alineación a la derecha igual que polizas */
+  padding: 20px 40px; /* Más padding horizontal para centrar mejor */
+  align-items: center; /* Centrar el contenido */
+  width: 100%;
+  max-width: 1400px; /* Ancho máximo para contenedores grandes */
+  margin: 0 auto; /* Centrar horizontalmente */
 }
 
 /* ===== ESTILOS DE VALIDACIÓN Y ERRORES ===== */
@@ -313,10 +316,10 @@
   }
 }
 
-/* ===== NUEVA VISTA PREVIA DE ESPECIALIDADES (SISTEMA DE CARDS) ===== */
-/* Sección principal que reemplaza el sistema de tabla */
+/* ===== NUEVA VISTA PREVIA DE ESPECIALIDADES (SISTEMA DE CARDS EXACTO DE COLABORADORES) ===== */
+/* Sección principal que reemplaza el sistema de tabla - diseño copiado de colaboradores */
 
-/* Contenedor principal de la vista previa con diseño neomórfico */
+/* Contenedor principal de la vista previa con diseño neomórfico exacto */
 .preview-section-especialidad {
   background: #FFFFFF;
   border-radius: 12px;
@@ -327,13 +330,13 @@
   border: none;
   width: 100%; /* Usa el ancho disponible del contenedor padre */
   max-width: 100%;
-  margin: 0; /* Sin márgenes externos para evitar desbordamientos */
+  margin: 40px 0 0 0; /* Margen top para alineación exacta con colaboradores */
   min-height: 0;
   overflow: visible; /* Cambiar a visible para mostrar paginación */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  height: calc(100vh - 140px); /* Altura igual a polizas */
+  height: calc(100vh - 200px); /* Altura exacta para mostrar contenido y paginación */
 }
 
 /* ===== HEADER DE LA SECCIÓN ===== */
@@ -554,10 +557,32 @@
   flex: 1; /* Ocupa el espacio restante */
   border: none;
   transition: all 0.3s ease;
-  overflow: hidden; /* Evita desbordamientos */
+  overflow-y: auto; /* Solo scroll vertical para múltiples cards */
+  overflow-x: hidden; /* Evitar scroll horizontal */
   width: 100%;
-  height: 100%;
+  height: 100%; /* Usa toda la altura disponible del contenedor padre */
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: #000000 #f0f0f0; /* Scrollbar negro como en vista previa */
+}
+
+/* Estilos de scrollbar personalizados para WebKit (Chrome, Safari, Edge) */
+.preview-container-especialidad::-webkit-scrollbar {
+  width: 8px;
+}
+
+.preview-container-especialidad::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.preview-container-especialidad::-webkit-scrollbar-thumb {
+  background: #000000; /* Negro como en vista previa */
+  border-radius: 4px;
+}
+
+.preview-container-especialidad::-webkit-scrollbar-thumb:hover {
+  background: #333333; /* Gris oscuro en hover */
 }
 
 /* ===== INDICADOR DE RESULTADOS DE BÚSQUEDA ===== */
@@ -592,4 +617,142 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
+}
+
+/* ===== ESTILOS DE PAGINACIÓN ===== */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: auto; /* Empuja la paginación al fondo automáticamente */
+  margin-bottom: 0; /* Sin margen inferior para usar toda la altura disponible */
+  padding: 0.75rem 1.2rem 0.75rem 1.2rem; /* Padding uniforme en todos los lados */
+  flex-shrink: 0; /* No se comprime */
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.pagination-btn {
+  border: none;
+  background: #f8f9fa;
+  color: #6c757d;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.pagination-btn:disabled {
+  background: #f8f9fa;
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-btn.go-to-first {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  min-width: auto;
+  height: 36px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-right: 10px;
+  padding: 0 12px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pagination-btn.go-to-first:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+.pagination-btn.prev,
+.pagination-btn.next {
+  background: #000000;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.pagination-btn.prev:hover:not(:disabled),
+.pagination-btn.next:hover:not(:disabled) {
+  background: #333333;
+}
+
+.pagination-btn.number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 1rem;
+  user-select: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.pagination-btn.number:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.pagination-btn.number.active {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  font-weight: 600;
+}
+
+/* ===== MEDIA QUERIES RESPONSIVE ADICIONALES ===== */
+/* Para pantallas grandes (escritorio) */
+@media (min-width: 1200px) {
+  .preview-section-especialidad {
+    margin: 40px 0 0 0;
+    height: calc(100vh - 200px);
+  }
+}
+
+/* Para tablets y pantallas medianas */
+@media (max-width: 1199px) and (min-width: 769px) {
+  .preview-section-especialidad {
+    margin: 30px 0 0 0;
+    height: calc(100vh - 180px);
+  }
+}
+
+/* Para móviles */
+@media (max-width: 768px) {
+  .preview-section-especialidad {
+    margin: 20px 0 0 0;
+    height: calc(100vh - 160px);
+    min-height: 400px;
+  }
 }

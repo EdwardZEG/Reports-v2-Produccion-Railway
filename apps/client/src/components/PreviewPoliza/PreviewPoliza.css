@@ -118,7 +118,7 @@
     0 2px 6px rgba(0, 0, 0, 0.08);
   scrollbar-width: thin;
   scrollbar-color: #000000 #f0f0f0;
-  padding: 1rem; /* Margen interno uniforme para las cards */
+  padding: 1rem 1.2rem; /* Padding horizontal ajustado para alineación con márgenes de 32px */
   margin: 0; /* Sin márgenes externos */
   box-sizing: border-box;
   position: relative; /* Para asegurar el contexto de scroll */
@@ -526,7 +526,7 @@
 @media (max-width: 768px) {
   .preview-poliza__wrapper {
     margin: 0.75rem 0;
-    padding: 0.75rem;
+    padding: 0.75rem 1.2rem; /* Mantener padding horizontal consistente */
   }
   
   .preview-poliza__cards-grid {
@@ -567,7 +567,7 @@
 @media (max-width: 480px) {
   .preview-poliza__wrapper {
     margin: 0.5rem 0;
-    padding: 0.5rem;
+    padding: 0.5rem 1rem; /* Padding horizontal reducido pero consistente */
   }
   
   .preview-poliza__cards-grid {

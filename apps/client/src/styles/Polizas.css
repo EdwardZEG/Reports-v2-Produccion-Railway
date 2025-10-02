@@ -1,10 +1,15 @@
 /* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
-/* Layout principal del módulo de pólizas */
+/* Layout principal del módulo de pólizas igual que coordinadores */
+/* ACTUALIZADO: 2025-10-02 15:45 - Forzando altura igual que coordinadores */
 .poliza-container {
   display: flex;
   flex-direction: column;
-  padding-top: 1px; /* Reducido al mínimo para subir el contenido */
-  align-items: flex-end; /* Alineación a la derecha */
+  padding: 20px 40px; /* Más padding horizontal para centrar mejor */
+  align-items: center; /* Centrar el contenido */
+  width: 100%;
+  max-width: 1400px; /* Ancho máximo para contenedores grandes */
+  margin: 0 auto; /* Centrar horizontalmente */
+  height: 100% !important; /* Forzar altura completa igual que coordinadores */
 }
 
 /* ===== ESTILOS DE VALIDACIÓN Y ERRORES ===== */
@@ -286,27 +291,34 @@
   }
 }
 
-/* ===== NUEVA VISTA PREVIA DE PÓLIZAS (SISTEMA DE CARDS) ===== */
-/* Sección principal que reemplaza el sistema de tabla */
+/* ===== NUEVA VISTA PREVIA DE PÓLIZAS (SISTEMA DE CARDS EXACTO DE COLABORADORES) ===== */
+/* Sección principal que reemplaza el sistema de tabla - diseño copiado de colaboradores */
 
-/* Contenedor principal de la vista previa con diseño neomórfico */
+/* Contenedor principal de la vista previa con diseño neomórfico exacto */
 .preview-section-poliza {
-  background: #FFFFFF;
-  border-radius: 12px;
-  padding: 1rem; /* Margen uniforme en las 4 direcciones */
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+  padding: 1rem !important; /* Margen uniforme en las 4 direcciones */
   box-shadow: 
     4px 4px 12px rgba(0, 0, 0, 0.06),
-    inset -1px -1px 2px rgba(0, 0, 0, 0.02); /* Efecto neomórfico sutil */
-  border: none;
-  width: 100%; /* Usa el ancho disponible del contenedor padre */
-  max-width: 100%;
-  margin: 0; /* Sin márgenes externos para evitar desbordamientos */
-  min-height: 0;
-  overflow: visible; /* Cambiar a visible para mostrar paginación */
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  height: calc(100vh - 140px); /* Altura aumentada para mostrar más cards */
+    inset -1px -1px 2px rgba(0, 0, 0, 0.02) !important; /* Efecto neomórfico sutil */
+  border: none !important;
+  width: 100% !important; /* Usa el ancho disponible del contenedor padre */
+  max-width: 100% !important;
+  margin: 40px auto 0 auto !important; /* Centrado horizontal y vertical */
+  min-height: 0 !important;
+  overflow: visible !important; /* Cambiar a visible para mostrar paginación */
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  height: calc(100vh - 200px) !important; /* Altura exacta igual que coordinadores - FORZADO */
+}
+
+/* REGLA ESPECÍFICA PARA FORZAR ALTURA - NO MOVER NI CAMBIAR */
+.poliza-container .preview-section-poliza {
+  height: calc(100vh - 200px) !important;
+  min-height: calc(100vh - 200px) !important;
+  max-height: calc(100vh - 200px) !important;
 }
 
 /* ===== HEADER DE LA SECCIÓN ===== */
@@ -524,13 +536,35 @@
   background: transparent;
   border-radius: 0;
   padding: 0;
-  flex: 1; /* Ocupa el espacio restante */
+  flex: 1; /* Ocupa el espacio restante dinámicamente */
   border: none;
   transition: all 0.3s ease;
-  overflow: hidden; /* Evita desbordamientos */
+  overflow-y: auto; /* Solo scroll vertical */
+  overflow-x: hidden; /* Sin scroll horizontal */
   width: 100%;
-  height: 100%;
+  height: 100%; /* Usar toda la altura disponible del contenedor padre */
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: #000000 #f0f0f0; /* Scrollbar negro como en vista previa */
+}
+
+/* Estilos de scrollbar personalizados para WebKit (Chrome, Safari, Edge) */
+.preview-container-poliza::-webkit-scrollbar {
+  width: 8px;
+}
+
+.preview-container-poliza::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.preview-container-poliza::-webkit-scrollbar-thumb {
+  background: #000000; /* Negro como en vista previa */
+  border-radius: 4px;
+}
+
+.preview-container-poliza::-webkit-scrollbar-thumb:hover {
+  background: #333333; /* Gris oscuro en hover */
 }
 
 /* ===== INDICADOR DE RESULTADOS DE BÚSQUEDA ===== */
@@ -670,7 +704,10 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: 1.5rem; /* Espacio fijo desde el contenido para centrarlo */
+  margin-bottom: 1.5rem; /* Espacio igual abajo para centrarlo */
+  padding: 0.75rem 1.2rem 0.75rem 1.2rem; /* Padding uniforme en todos los lados */
+  flex-shrink: 0; /* No se comprime */
 }
 
 .pagination {
@@ -678,6 +715,7 @@
   align-items: center;
   gap: 0.75rem;
   font-family: 'Open Sans', sans-serif;
+  line-height: 1;
 }
 
 .pagination-btn {
@@ -738,12 +776,23 @@
 
 .pagination-btn.prev,
 .pagination-btn.next {
-  background: #000000;
-  color: #ffffff;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  padding: 0;
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+  vertical-align: top !important;
 }
 
 .pagination-btn.prev:hover:not(:disabled),
@@ -770,13 +819,32 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  height: 36px;
 }
 
 .pagination-btn.number {
-  background: transparent;
-  color: #6c757d;
-  border: 1px solid #dee2e6;
-  min-width: 36px;
+  background: transparent !important;
+  color: #6c757d !important;
+  border: 1px solid #dee2e6 !important;
+  font-size: 0.875rem !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+  vertical-align: top !important;
 }
 
 .pagination-btn.number:hover {
@@ -786,10 +854,26 @@
 }
 
 .pagination-btn.number.active {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
-  font-weight: 600;
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid #000000 !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+  vertical-align: top !important;
 }
 
 .pagination-btn.number.active:hover {
@@ -811,4 +895,53 @@
   padding: 0;
   margin: 0;
   vertical-align: middle;
+}
+
+/* ===== RESPONSIVE DESIGN - SOLO TAMAÑO DE PANTALLA ===== */
+/* Media queries para diferentes tamaños de pantalla */
+
+/* Pantallas grandes (escritorio) */
+@media (min-width: 1200px) {
+  .preview-section-poliza {
+    margin: 40px auto 0 auto;
+    height: calc(100vh - 160px) !important; /* FORZAR altura igual que coordinadores */
+  }
+  
+  .pagination-container {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Pantallas medianas (tabletas) */
+@media (max-width: 1199px) and (min-width: 768px) {
+  .preview-section-poliza {
+    margin: 30px auto 0 auto;
+    height: calc(100vh - 140px) !important; /* FORZAR altura igual que coordinadores */
+  }
+  
+  .pagination-container {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* Pantallas pequeñas (móviles) */
+@media (max-width: 767px) {
+  .preview-section-poliza {
+    margin: 20px auto 0 auto;
+    height: calc(100vh - 120px) !important; /* FORZAR altura igual que coordinadores */
+    min-height: 400px;
+    padding: 1rem;
+  }
+  
+  .pagination-container {
+    justify-content: center; /* Centrar en móviles */
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .poliza-container {
+    padding: 20px; /* Mismo padding que colaboradores */
+  }
 }

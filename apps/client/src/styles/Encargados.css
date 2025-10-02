@@ -1,33 +1,45 @@
 /* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
-/* Layout principal del módulo de colaboradores igual que coordinadores */
+/* Layout principal del módulo de encargados igual que coordinadores */
+/* ACTUALIZADO: 2025-10-02 15:30 - Forzando altura y tipografía igual que coordinadores */
 .encargados-container {
   display: flex;
   flex-direction: column;
-  padding-top: 1px; /* Reducido al mínimo para subir el contenido igual que coordinadores */
-  align-items: flex-end; /* Alineación a la derecha igual que coordinadores */
+  padding: 20px 40px; /* Más padding horizontal para centrar mejor */
+  align-items: center; /* Centrar el contenido */
+  width: 100%;
+  max-width: 1400px; /* Ancho máximo para contenedores grandes */
+  margin: 0 auto; /* Centrar horizontalmente */
+  height: 100% !important; /* Forzar altura completa igual que coordinadores */
 }
 
-/* ===== NUEVA VISTA PREVIA DE COLABORADORES (SISTEMA DE CARDS EXACTO DE COORDINADORES) ===== */
+/* ===== NUEVA VISTA PREVIA DE ENCARGADOS (SISTEMA DE CARDS EXACTO DE COORDINADORES) ===== */
 /* Sección principal que reemplaza el sistema de tabla - diseño copiado de coordinadores */
 
 /* Contenedor principal de la vista previa con diseño neomórfico exacto */
 .preview-section-encargados {
-  background: #FFFFFF;
-  border-radius: 12px;
-  padding: 1rem; /* Margen uniforme en las 4 direcciones */
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+  padding: 1rem !important; /* Margen uniforme en las 4 direcciones */
   box-shadow: 
     4px 4px 12px rgba(0, 0, 0, 0.06),
-    inset -1px -1px 2px rgba(0, 0, 0, 0.02); /* Efecto neomórfico sutil */
-  border: none;
-  width: 100%; /* Usa el ancho disponible del contenedor padre */
-  max-width: 100%;
-  margin: 0; /* Sin márgenes externos para evitar desbordamientos */
-  min-height: 0;
-  overflow: visible; /* Cambiar a visible para mostrar paginación */
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  height: calc(100vh - 140px); /* Altura igual a coordinadores */
+    inset -1px -1px 2px rgba(0, 0, 0, 0.02) !important; /* Efecto neomórfico sutil */
+  border: none !important;
+  width: 100% !important; /* Usa el ancho disponible del contenedor padre */
+  max-width: 100% !important;
+  margin: 40px auto 0 auto !important; /* Centrado horizontal y vertical igual que coordinadores */
+  min-height: 0 !important;
+  overflow: visible !important; /* Cambiar a visible para mostrar paginación */
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  height: calc(100vh - 200px) !important; /* Altura exacta igual que coordinadores - FORZADO */
+}
+
+/* REGLA ESPECÍFICA PARA FORZAR ALTURA - NO MOVER NI CAMBIAR */
+.encargados-container .preview-section-encargados {
+  height: calc(100vh - 200px) !important;
+  min-height: calc(100vh - 200px) !important;
+  max-height: calc(100vh - 200px) !important;
 }
 
 /* ===== HEADER DE LA SECCIÓN ===== */
@@ -49,7 +61,7 @@
   color: #111827;
 }
 
-/* Icono del título (colaboradores) */
+/* Icono del título (encargados) */
 .section-title-encargados i {
   color: #000000; /* Negro como en Vista Previa */
   font-size: 1.5rem; /* Mismo tamaño que Vista Previa */
@@ -184,7 +196,7 @@
 }
 
 /* ===== BOTÓN REGISTRAR ===== */
-/* Botón principal para crear nuevo colaborador - alineado con barra de búsqueda */
+/* Botón principal para crear nuevo encargado - alineado con barra de búsqueda */
 .btn-registrar-encargados {
   background: #4927F5;
   border: none;
@@ -266,279 +278,6 @@
   box-sizing: border-box;
 }
 
-/* ===== TABLA/LISTA DE COLABORADORES - FORMATO COMPACTO ADAPTADO ===== */
-
-/* Contenedor principal de la tabla */
-.encargados-tabla {
-  background: #FFFFFF;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-}
-
-/* Header de la tabla - OPTIMIZADO PARA COLABORADORES (5 columnas) */
-.tabla-header {
-  background: #000000;
-  color: #FFFFFF;
-  display: grid;
-  grid-template-columns: 2fr 2fr 2.5fr 1fr 1fr; /* Ajustado para información adicional */
-  gap: 1rem;
-  padding: 1rem; /* Padding normal para mejor apariencia */
-  font-weight: 600;
-  font-size: 0.9rem; /* Fuente normal */
-  border-bottom: 2px solid #333333;
-  min-height: 50px;
-}
-
-/* Body de la tabla */
-.tabla-body {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Fila individual - OPTIMIZADA PARA COLABORADORES */
-.tabla-fila {
-  display: grid;
-  grid-template-columns: 2fr 2fr 2.5fr 1fr 1fr; /* Misma distribución que header */
-  gap: 1rem;
-  padding: 1.25rem; /* Padding aumentado para mejor apariencia */
-  border-bottom: 1px solid #f3f4f6;
-  transition: all 0.2s ease;
-  align-items: center;
-  min-height: 70px; /* Altura aumentada para mejor distribución */
-}
-
-.tabla-fila:hover {
-  background: #f8f9fa;
-}
-
-.tabla-fila:last-child {
-  border-bottom: none;
-}
-
-/* Estilos para las columnas - ADAPTADO PARA COLABORADORES */
-.columna-nombre {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-}
-
-.columna-contacto {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.columna-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-.columna-estado {
-  display: flex;
-  justify-content: center;
-}
-
-.columna-acciones {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-/* Información de contacto - OPTIMIZADA */
-.contacto-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.contacto-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: #6b7280;
-  line-height: 1.3;
-}
-
-.contacto-item i {
-  color: #6b7280;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-  width: 16px;
-}
-
-/* Información del colaborador - NUEVA SECCIÓN */
-.encargado-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.encargado-icon {
-  color: #6b7280;
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.encargado-nombre {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.nombre-completo {
-  font-weight: 600;
-  color: #111827;
-  font-size: 0.95rem;
-  line-height: 1.3;
-}
-
-.puesto-info {
-  font-size: 0.8rem;
-  color: #6b7280;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Información adicional de colaborador - PÓLIZA Y ESPECIALIDADES */
-.info-colaborador {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  line-height: 1.2;
-}
-
-.info-item i {
-  color: #6b7280;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-  width: 16px;
-}
-
-.poliza-nombre {
-  color: #374151;
-  font-weight: 500;
-}
-
-.especialidades-item {
-  align-items: flex-start; /* Para textos largos de especialidades */
-}
-
-.especialidades-lista {
-  color: #6b7280;
-  font-size: 0.8rem;
-  line-height: 1.3;
-  word-break: break-word; /* Para especialidades muy largas */
-}
-
-/* Header de la tabla - títulos de columnas */
-.tabla-header .columna-nombre,
-.tabla-header .columna-contacto,
-.tabla-header .columna-info,
-.tabla-header .columna-estado,
-.tabla-header .columna-acciones {
-  color: #FFFFFF;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.tabla-header .columna-estado,
-.tabla-header .columna-acciones {
-  justify-content: center;
-}
-
-/* Badge de estado - IGUAL QUE COORDINADORES */
-.estado-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: none;
-}
-
-.estado-badge.activo {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-}
-
-.estado-badge.activo i {
-  color: #22c55e;
-  font-size: 0.8rem;
-}
-
-.estado-badge.inactivo {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.estado-badge.inactivo i {
-  color: #ef4444;
-  font-size: 0.8rem;
-}
-
-/* Botones de acción - IGUALES QUE COORDINADORES */
-.btn-accion {
-  background: #f8f9fa;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  color: #6b7280;
-}
-
-.btn-accion:hover {
-  transform: scale(1.05);
-}
-
-.btn-accion.editar {
-  color: #3b82f6;
-}
-
-.btn-accion.editar:hover {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #1d4ed8;
-}
-
-.btn-accion.eliminar {
-  color: #ef4444;
-}
-
-.btn-accion.eliminar:hover {
-  background: #fef2f2;
-  border-color: #ef4444;
-  color: #dc2626;
-}
-
 /* ===== ESTILOS DE PAGINACIÓN - EXACTO COMO COORDINADORES ===== */
 .pagination-container {
   display: flex;
@@ -583,7 +322,7 @@
   opacity: 0.6;
 }
 
-/* Botón "Página 1" - estilo negro como en coordinadores */
+/* Botón "Página 1" - estilo negro como en la imagen */
 .pagination-btn.go-to-first {
   background: #000000;
   color: #ffffff;
@@ -687,7 +426,28 @@
   vertical-align: middle;
 }
 
-/* Estilo para colaboradores resaltados - igual que coordinadores */
+.loading-encargados {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.error-encargados {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #dc2626;
+  font-size: 1rem;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+/* Estilo para encargados resaltados - igual que coordinadores */
 .tabla-fila.resaltado {
   background-color: #dbeafe !important; /* Azul claro suave */
   color: #1e40af !important; /* Azul oscuro */
@@ -699,173 +459,7 @@
   background-color: #bfdbfe !important; /* Azul ligeramente más oscuro en hover */
 }
 
-/* ===== MODAL STYLES - ACTUALIZADO PARA COORDINADORES STYLE ===== */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(55, 55, 55, .6);
-  backdrop-filter: blur(2px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-main-container {
-  background-color: white;
-  border-radius: 5px;
-  padding: 15px;
-  max-width: 90%;
-  max-height: 90vh;
-}
-
-.modal-encargados-container {
-  padding: 20px;
-  width: 500px;
-  max-width: 90%;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.modal-encargados-container h3 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: #111827;
-  font-weight: 600;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #374151;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-family: 'Open Sans', sans-serif;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.submit-btn {
-  background-color: #4927F5;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.submit-btn:hover {
-  background-color: #3a1fd1;
-}
-
-.close-btn {
-  background-color: #920000;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.close-btn:hover {
-  background-color: #7f0000;
-}
-
-/* Fieldset para especialidades */
-fieldset {
-  border: 1px solid #ccc;
-  padding: 10px 15px;
-  margin-bottom: 1.5rem;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-fieldset legend {
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #374151;
-}
-
-fieldset label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  color: #333;
-  cursor: pointer;
-  font-weight: normal;
-}
-
-fieldset input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: #991b1b;
-}
-
-.errores-formulario {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 4px;
-  padding: 10px;
-  margin-bottom: 15px;
-}
-
-.errores-formulario .error {
-  color: #dc2626;
-  margin: 0;
-  font-size: 0.9rem;
-}
-
 /* ===== RESPONSIVE ===== */
-@media (max-width: 1024px) {
-  .tabla-header,
-  .tabla-fila {
-    grid-template-columns: 1.5fr 1.5fr 2fr 0.8fr 0.8fr;
-    gap: 0.75rem;
-    padding: 0.75rem;
-  }
-  
-  .nombre-completo {
-    font-size: 0.9rem;
-  }
-  
-  .contacto-item,
-  .info-item {
-    font-size: 0.8rem;
-  }
-}
-
 @media (max-width: 768px) {
   .section-header-encargados {
     flex-direction: column;
@@ -883,11 +477,586 @@ fieldset input[type="checkbox"] {
     width: 100%;
   }
   
+  .encargados-grid {
+    grid-template-columns: 1fr;
+  }
+  
   .preview-section-encargados {
     height: auto;
     min-height: calc(100vh - 120px);
   }
+}
+
+/* ===== TABLA/LISTA DE COLABORADORES - FORMATO COMPACTO ===== */
+
+/* Contenedor principal de la tabla - EXTIENDE HASTA ABAJO */
+.encargados-tabla {
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  height: 100%; /* Ocupa toda la altura disponible del contenedor padre */
+  width: 100%; /* Ocupa todo el ancho disponible */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header de la tabla - PROPORCIONAL AL CONTENEDOR */
+.tabla-header {
+  background: #000000;
+  color: #FFFFFF;
+  display: grid;
+  grid-template-columns: 2fr 2fr 2fr 1fr 1fr;
+  gap: clamp(0.5rem, 1.5vmin, 1.5rem); /* Gap escalable igual que las filas */
+  padding: clamp(0.8rem, 2vmin, 1.5rem) clamp(0.8rem, 1.5vmin, 1.2rem); /* Padding escalable */
+  font-weight: 600;
+  font-size: clamp(0.7rem, 2.5vmin, 1.2rem); /* Escala más agresivamente */
+  border-bottom: 2px solid #333333;
+  flex-shrink: 0; /* El header mantiene su tamaño fijo */
+  height: auto; /* Altura automática basada en contenido */
+}
+
+/* Body de la tabla - DISTRIBUCIÓN UNIFORME DE FILAS */
+.tabla-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Ocupa todo el espacio restante después del header */
+  height: 100%; /* Asegura que use toda la altura disponible */
+  min-height: 0; /* Permite el cálculo correcto del flex */
+}
+
+/* Fila individual - TAMAÑO UNIFORME Y ADAPTABLE */
+.tabla-fila {
+  display: grid;
+  grid-template-columns: 2fr 2fr 2fr 1fr 1fr;
+  gap: clamp(0.5rem, 1.5vmin, 1.5rem); /* Gap escalable */
+  padding: clamp(0.8rem, 2vmin, 1.8rem) clamp(0.8rem, 1.5vmin, 1.2rem); /* Padding escalable */
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+  align-items: center;
+  flex: 1; /* Cada fila ocupa una porción igual del espacio disponible */
+  min-height: 0; /* Permite que flex determine el tamaño */
+  overflow: hidden;
+}
+
+.tabla-fila:hover {
+  background: #f8f9fa;
+}
+
+.tabla-fila:last-child {
+  border-bottom: none;
+  flex: 1; /* Asegurar que tenga el mismo flex que las demás */
+}
+
+/* Estilos para las columnas DE CONTENIDO (no header) - ALINEACIÓN PERFECTA */
+.tabla-fila .columna-nombre {
+  display: flex !important;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+.tabla-fila .columna-contacto {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: flex-start !important;
+  text-align: left !important;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+.tabla-fila .columna-especialidad {
+  display: flex !important;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+/* Cuando NO tiene especialidad asignada - texto e icono en gris */
+.especialidad-no-asignada {
+  color: #6b7280 !important; /* Gris para texto e icono */
+  font-weight: normal !important;
+}
+
+/* Cuando SÍ tiene especialidad asignada - texto e icono en negro y negritas */
+.especialidad-asignada {
+  color: #000000 !important; /* Negro para texto e icono */
+  font-weight: 700 !important; /* Negritas */
+}
+
+.tabla-fila .columna-estado {
+  display: flex !important;
+  justify-content: center !important; /* Centrar el switch */
+  align-items: center;
+  text-align: center !important;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+.tabla-fila .columna-acciones {
+  display: flex !important;
+  gap: 0.75rem;
+  justify-content: flex-start !important;
+  align-items: center;
+  padding-left: 0.5rem; /* Mismo padding que header para alineación perfecta */
+}
+
+/* Información de contacto - ULTRA COMPACTA */
+.contacto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem; /* Gap mínimo */
+  justify-content: center; /* Centrar verticalmente */
+}
+
+.contacto-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.2rem, 0.5vmin, 0.4rem); /* Gap escalable */
+  font-size: clamp(0.55rem, 2vmin, 0.9rem); /* Escala más agresivamente */
+  color: #6b7280;
+  line-height: 1.1; /* Línea adaptable */
+  margin: 0 !important; /* Quitar cualquier margen */
+  padding: 0 !important; /* Quitar cualquier padding */
+}
+
+.contacto-item i {
+  color: #6b7280;
+  font-size: 0.7rem; /* Icono más pequeño para altura reducida */
+  flex-shrink: 0;
+  width: 12px; /* Ancho reducido para proporcionalidad */
+}
+
+/* Información del colaborador - ULTRA COMPACTA */
+.colaborador-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem; /* Gap reducido */
+  justify-content: flex-start;
+  height: 100%;
+  margin: 0 !important; /* Quitar cualquier margen */
+  padding: 0 !important; /* Quitar cualquier padding interno */
+}
+
+.colaborador-icon {
+  color: #6b7280;
+  font-size: 0.9rem; /* Icono más pequeño */
+  flex-shrink: 0;
+}
+
+.colaborador-nombre {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centrar verticalmente */
+}
+
+.nombre-completo {
+  font-weight: 600;
+  color: #111827;
+  font-size: clamp(0.55rem, 2vmin, 0.9rem); /* Mismo tamaño que el resto de la tabla */
+  line-height: 1.1; /* Línea adaptable */
+}
+
+/* Iconos en las columnas - COMPACTOS */
+.columna-especialidad i {
+  color: #6b7280;
+  font-size: 0.9rem; /* Icono más pequeño */
+  flex-shrink: 0;
+}
+
+/* ===== SWITCH ESTILO APPLE PARA ESTADO ===== */
+/* Switch toggle inspirado en el diseño de iOS para cambiar estado activo/inactivo */
+/* Implementa animaciones suaves y colores distintivos para cada estado */
+.estado-switch {
+  position: relative;
+  display: inline-block;
+  width: clamp(45px, 6vmin, 60px); /* Ancho escalable según viewport */
+  height: clamp(24px, 3.2vmin, 32px); /* Alto escalable según viewport */
+}
+
+.estado-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s ease;
+  border-radius: clamp(12px, 1.6vmin, 16px); /* Border radius escalable */
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: clamp(18px, 2.4vmin, 24px); /* Alto del círculo escalable */
+  width: clamp(18px, 2.4vmin, 24px); /* Ancho del círculo escalable */
+  left: clamp(3px, 0.4vmin, 4px); /* Posición izquierda escalable */
+  bottom: clamp(3px, 0.4vmin, 4px); /* Posición inferior escalable */
+  background-color: white;
+  transition: 0.3s ease;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estado activo (verde) */
+input:checked + .switch-slider {
+  background-color: #3BE938; /* Verde para activo */
+}
+
+input:checked + .switch-slider:before {
+  transform: translateX(clamp(21px, 2.8vmin, 28px)); /* Desplazamiento escalable */
+}
+
+/* Estado inactivo (rojo) */
+input:not(:checked) + .switch-slider {
+  background-color: #E9383B; /* Rojo para inactivo */
+}
+
+/* Hover effect */
+.switch-slider:hover {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Contenedor del switch con texto */
+.estado-switch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.3rem, 0.8vmin, 0.5rem);
+}
+
+/* Texto del estado debajo del switch */
+.estado-texto {
+  font-size: clamp(0.6rem, 1.8vmin, 0.8rem);
+  font-weight: 500;
+  text-transform: capitalize; /* Primera letra mayúscula */
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.2rem, 0.5vmin, 0.3rem); /* Espacio entre ícono y texto */
+}
+
+/* Colores del texto según el estado */
+.estado-texto.activo {
+  color: #3BE938;
+}
+
+.estado-texto.inactivo {
+  color: #E9383B;
+}
+
+/* Íconos del estado en círculo */
+.estado-texto i {
+  font-size: clamp(0.7rem, 2vmin, 0.9rem); /* Tamaño del ícono escalable */
+  flex-shrink: 0; /* Evita que el ícono se comprima */
+}
+
+/* ===== MODAL DE CONFIRMACIÓN DESACTIVAR ===== */
+/* Modal especializado para confirmar cambios de estado de colaboradores */
+/* Diseño limpio sin backdrop blur para mayor claridad en la decisión */
+.modal-overlay-encargados {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: none !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.modal-content-coordinadores {
+  background: white;
+  border-radius: 8px;
+  padding: 28px;
+  width: 550px;
+  max-width: 95vw;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+  position: relative;
+  pointer-events: all;
+}
+
+/* Botón cerrar */
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+/* Título del modal */
+.modal-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+  margin-bottom: 18px;
+  line-height: 1.3;
+  text-align: left;
+  padding-right: 40px;
+  word-break: keep-all;
+  hyphens: none;
+}
+
+.modal-title strong {
+  font-weight: 700;
+  color: #000;
+}
+
+/* Información del usuario */
+.modal-user-info {
+  margin-bottom: 20px;
+}
+
+.modal-user-info p {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  color: #000;
+  line-height: 1.4;
+}
+
+.modal-user-info p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-user-info strong {
+  color: #000;
+  font-weight: 700;
+}
+
+/* Botones del modal */
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.modal-btn-cancelar {
+  background-color: #6c757d;
+  color: white;
+}
+
+.modal-btn-cancelar:hover {
+  background-color: #5a6268;
+}
+
+.modal-btn-confirmar {
+  background-color: #F5B027;
+  color: white;
+}
+
+.modal-btn-confirmar:hover {
+  background-color: #e09a1f;
+}
+
+/* Animaciones */
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header de la tabla - títulos con iconos alineados a la izquierda ESPECÍFICOS */
+.tabla-header .columna-nombre,
+.tabla-header .columna-contacto,
+.tabla-header .columna-poliza,
+.tabla-header .columna-acciones {
+  color: #FFFFFF !important;
+  text-transform: none !important;
+  letter-spacing: 0.3px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex !important;
+  flex-direction: row !important; /* FORZAR dirección horizontal para TODOS los headers */
+  align-items: center !important;
+  justify-content: flex-start !important; /* Todos alineados a la izquierda */
+  text-align: left !important;
+  height: 100%;
+  gap: 0.5rem; /* Espacio entre icono y texto */
+  padding-left: 0.5rem; /* Alineación consistente */
+}
+
+/* Header específico para Estado - centrado */
+.tabla-header .columna-estado {
+  color: #FFFFFF !important;
+  text-transform: none !important;
+  letter-spacing: 0.3px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important; /* Centrado para el switch */
+  text-align: center !important;
+  height: 100%;
+  gap: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+/* Iconos dentro del header */
+.tabla-header i {
+  font-size: 1rem;
+  color: #FFFFFF !important; /* Forzar color blanco para TODOS los iconos del header */
+  opacity: 1 !important; /* Opacidad completa para que se vean bien */
+  flex-shrink: 0; /* Evitar que se compriman */
+}
+
+/* Badge de estado - OPTIMIZADO PARA 6 FILAS */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* Gap normal */
+  padding: 0.25rem 0.75rem; /* Padding normal */
+  border-radius: 20px; /* Radio normal */
+  font-size: 0.8rem; /* Fuente normal */
+  font-weight: 600;
+  text-transform: none;
+}
+
+.estado-badge.activo {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.estado-badge.activo i {
+  color: #22c55e;
+  font-size: 0.8rem; /* Icono normal */
+}
+
+.estado-badge.inactivo {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.estado-badge.inactivo i {
+  color: #ef4444;
+  font-size: 0.8rem; /* Icono normal */
+}
+
+/* Botones de acción - OPTIMIZADOS */
+.btn-accion {
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px; /* Radio normal */
+  padding: 0.5rem; /* Padding normal */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; /* Ancho normal */
+  height: 32px; /* Alto normal */
+  color: #6b7280;
+}
+
+.btn-accion:hover {
+  transform: scale(1.05);
+}
+
+.btn-accion.editar {
+  color: #3b82f6;
+}
+
+.btn-accion.editar:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.btn-accion.eliminar {
+  color: #ef4444;
+}
+
+.btn-accion.eliminar:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* Responsive - adaptar para pantallas pequeñas */
+@media (max-width: 1024px) {
+  .tabla-header,
+  .tabla-fila {
+    grid-template-columns: 1.5fr 1.5fr 1fr 0.8fr 0.8fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
   
+  .nombre-completo {
+    font-size: 0.8rem; /* Mismo tamaño que contacto-item para consistencia */
+  }
+  
+  .contacto-item,
+  .columna-poliza {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
   .tabla-header,
   .tabla-fila {
     grid-template-columns: 1fr;
@@ -903,7 +1072,344 @@ fieldset input[type="checkbox"] {
   
   .columna-nombre,
   .columna-contacto,
-  .columna-info {
+  .columna-poliza {
+    justify-content: flex-start;
+  }
+  
+  .columna-estado,
+  .columna-acciones {
+    justify-content: center;
+  }
+}
+
+/* ===== RESPONSIVE DESIGN - IGUAL QUE COORDINADORES ===== */
+/* Media queries para diferentes tamaños de pantalla */
+
+/* Pantallas grandes (escritorio) */
+@media (min-width: 1200px) {
+  .preview-section-encargados {
+    margin: 40px 0 0 0;
+    height: calc(100vh - 160px) !important; /* FORZAR altura igual que coordinadores */
+  }
+  
+  .pagination-container {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Pantallas medianas (tabletas) */
+@media (max-width: 1199px) and (min-width: 768px) {
+  .preview-section-encargados {
+    margin: 30px 0 0 0;
+    height: calc(100vh - 140px) !important; /* FORZAR altura igual que coordinadores */
+  }
+  
+  .pagination-container {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* Pantallas pequeñas (móviles) */
+@media (max-width: 767px) {
+  .preview-section-encargados {
+    margin: 20px auto 0 auto; /* Centrado horizontal igual que coordinadores */
+    height: calc(100vh - 120px) !important; /* FORZAR altura igual que coordinadores */
+    min-height: 400px;
+    padding: 1rem;
+  }
+  
+  .pagination-container {
+    justify-content: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.modal-content-encargados {
+  background: white;
+  border-radius: 8px;
+  padding: 28px;
+  width: 550px;
+  max-width: 95vw;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+  position: relative;
+  pointer-events: all;
+}
+
+/* Botón cerrar */
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+/* Título del modal */
+.modal-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+  margin-bottom: 18px;
+  line-height: 1.3;
+  text-align: left;
+  padding-right: 40px;
+  word-break: keep-all;
+  hyphens: none;
+}
+
+.modal-title strong {
+  font-weight: 700;
+  color: #000;
+}
+
+/* Información del usuario */
+.modal-user-info {
+  margin-bottom: 20px;
+}
+
+.modal-user-info p {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  color: #000;
+  line-height: 1.4;
+}
+
+.modal-user-info p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-user-info strong {
+  color: #000;
+  font-weight: 700;
+}
+
+/* Botones del modal */
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.modal-btn-cancelar {
+  background-color: #6c757d;
+  color: white;
+}
+
+.modal-btn-cancelar:hover {
+  background-color: #5a6268;
+}
+
+.modal-btn-confirmar {
+  background-color: #F5B027;
+  color: white;
+}
+
+.modal-btn-confirmar:hover {
+  background-color: #e09a1f;
+}
+
+/* Animaciones */
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header de la tabla - títulos con iconos alineados a la izquierda ESPECÍFICOS */
+.tabla-header .columna-nombre,
+.tabla-header .columna-contacto,
+.tabla-header .columna-especialidad,
+.tabla-header .columna-acciones {
+  color: #FFFFFF !important;
+  text-transform: none !important;
+  letter-spacing: 0.3px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex !important;
+  flex-direction: row !important; /* FORZAR dirección horizontal para TODOS los headers */
+  align-items: center !important;
+  justify-content: flex-start !important; /* Todos alineados a la izquierda */
+  text-align: left !important;
+  height: 100%;
+  gap: 0.5rem; /* Espacio entre icono y texto */
+  padding-left: 0.5rem; /* Alineación consistente */
+}
+
+/* Header específico para Estado - centrado */
+.tabla-header .columna-estado {
+  color: #FFFFFF !important;
+  text-transform: none !important;
+  letter-spacing: 0.3px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important; /* Centrado para el switch */
+  text-align: center !important;
+  height: 100%;
+  gap: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+/* Iconos dentro del header */
+.tabla-header i {
+  font-size: 1rem;
+  color: #FFFFFF !important; /* Forzar color blanco para TODOS los iconos del header */
+  opacity: 1 !important; /* Opacidad completa para que se vean bien */
+  flex-shrink: 0; /* Evitar que se compriman */
+}
+
+/* Badge de estado - OPTIMIZADO PARA 6 FILAS */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* Gap normal */
+  padding: 0.25rem 0.75rem; /* Padding normal */
+  border-radius: 20px; /* Radio normal */
+  font-size: 0.8rem; /* Fuente normal */
+  font-weight: 600;
+  text-transform: none;
+}
+
+.estado-badge.activo {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.estado-badge.activo i {
+  color: #22c55e;
+  font-size: 0.8rem; /* Icono normal */
+}
+
+.estado-badge.inactivo {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.estado-badge.inactivo i {
+  color: #ef4444;
+  font-size: 0.8rem; /* Icono normal */
+}
+
+/* Botones de acción - OPTIMIZADOS */
+.btn-accion {
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px; /* Radio normal */
+  padding: 0.5rem; /* Padding normal */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; /* Ancho normal */
+  height: 32px; /* Alto normal */
+  color: #6b7280;
+}
+
+.btn-accion:hover {
+  transform: scale(1.05);
+}
+
+.btn-accion.editar {
+  color: #3b82f6;
+}
+
+.btn-accion.editar:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.btn-accion.eliminar {
+  color: #ef4444;
+}
+
+.btn-accion.eliminar:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* Responsive - adaptar para pantallas pequeñas */
+@media (max-width: 1024px) {
+  .tabla-header,
+  .tabla-fila {
+    grid-template-columns: 1.5fr 1.5fr 1fr 0.8fr 0.8fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .nombre-completo {
+    font-size: 0.9rem;
+  }
+  
+  .contacto-item,
+  .columna-especialidad {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .tabla-header,
+  .tabla-fila {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .tabla-fila {
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+  }
+  
+  .columna-nombre,
+  .columna-contacto,
+  .columna-especialidad {
     justify-content: flex-start;
   }
   

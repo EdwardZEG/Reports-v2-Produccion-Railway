@@ -131,6 +131,16 @@ export const useEncargadosData = () => {
     fetchEncargados();
   }, []);
 
+  /**
+   * Función utilitaria para mostrar nombres legibles en la interfaz
+   * @param polizaId - ID de la póliza
+   * @returns Nombre de la póliza o "Sin póliza"
+   */
+  const getPolizaNombre = (polizaId: string) => {
+    const poliza = polizas.find(p => p._id === polizaId);
+    return poliza ? poliza.nombre : "Sin póliza";
+  };
+
   return {
     encargados,
     polizas,
@@ -140,5 +150,6 @@ export const useEncargadosData = () => {
     actualizarEncargado,
     eliminarEncargado,
     marcarColaboradorCreado, // Nueva función para resaltado
+    getPolizaNombre,
   };
 };
