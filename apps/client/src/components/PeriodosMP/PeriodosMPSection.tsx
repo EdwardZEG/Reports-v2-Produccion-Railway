@@ -1237,7 +1237,7 @@ const PeriodosMPSection: React.FC = () => {
                                 <td>
                                   <div className="device-info">
                                     <strong>{item.deviceCatalog.identifier}</strong>
-                                    <small>{item.deviceCatalog.type} - {item.deviceCatalog.ubication}</small>
+                                    <small>{item.deviceCatalog.type} - {item.deviceCatalog.building} - {item.deviceCatalog.ubication}</small>
                                   </div>
                                 </td>
                                 <td>
