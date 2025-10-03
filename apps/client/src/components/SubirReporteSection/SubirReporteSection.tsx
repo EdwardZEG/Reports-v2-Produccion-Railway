@@ -1,7 +1,6 @@
 // Componente SubirReporte con el mismo estilo que la sección de inicio
 import React, { memo } from 'react';
 import SubirReporteForm from '../../components/FormUser/SubirReporteForm';
-import PreviewSubirReporte from '../../components/Previewdoc/PreviewSubirReporte';
 import './SubirReporteSection.css';
 
 // Interface para datos de dispositivo subido
@@ -22,11 +21,9 @@ interface DispositivoSubido {
 interface SubirReporteSectionProps {
     dispositivos: DispositivoSubido[];
     isLoading: boolean;
-    isPreviewExpanded: boolean;
     onDeviceAdded: (device: DispositivoSubido) => void;
     onLoadingStart: () => void;
     onLoadingEnd: () => void;
-    onPreviewExpanded: (expanded: boolean) => void;
 }
 
 /**
@@ -35,16 +32,14 @@ interface SubirReporteSectionProps {
 const SubirReporteSection: React.FC<SubirReporteSectionProps> = ({
     dispositivos,
     isLoading,
-    isPreviewExpanded,
     onDeviceAdded,
     onLoadingStart,
     onLoadingEnd,
-    onPreviewExpanded,
 }) => {
     return (
-        <div className={`inicio-section ${isPreviewExpanded ? 'preview-expanded' : ''}`}>
+        <div className="inicio-section">
             {/* Header combinado con formulario y estadísticas */}
-            <div className={`inicio-header-combined ${isPreviewExpanded ? 'hidden-below' : ''}`}>
+            <div className="inicio-header-combined">
                 {/* Formulario de subir reporte a la izquierda */}
                 <div className="search-header-section">
                     <div className="section-header-compact">
@@ -119,34 +114,6 @@ const SubirReporteSection: React.FC<SubirReporteSectionProps> = ({
                             </div>
                         )}
                     </div>
-                </div>
-            </div>
-
-            {/* Vista previa expandida con layout optimizado */}
-            <div className={`preview-full-section ${isPreviewExpanded ? 'expanded' : ''}`}>
-                <div className="section-header-full">
-                    <div className="section-title-full">
-                        <i className="bi bi-eye-fill"></i>
-                        <h3>Vista Previa de Dispositivos Subidos</h3>
-                    </div>
-
-                    {/* Botón de expandir/contraer - solo visible cuando hay resultados */}
-                    {dispositivos.length > 0 && (
-                        <button
-                            className="expand-preview-btn"
-                            onClick={() => onPreviewExpanded(!isPreviewExpanded)}
-                            title={isPreviewExpanded ? 'Contraer vista previa' : 'Expandir vista previa'}
-                        >
-                            <i className={`bi ${isPreviewExpanded ? 'bi-fullscreen-exit' : 'bi-arrows-fullscreen'}`}></i>
-                        </button>
-                    )}
-                </div>
-                {/* Contenedor principal con scroll optimizado */}
-                <div className="preview-container-full">
-                    <PreviewSubirReporte
-                        dispositivos={dispositivos}
-                        isLoading={isLoading}
-                    />
                 </div>
             </div>
         </div>

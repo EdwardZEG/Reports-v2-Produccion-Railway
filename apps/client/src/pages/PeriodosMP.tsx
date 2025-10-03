@@ -80,30 +80,46 @@ const PeriodosMP: React.FC = () => {
   };
 
   return (
-    <div className="periodosmp-wrapper">
-      <div className="periodosmp-left">
-        <h2>Administrar Periodos MP</h2>
-
-        <SearchDevice onAddDevice={handleAddDevice} />
-
-        <div className="periodosmp-periodContainer">
-          <SelectPeriod
-            fechaInicio={fechaInicio}
-            fechaFinal={fechaFinal}
-            setFechaInicio={setFechaInicio}
-            setFechaFinal={setFechaFinal}
-          />
-          <button
-            className="periodosmp-addButton"
-            onClick={handleCreatePeriod}
-          >
-            Crear periodo
-          </button>
+    <div className="periodosmp-container">
+      {/* DISEÑO EXACTO DE COLABORADORES - Vista previa con header y controles */}
+      <div className="preview-section-periodosmp">
+        {/* Header con título y controles - exacto como colaboradores */}
+        <div className="section-header-periodosmp">
+          <div className="section-title-periodosmp">
+            <i className="bi bi-calendar-event"></i>
+            <h3>Períodos de Mantenimiento Preventivo</h3>
+          </div>
+          {/* Controles con botón de crear período */}
+          <div className="section-controls-periodosmp">
+            <button
+              className="btn-crear-periodo"
+              onClick={handleCreatePeriod}
+            >
+              <i className="bi bi-plus-circle"></i>
+              Crear Período
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="periodosmp-right">
-        <PreviewPeriod devices={selectedDevices} />
+        {/* Contenido principal dividido en dos columnas */}
+        <div className="periodosmp-content">
+          <div className="periodosmp-left">
+            <SearchDevice onAddDevice={handleAddDevice} />
+
+            <div className="periodosmp-periodContainer">
+              <SelectPeriod
+                fechaInicio={fechaInicio}
+                fechaFinal={fechaFinal}
+                setFechaInicio={setFechaInicio}
+                setFechaFinal={setFechaFinal}
+              />
+            </div>
+          </div>
+
+          <div className="periodosmp-right">
+            <PreviewPeriod devices={selectedDevices} />
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -334,7 +334,7 @@ const DispositivosAsignadosSection: React.FC = () => {
                 <th>Ubicación</th>
                 <th>Período MP</th>
                 <th>Estado</th>
-                <th>Fecha Asignación</th>
+                <th>Asignación</th>
                 <th>Fecha Límite</th>
                 <th>Acciones</th>
               </tr>

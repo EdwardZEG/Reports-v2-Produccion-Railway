@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { jwtDecode } from 'jwt-decode';
+import { CiEdit, CiTrash } from 'react-icons/ci';
 import { formatDateRangeUTC, formatDateUTC, inputDateToUTC } from '../../utils/dateUtils';
 import { getBaseApiUrl } from '../../utils/apiUrl';
 import './PeriodosMPSection.css';
+import '../../styles/Periodos MP.css'; // Importar estilos consistentes con Colaboradores
 
 interface Colaborador {
   _id: string;
@@ -61,6 +63,7 @@ interface PeriodoMP {
 
 const PeriodosMPSection: React.FC = () => {
   const [periodos, setPeriodos] = useState<PeriodoMP[]>([]);
+  const [allPeriodos, setAllPeriodos] = useState<PeriodoMP[]>([]); // Estado para todos los períodos sin filtrar
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [dispositivos, setDispositivos] = useState<DeviceCatalog[]>([]);
   const [loading, setLoading] = useState(false);
@@ -88,15 +91,27 @@ const PeriodosMPSection: React.FC = () => {
     periodo: PeriodoMP;
   } | null>(null);
 
+  // Estado para mantener el orden de dispositivos por período
+  const [deviceOrder, setDeviceOrder] = useState<{ [periodoId: string]: { [deviceKey: string]: number } }>({});
+
   const [coordinadorId, setCoordinadorId] = useState<string>('');
+  const [userRole, setUserRole] = useState<string>('');
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [currentUserPoliza, setCurrentUserPoliza] = useState<string>('');
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   useEffect(() => {
-    // Obtener ID del coordinador del token
+    // Obtener ID del coordinador y rol del token
     const token = localStorage.getItem('token');
+    const role = localStorage.getItem('rol')?.toLowerCase() || '';
+
+    setUserRole(role);
+
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
         setCoordinadorId(decoded.userId);
+        setCurrentUserId(decoded.userId);
       } catch (error) {
         console.error('Error decodificando token:', error);
       }
@@ -106,13 +121,28 @@ const PeriodosMPSection: React.FC = () => {
     fetchPeriodos();
     fetchColaboradores();
     fetchDispositivos();
-  }, []);
+  }, [currentUserId]); // Dependencia para recargar cuando cambie el usuario
 
-  const fetchPeriodos = async () => {
+  // Verificar si el usuario es colaborador (encargado o auxiliar)
+  const isColaborador = userRole === 'encargado' || userRole === 'auxiliar';
+
+  // useEffect adicional para recargar colaboradores cuando currentUserId esté disponible
+  useEffect(() => {
+    if (currentUserId && isColaborador) {
+      fetchColaboradores();
+    }
+  }, [currentUserId, isColaborador]);
+
+  const fetchPeriodos = async (forceRefresh = false) => {
     try {
+      if (forceRefresh) {
+        setIsRefreshing(true);
+      }
+
       const token = localStorage.getItem('token');
-      // ✅ REVERTIDO: Volviendo al sistema original que funcionaba
-      const response = await fetch(`${getBaseApiUrl()}/periodos-mp?coordinador=${coordinadorId}`, {
+      // Agregar timestamp para evitar cache si es refresh forzado
+      const cacheParam = forceRefresh ? `&_t=${Date.now()}` : '';
+      const response = await fetch(`${getBaseApiUrl()}/periodos-mp?coordinador=${coordinadorId}${cacheParam}`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : '',
         },
@@ -130,11 +160,111 @@ const PeriodosMPSection: React.FC = () => {
           }
         }
 
-        setPeriodos(data.data || []);
+        // Capturar el orden inicial de dispositivos para cada período
+        const newDeviceOrder: { [periodoId: string]: { [deviceKey: string]: number } } = {};
+
+        data.data?.forEach((periodo: PeriodoMP) => {
+          if (periodo.dispositivos && periodo.dispositivos.length > 0) {
+            newDeviceOrder[periodo._id] = {};
+            periodo.dispositivos.forEach((dispositivo, index) => {
+              // Crear clave única para cada dispositivo
+              const deviceKey = dispositivo.asignacionMultiple
+                ? `${dispositivo.deviceCatalog._id}-multiple`
+                : `${dispositivo.deviceCatalog._id}-${dispositivo.colaboradorAsignado?._id || 'no-assigned'}`;
+
+              newDeviceOrder[periodo._id][deviceKey] = index;
+            });
+          }
+        });
+
+        // Actualizar el orden de dispositivos
+        setDeviceOrder(prev => ({
+          ...prev,
+          ...newDeviceOrder
+        }));
+
+        // Guardar todos los períodos sin filtrar
+        setAllPeriodos(data.data || []);
       }
     } catch (error) {
       console.error('Error fetching períodos:', error);
+    } finally {
+      if (forceRefresh) {
+        setIsRefreshing(false);
+      }
     }
+  };
+
+  // Función para refresh optimizado solo de la sección
+  const refreshSectionOnly = async (delay = 300) => {
+    setIsRefreshing(true);
+
+    setTimeout(async () => {
+      try {
+        await fetchPeriodos(true);
+        // Pequeña demora adicional para mostrar el indicador visual
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 200);
+      } catch (error) {
+        setIsRefreshing(false);
+      }
+    }, delay);
+  };
+
+  // Función para calcular estadísticas reales basadas en dispositivos filtrados
+  const calculateRealStats = (periodo: PeriodoMP) => {
+    const dispositivos = periodo.dispositivos;
+    const total = dispositivos.length;
+    const completados = dispositivos.filter(d => d.estado === 'completado').length;
+    const porcentaje = total > 0 ? Math.round((completados / total) * 100) : 0;
+
+    return {
+      totalDispositivos: total,
+      dispositivosCompletados: completados,
+      porcentajeCompletado: porcentaje
+    };
+  };
+
+  // useEffect separado para filtrar períodos según el rol del usuario
+  useEffect(() => {
+    if (allPeriodos.length === 0) return;
+
+    let filteredPeriodos = allPeriodos;
+
+    if (isColaborador && currentUserId) {
+      filteredPeriodos = allPeriodos.map((periodo: PeriodoMP) => ({
+        ...periodo,
+        dispositivos: periodo.dispositivos.filter(dispositivo => {
+          // Incluir si es asignación múltiple o si está asignado específicamente a este colaborador
+          return dispositivo.asignacionMultiple ||
+            dispositivo.colaboradorAsignado?._id === currentUserId;
+        })
+      })).filter((periodo: PeriodoMP) => periodo.dispositivos.length > 0); // Solo mostrar períodos con dispositivos asignados
+    }
+
+    setPeriodos(filteredPeriodos);
+  }, [allPeriodos, isColaborador, currentUserId]);
+
+  // Función para ordenar dispositivos por orden personalizado (manteniendo posiciones originales)
+  const sortDevicesByCustomOrder = (dispositivos: PeriodoMP['dispositivos'], periodoId: string) => {
+    const periodOrder = deviceOrder[periodoId] || {};
+
+    return [...dispositivos].sort((a, b) => {
+      // Crear claves para buscar en el orden guardado
+      const keyA = a.asignacionMultiple
+        ? `${a.deviceCatalog._id}-multiple`
+        : `${a.deviceCatalog._id}-${a.colaboradorAsignado?._id || 'no-assigned'}`;
+
+      const keyB = b.asignacionMultiple
+        ? `${b.deviceCatalog._id}-multiple`
+        : `${b.deviceCatalog._id}-${b.colaboradorAsignado?._id || 'no-assigned'}`;
+
+      const orderA = periodOrder[keyA] ?? 9999; // Si no existe, ponerlo al final
+      const orderB = periodOrder[keyB] ?? 9999;
+
+      return orderA - orderB;
+    });
   };
 
   const fetchColaboradores = async () => {
@@ -160,7 +290,22 @@ const PeriodosMPSection: React.FC = () => {
           console.log('📋 Primer colaborador:', colaboradoresArray[0]);
         }
 
-        setColaboradores(colaboradoresArray);
+        // Buscar el usuario actual para obtener su póliza
+        const currentUser = colaboradoresArray.find((colab: Colaborador) => colab._id === currentUserId);
+        if (currentUser && currentUser.poliza) {
+          setCurrentUserPoliza(currentUser.poliza._id);
+          console.log('📋 Póliza del usuario actual:', currentUser.poliza._id, currentUserPoliza);
+
+          // Filtrar colaboradores por la misma póliza
+          const colaboradoresMismaPoliza = colaboradoresArray.filter((colab: Colaborador) =>
+            colab.poliza && colab.poliza._id === currentUser.poliza._id
+          );
+          setColaboradores(colaboradoresMismaPoliza);
+          console.log('📋 Colaboradores de la misma póliza:', colaboradoresMismaPoliza.length);
+        } else {
+          // Si no se encuentra el usuario o no tiene póliza, mostrar todos
+          setColaboradores(colaboradoresArray);
+        }
 
         console.log('✅ Colaboradores procesados y guardados en estado');
       } else {
@@ -185,7 +330,16 @@ const PeriodosMPSection: React.FC = () => {
   };
 
   // Función helper para mostrar dispositivos (ahora sin agrupamiento, cada dispositivo se muestra como es)
-  const groupDevicesForDisplay = (dispositivos: PeriodoMP['dispositivos']) => {
+  const groupDevicesForDisplay = (dispositivos: PeriodoMP['dispositivos'], periodoId: string) => {
+    // Validación inicial de entrada
+    if (!dispositivos || !Array.isArray(dispositivos)) {
+      console.warn('⚠️ groupDevicesForDisplay recibió datos inválidos:', dispositivos);
+      return [];
+    }
+
+    // Ordenar dispositivos por orden personalizado para mantener consistencia
+    const sortedDispositivos = sortDevicesByCustomOrder(dispositivos, periodoId);
+
     const grouped: Array<{
       id: string;
       deviceCatalog: DeviceCatalog;
@@ -201,10 +355,18 @@ const PeriodosMPSection: React.FC = () => {
       colaboradorAsignado?: Colaborador;
       asignacionMultiple?: boolean;
       dispositivoOriginal?: any; // Referencia al dispositivo original
+      originalIndex?: number; // Índice en el array original
     }> = [];
 
-    dispositivos.forEach((dispositivo) => {
+    sortedDispositivos.forEach((dispositivo, index) => {
+      // Validar que deviceCatalog existe antes de proceder
+      if (!dispositivo.deviceCatalog || !dispositivo.deviceCatalog._id) {
+        console.warn('⚠️ Dispositivo sin deviceCatalog válido:', dispositivo);
+        return; // Saltar este dispositivo si no tiene deviceCatalog
+      }
+
       const deviceId = dispositivo.deviceCatalog._id;
+      const timestamp = new Date(dispositivo.fechaAsignacion).getTime();
 
       if (dispositivo.asignacionMultiple) {
         // Para asignaciones múltiples, mostrar una sola entrada
@@ -230,10 +392,10 @@ const PeriodosMPSection: React.FC = () => {
         }
 
         grouped.push({
-          id: `multiple-${deviceId}`,
+          id: `multiple-${deviceId}-${timestamp}-${index}`,
           deviceCatalog: dispositivo.deviceCatalog,
           colaborador: colaboradorTexto,
-          estado: dispositivo.estado,
+          estado: dispositivo.estado || 'pendiente',
           fechaAsignacion: dispositivo.fechaAsignacion,
           fechaCompletado: dispositivo.fechaCompletado,
           isGroup: true,
@@ -244,8 +406,9 @@ const PeriodosMPSection: React.FC = () => {
           colaboradores: dispositivo.colaboradores,
           // Campos adicionales para eliminación
           colaboradorAsignado: dispositivo.colaboradorAsignado,
-          asignacionMultiple: dispositivo.asignacionMultiple,
-          dispositivoOriginal: dispositivo
+          asignacionMultiple: dispositivo.asignacionMultiple || false,
+          dispositivoOriginal: dispositivo,
+          originalIndex: index
         });
       } else {
         // Asignaciones individuales - lógica simplificada
@@ -266,11 +429,12 @@ const PeriodosMPSection: React.FC = () => {
           colaboradorTextoIndividual = 'Sin asignar';
         }
 
+        const colaboradorId = dispositivo.colaboradorAsignado?._id || 'no-assigned';
         grouped.push({
-          id: `${deviceId}-${dispositivo.colaboradorAsignado?._id || 'no-assigned'}`,
+          id: `individual-${deviceId}-${colaboradorId}-${timestamp}-${index}`,
           deviceCatalog: dispositivo.deviceCatalog,
           colaborador: colaboradorTextoIndividual,
-          estado: dispositivo.estado,
+          estado: dispositivo.estado || 'pendiente',
           fechaAsignacion: dispositivo.fechaAsignacion,
           fechaCompletado: dispositivo.fechaCompletado,
           isGroup: false,
@@ -280,8 +444,9 @@ const PeriodosMPSection: React.FC = () => {
           colaboradores: dispositivo.colaboradores,
           // Campos adicionales para eliminación  
           colaboradorAsignado: dispositivo.colaboradorAsignado,
-          asignacionMultiple: dispositivo.asignacionMultiple,
-          dispositivoOriginal: dispositivo
+          asignacionMultiple: dispositivo.asignacionMultiple || false,
+          dispositivoOriginal: dispositivo,
+          originalIndex: index
         });
       }
     });
@@ -378,27 +543,77 @@ const PeriodosMPSection: React.FC = () => {
       if (editingAssignment) {
         const assignment = deviceAssignments[0]; // Solo hay una asignación en modo edición
 
-        const response = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoId}/devices/${editingAssignment.deviceId}/collaborator`, {
-          method: 'PATCH',
+        // Para ediciones, usar la estrategia de eliminar y recrear
+        console.log('🔄 Editando asignación:', { editingAssignment, assignment });
+
+        // Paso 1: Eliminar la asignación actual
+        // IMPORTANTE: La URL de eliminación debe basarse en el TIPO ORIGINAL de la asignación
+        let deleteUrl;
+        if (editingAssignment.colaboradorId === 'ALL_COLLABORATORS') {
+          // La asignación ORIGINAL era múltiple
+          deleteUrl = `${getBaseApiUrl()}/periodos-mp/${periodoId}/dispositivos/${editingAssignment.deviceId}/multiple`;
+        } else {
+          // La asignación ORIGINAL era individual
+          deleteUrl = `${getBaseApiUrl()}/periodos-mp/${periodoId}/dispositivos/${editingAssignment.deviceId}/${editingAssignment.colaboradorId}`;
+        }
+
+        console.log('🗑️ Eliminando asignación anterior:', deleteUrl);
+
+        const deleteResponse = await fetch(deleteUrl, {
+          method: 'DELETE',
+          headers: {
+            Authorization: token ? `Bearer ${token}` : '',
+          },
+        });
+
+        if (!deleteResponse.ok) {
+          console.warn('⚠️ No se pudo eliminar la asignación anterior (puede que no exista)');
+        }
+
+        // Paso 2: Crear nueva asignación con los datos editados
+        let newAssignment;
+
+        if (assignment.colaboradorId === 'ALL_COLLABORATORS') {
+          // Asignación múltiple
+          newAssignment = {
+            deviceCatalogId: assignment.deviceCatalogId,
+            colaboradorId: null,
+            notas: assignment.notas || '',
+            assignToAll: true
+          };
+        } else {
+          // Asignación individual
+          newAssignment = {
+            deviceCatalogId: assignment.deviceCatalogId,
+            colaboradorId: assignment.colaboradorId,
+            notas: assignment.notas || ''
+          };
+        }
+
+        const requestBody = {
+          dispositivos: [newAssignment],
+          colaboradores: colaboradores.map(c => c._id)
+        };
+
+        console.log('📝 Creando nueva asignación:', requestBody);
+
+        const assignResponse = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoId}/assign-devices`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: token ? `Bearer ${token}` : '',
           },
-          body: JSON.stringify({
-            oldColaboradorId: editingAssignment.colaboradorId,
-            newColaboradorId: assignment.colaboradorId,
-            notas: assignment.notas
-          }),
+          body: JSON.stringify(requestBody),
         });
 
-        if (response.ok) {
+        if (assignResponse.ok) {
           toast.success('Asignación actualizada exitosamente');
           setShowAssignForm(null);
           setDeviceAssignments([]);
           setEditingAssignment(null);
-          fetchPeriodos();
+          fetchPeriodos(true);
         } else {
-          const errorData = await response.json();
+          const errorData = await assignResponse.json();
           toast.error(errorData.message || 'Error actualizando asignación');
         }
       } else {
@@ -435,7 +650,32 @@ const PeriodosMPSection: React.FC = () => {
           toast.success('Dispositivos asignados exitosamente');
           setShowAssignForm(null);
           setDeviceAssignments([]);
-          fetchPeriodos();
+
+          // Actualizar orden para nuevos dispositivos creados
+          const currentPeriod = periodos.find(p => p._id === periodoId);
+          if (currentPeriod) {
+            const currentDeviceCount = currentPeriod.dispositivos.length;
+
+            // Agregar orden para los nuevos dispositivos
+            setDeviceOrder(prev => {
+              const newOrder = { ...prev };
+              if (!newOrder[periodoId]) {
+                newOrder[periodoId] = {};
+              }
+
+              processedAssignments.forEach((assignment, index) => {
+                const deviceKey = assignment.colaboradorId === null
+                  ? `${assignment.deviceCatalogId}-multiple`
+                  : `${assignment.deviceCatalogId}-${assignment.colaboradorId}`;
+
+                newOrder[periodoId][deviceKey] = currentDeviceCount + index;
+              });
+
+              return newOrder;
+            });
+          }
+
+          fetchPeriodos(true);
         } else {
           const errorData = await response.json();
           toast.error(errorData.message || 'Error asignando dispositivos');
@@ -519,55 +759,6 @@ const PeriodosMPSection: React.FC = () => {
     }
   };
 
-  // Función para eliminar dispositivo asignado específico
-  const eliminarDispositivoAsignado = async (periodoId: string, deviceCatalogId: string, colaboradorId: string, deviceIdentifier: string) => {
-    // Verificar si el dispositivo está completado
-    const periodo = periodos.find(p => p._id === periodoId);
-    const dispositivo = periodo?.dispositivos.find(d =>
-      d.deviceCatalog._id === deviceCatalogId &&
-      d.colaboradorAsignado?._id === colaboradorId
-    );
-
-    const esCompletado = dispositivo?.estado === 'completado';
-
-    const mensaje = esCompletado
-      ? `⚠️ ATENCIÓN: El dispositivo "${deviceIdentifier}" está COMPLETADO.\n\n¿Estás seguro de que deseas eliminar la asignación?\n\nEsto también eliminará el reporte asociado y NO se puede deshacer.`
-      : `¿Estás seguro de que deseas eliminar la asignación del dispositivo "${deviceIdentifier}"?\n\nEsta acción no se puede deshacer.`;
-
-    const confirmacion = window.confirm(mensaje);
-
-    if (!confirmacion) return;
-
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-
-      const response = await fetch(
-        `${getBaseApiUrl()}/periodos-mp/${periodoId}/dispositivos/${deviceCatalogId}/${colaboradorId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: token ? `Bearer ${token}` : '',
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success('Dispositivo desasignado exitosamente');
-        fetchPeriodos(); // Recargar períodos para mostrar cambios
-      } else {
-        toast.error(data.message || 'Error eliminando dispositivo asignado');
-      }
-    } catch (error) {
-      console.error('Error eliminando dispositivo asignado:', error);
-      toast.error('Error eliminando dispositivo asignado');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const eliminarDispositivoAsignacionMultiple = async (periodoId: string, deviceCatalogId: string, deviceIdentifier: string) => {
     // Verificar si el dispositivo está completado
     const periodo = periodos.find(p => p._id === periodoId);
@@ -604,7 +795,7 @@ const PeriodosMPSection: React.FC = () => {
 
       if (response.ok) {
         toast.success('Dispositivo con asignación múltiple desasignado exitosamente');
-        fetchPeriodos(); // Recargar períodos para mostrar cambios
+        refreshSectionOnly(); // Refresh optimizado solo de la sección
       } else {
         toast.error(data.message || 'Error eliminando dispositivo con asignación múltiple');
       }
@@ -645,40 +836,6 @@ const PeriodosMPSection: React.FC = () => {
     setShowCreateForm(true);
 
     toast.info(`Editando período: ${periodo.nombre}`);
-  };
-
-  // Función para editar asignación de dispositivo
-  const handleEditarAsignacion = (periodoId: string, deviceId: string, colaboradorId: string, periodo: PeriodoMP) => {
-    console.log('✏️ Editando asignación:', { periodoId, deviceId, colaboradorId });
-
-    // Encontrar el dispositivo específico para la edición
-    const deviceAssignment = periodo.dispositivos.find(d =>
-      d.deviceCatalog._id === deviceId &&
-      d.colaboradorAsignado?._id === colaboradorId
-    );
-
-    if (deviceAssignment) {
-      setEditingAssignment({
-        periodoId,
-        deviceId,
-        colaboradorId,
-        periodo
-      });
-
-      // Precargar los datos existentes en el modal de asignación
-      setDeviceAssignments([{
-        deviceCatalogId: deviceId,
-        colaboradorId: colaboradorId,
-        notas: deviceAssignment.notas || ''
-      }]);
-
-      // Abrir el modal de asignación en modo edición
-      setShowAssignForm(periodoId);
-
-      toast.info(`Editando asignación de dispositivo: ${deviceAssignment.deviceCatalog.identifier}`);
-    } else {
-      toast.error('No se pudo encontrar la asignación para editar');
-    }
   };
 
   // Función para forzar eliminación (borra reportes asociados)
@@ -733,7 +890,7 @@ const PeriodosMPSection: React.FC = () => {
 
       if (response.ok) {
         toast.success(`Reporte del dispositivo "${deviceIdentifier}" eliminado exitosamente. El dispositivo está ahora pendiente.`);
-        fetchPeriodos(); // Recargar períodos para mostrar cambios
+        refreshSectionOnly(); // Refresh optimizado solo de la sección
       } else {
         toast.error(data.message || 'Error eliminando reporte');
       }
@@ -742,6 +899,67 @@ const PeriodosMPSection: React.FC = () => {
       toast.error('Error eliminando reporte');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para abrir modal de edición de dispositivo usando el modal de asignación
+  const handleEditarDispositivo = (periodoId: string, item: any) => {
+    console.log('✏️ Editando dispositivo:', { periodoId, item });
+
+    // Encontrar el período
+    const periodo = periodos.find(p => p._id === periodoId);
+    if (!periodo) {
+      toast.error('No se pudo encontrar el período');
+      return;
+    }
+
+    // Para asignaciones múltiples, usar la nueva lógica de edición simple
+    if (item.asignacionMultiple) {
+      // Precargar los datos en el modal de asignación para edición múltiple
+      setDeviceAssignments([{
+        deviceCatalogId: item.deviceCatalog._id,
+        colaboradorId: 'ALL_COLLABORATORS', // Indicar que es para todos
+        notas: item.dispositivoOriginal?.notas || ''
+      }]);
+
+      // Configurar el modo de edición para asignación múltiple
+      setEditingAssignment({
+        periodoId,
+        deviceId: item.deviceCatalog._id,
+        colaboradorId: 'ALL_COLLABORATORS',
+        periodo
+      });
+
+      // Abrir el modal de asignación en modo edición
+      setShowAssignForm(periodoId);
+
+      toast.info(`Editando dispositivo múltiple: ${item.deviceCatalog.identifier}`);
+    } else {
+      // Para asignaciones individuales, usar la lógica normal
+      if (!item.colaboradorAsignado?._id) {
+        toast.error('No se pudo encontrar el colaborador asignado');
+        return;
+      }
+
+      // Precargar los datos existentes en el modal de asignación
+      setDeviceAssignments([{
+        deviceCatalogId: item.deviceCatalog._id,
+        colaboradorId: item.colaboradorAsignado._id,
+        notas: item.dispositivoOriginal?.notas || ''
+      }]);
+
+      // Configurar el modo de edición
+      setEditingAssignment({
+        periodoId,
+        deviceId: item.deviceCatalog._id,
+        colaboradorId: item.colaboradorAsignado._id,
+        periodo
+      });
+
+      // Abrir el modal de asignación en modo edición
+      setShowAssignForm(periodoId);
+
+      toast.info(`Editando dispositivo: ${item.deviceCatalog.identifier}`);
     }
   };
 
@@ -754,430 +972,568 @@ const PeriodosMPSection: React.FC = () => {
     }]);
   };
 
+  // Función para manejar subir reporte desde Períodos MP
+  const handleSubirReporte = (periodoId: string, dispositivo: any) => {
+    const deviceInfo = {
+      deviceId: dispositivo.deviceCatalog._id,
+      deviceIdentifier: dispositivo.deviceCatalog.identifier,
+      deviceType: dispositivo.deviceCatalog.type,
+      deviceUbication: dispositivo.deviceCatalog.ubication,
+      deviceBuilding: dispositivo.deviceCatalog.building,
+      deviceLevel: dispositivo.deviceCatalog.level,
+      deviceNote: dispositivo.deviceCatalog.note || "",
+      periodoId: periodoId,
+      colaboradorId: currentUserId,
+      // Información adicional para trabajo colaborativo
+      isMultipleAssignment: dispositivo.asignacionMultiple || false,
+      collaborators: dispositivo.colaboradoresElegibles || [],
+      completedBy: dispositivo.completadoPor || null
+    };
+
+    console.log('🔄 Preparando datos para subir reporte desde Períodos MP:', {
+      deviceInfo,
+      dispositivoCompleto: dispositivo
+    });
+
+    localStorage.setItem('selectedDeviceForReport', JSON.stringify(deviceInfo));
+
+    // Disparar evento personalizado para notificar al Dashboard
+    const event = new CustomEvent('navigateToSubirReporte', {
+      detail: deviceInfo
+    });
+    window.dispatchEvent(event);
+
+    toast.success(`Preparando reporte para ${dispositivo.deviceCatalog.identifier}`);
+  };
+
   return (
-    <div className="periodos-mp-section">
-      <div className="section-header">
-        <h2>Períodos de Mantenimiento Preventivo</h2>
-        <button
-          className="btn-primary"
-          onClick={() => setShowCreateForm(true)}
-        >
-          Crear Nuevo Período
-        </button>
-      </div>
-
-      {/* Formulario crear período */}
-      {showCreateForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>{isEditMode ? 'Editar Período MP' : 'Crear Nuevo Período MP'}</h3>
-              <button
-                className="btn-close"
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setIsEditMode(false);
-                  setEditingPeriodoId(null);
-                  setNewPeriodo({
-                    nombre: '',
-                    fechaInicio: '',
-                    fechaFin: '',
-                    descripcion: ''
-                  });
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={handleCreatePeriodo}>
-              <div className="form-group">
-                <label>Nombre del Período</label>
-                <input
-                  type="text"
-                  value={newPeriodo.nombre}
-                  onChange={(e) => setNewPeriodo({ ...newPeriodo, nombre: e.target.value })}
-                  placeholder="Ej: Mantenimiento Octubre 2025"
-                  required
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Fecha Inicio</label>
-                  <input
-                    type="date"
-                    value={newPeriodo.fechaInicio}
-                    onChange={(e) => setNewPeriodo({ ...newPeriodo, fechaInicio: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Fecha Fin</label>
-                  <input
-                    type="date"
-                    value={newPeriodo.fechaFin}
-                    onChange={(e) => setNewPeriodo({ ...newPeriodo, fechaFin: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Descripción (Opcional)</label>
-                <textarea
-                  value={newPeriodo.descripcion}
-                  onChange={(e) => setNewPeriodo({ ...newPeriodo, descripcion: e.target.value })}
-                  placeholder="Descripción del período de mantenimiento..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" onClick={() => {
-                  setShowCreateForm(false);
-                  setIsEditMode(false);
-                  setEditingPeriodoId(null);
-                  setNewPeriodo({
-                    nombre: '',
-                    fechaInicio: '',
-                    fechaFin: '',
-                    descripcion: ''
-                  });
-                }}>
-                  Cancelar
-                </button>
-                <button type="submit" disabled={loading}>
-                  {loading
-                    ? (isEditMode ? 'Actualizando...' : 'Creando...')
-                    : (isEditMode ? 'Actualizar Período' : 'Crear Período')
-                  }
-                </button>
-              </div>
-            </form>
+    <div className="periodosmp-container">
+      {/* DISEÑO EXACTO DE COLABORADORES - Vista previa con header y controles */}
+      <div className="preview-section-periodosmp">
+        {/* Header con título y controles - exacto como colaboradores */}
+        <div className="section-header-periodosmp">
+          <div className="section-title-periodosmp">
+            <i className="bi bi-calendar-event"></i>
+            <h3>Períodos de Mantenimiento Preventivo</h3>
           </div>
-        </div>
-      )}
-
-      {/* Lista de períodos */}
-      <div className="periodos-list">
-        {periodos.map((periodo) => (
-          <div key={periodo._id} className="periodo-card">
-            <div className="periodo-header">
-              <div className="periodo-info">
-                <h3>{periodo.nombre}</h3>
-                <p>{formatDateRangeUTC(periodo.fechaInicio, periodo.fechaFin)}</p>
-                <span className={`status ${periodo.activo ? 'active' : 'inactive'}`}>
-                  {periodo.activo ? 'Activo' : 'Inactivo'}
-                </span>
-              </div>
-
-              <div className="periodo-stats">
-                <div className="stat">
-                  <span className="number">{periodo.dispositivosCompletados}</span>
-                  <span className="label">Completados</span>
-                </div>
-                <div className="stat">
-                  <span className="number">{periodo.totalDispositivos}</span>
-                  <span className="label">Total</span>
-                </div>
-                <div className="stat">
-                  <span className="number">{periodo.porcentajeCompletado}%</span>
-                  <span className="label">Progreso</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{ width: `${periodo.porcentajeCompletado}%` }}
-              />
-            </div>
-
-            <div className="periodo-actions">
-              <button
-                className="btn-secondary"
-                onClick={() => openAssignModal(periodo._id)}
-              >
-                Asignar Dispositivos
-              </button>
-              <button
-                className="btn-primary"
-                onClick={() => handleEditarPeriodo(periodo)}
-                disabled={loading}
-                title="Editar período MP"
-              >
-                Editar Período
-              </button>
-              <button
-                className="btn-danger"
-                onClick={() => eliminarPeriodo(periodo._id, periodo.nombre)}
-                disabled={loading}
-                title="Eliminar período MP"
-              >
-                {loading ? 'Eliminando...' : 'Eliminar'}
-              </button>
-            </div>
-
-            {/* Dispositivos asignados */}
-            {periodo.dispositivos.length > 0 && (
-              <div className="assigned-devices">
-                <h4>Dispositivos Asignados</h4>
-                <div className="devices-table">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Dispositivo</th>
-                        <th>Colaborador</th>
-                        <th>Estado</th>
-                        <th>Fecha Asignación</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {groupDevicesForDisplay(periodo.dispositivos).map((item) => (
-                        <tr key={item.id}>
-                          <td>
-                            <div className="device-info">
-                              <strong>{item.deviceCatalog.identifier}</strong>
-                              <small>{item.deviceCatalog.type} - {item.deviceCatalog.ubication}</small>
-                            </div>
-                          </td>
-                          <td>
-                            <div>
-                              {item.colaborador}
-                              {item.completadoPor && !item.colaborador.includes('Trabajo colaborativo:') && !item.colaborador.includes('Completado por:') && (
-                                <small style={{ display: 'block', color: '#666', marginTop: '2px' }}>
-                                  Completado por: {item.completadoPor}
-                                </small>
-                              )}
-                            </div>
-                          </td>
-                          <td>
-                            <span className={`status ${item.estado}`}>
-                              {item.estado}
-                            </span>
-                          </td>
-                          <td>
-                            {formatDateUTC(item.fechaAsignacion)}
-                            {item.fechaCompletado && (
-                              <small style={{ display: 'block', color: '#666', marginTop: '2px' }}>
-                                Completado: {formatDateUTC(item.fechaCompletado)}
-                              </small>
-                            )}
-                          </td>
-                          <td>
-                            {/* Botón para asignaciones individuales */}
-                            {!item.asignacionMultiple && item.colaboradorAsignado?._id && (
-                              <>
-                                {item.estado !== 'completado' && (
-                                  <button
-                                    className="btn-edit-small"
-                                    onClick={() => handleEditarAsignacion(
-                                      periodo._id,
-                                      item.deviceCatalog._id,
-                                      item.colaboradorAsignado!._id,
-                                      periodo
-                                    )}
-                                    title="Editar asignación de dispositivo"
-                                    disabled={loading}
-                                    style={{ marginRight: '5px' }}
-                                  >
-                                    ✏️
-                                  </button>
-                                )}
-                                {/* Botón especial para eliminar reporte de dispositivos completados */}
-                                {item.estado === 'completado' && (
-                                  <button
-                                    className="btn-warning-small"
-                                    onClick={() => handleEliminarReporte(
-                                      periodo._id,
-                                      item.deviceCatalog._id,
-                                      item.deviceCatalog.identifier
-                                    )}
-                                    title="Eliminar reporte y revertir a pendiente"
-                                    disabled={loading}
-                                    style={{ marginRight: '5px' }}
-                                  >
-                                    🔄
-                                  </button>
-                                )}
-                                <button
-                                  className="btn-danger-small"
-                                  onClick={() => eliminarDispositivoAsignado(
-                                    periodo._id,
-                                    item.deviceCatalog._id,
-                                    item.colaboradorAsignado!._id,
-                                    item.deviceCatalog.identifier
-                                  )}
-                                  title={`Eliminar asignación individual${item.estado === 'completado' ? ' (también eliminará el reporte)' : ''}`}
-                                  disabled={loading}
-                                >
-                                  🗑️
-                                </button>
-                              </>
-                            )}
-                            {/* Botón para asignaciones múltiples */}
-                            {item.asignacionMultiple && (
-                              <>
-                                {/* Botón especial para eliminar reporte de dispositivos múltiples completados */}
-                                {item.estado === 'completado' && (
-                                  <button
-                                    className="btn-warning-small"
-                                    onClick={() => handleEliminarReporte(
-                                      periodo._id,
-                                      item.deviceCatalog._id,
-                                      item.deviceCatalog.identifier
-                                    )}
-                                    title="Eliminar reporte y revertir a pendiente"
-                                    disabled={loading}
-                                    style={{ marginRight: '5px' }}
-                                  >
-                                    🔄
-                                  </button>
-                                )}
-                                <button
-                                  className="btn-danger-small"
-                                  onClick={() => eliminarDispositivoAsignacionMultiple(
-                                    periodo._id,
-                                    item.deviceCatalog._id,
-                                    item.deviceCatalog.identifier
-                                  )}
-                                  title={`Eliminar asignación múltiple${item.estado === 'completado' ? ' (también eliminará los reportes)' : ''}`}
-                                  disabled={loading}
-                                >
-                                  🗑️
-                                </button>
-                              </>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+          {/* Controles con botón de crear período */}
+          <div className="section-controls-periodosmp">
+            {isRefreshing && (
+              <div className="refresh-indicator" style={{ marginRight: '10px', color: '#27ae60', fontSize: '14px' }}>
+                <i className="bi bi-arrow-clockwise" style={{ animation: 'spin 1s linear infinite' }}></i>
+                Actualizando...
               </div>
             )}
-          </div>
-        ))}
-      </div>
-
-      {/* Modal asignar dispositivos */}
-      {showAssignForm && (
-        <div className="modal-overlay">
-          <div className="modal-content large">
-            <div className="modal-header">
-              <h3>{editingAssignment ? 'Editar Asignación de Dispositivo' : 'Asignar Dispositivos'}</h3>
+            {!isColaborador && (
               <button
-                className="btn-close"
-                onClick={closeAssignModal}
+                className="btn-crear-periodo"
+                onClick={() => setShowCreateForm(true)}
               >
-                ×
+                <i className="bi bi-plus-circle"></i>
+                Crear Nuevo Período
               </button>
-            </div>
+            )}
+          </div>
+        </div>
 
-            <div className="assignments-list">
-              {deviceAssignments.map((assignment, index) => (
-                <div key={index} className="assignment-row">
-                  <div className="form-group">
-                    <label>Dispositivo</label>
-                    <select
-                      value={assignment.deviceCatalogId}
-                      onChange={(e) => updateDeviceAssignment(index, 'deviceCatalogId', e.target.value)}
-                      required
-                    >
-                      <option value="">Seleccionar dispositivo</option>
-                      {dispositivos.map((device) => (
-                        <option key={device._id} value={device._id}>
-                          {device.identifier} - {device.type} ({device.ubication})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+        {/* Contenido principal de períodos MP */}
+        <div className="periodosmp-main-content">
+          {/* Formulario crear período - solo para coordinadores */}
+          {showCreateForm && !isColaborador && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h3>{isEditMode ? 'Editar Período MP' : 'Crear Nuevo Período MP'}</h3>
+                  <button
+                    className="btn-close"
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setIsEditMode(false);
+                      setEditingPeriodoId(null);
+                      setNewPeriodo({
+                        nombre: '',
+                        fechaInicio: '',
+                        fechaFin: '',
+                        descripcion: ''
+                      });
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
 
+                <form onSubmit={handleCreatePeriodo}>
                   <div className="form-group">
-                    <label>
-                      Colaborador {colaboradores.length > 0 && `(${colaboradores.length} disponibles)`}
-                    </label>
-                    <select
-                      value={assignment.colaboradorId}
-                      onChange={(e) => updateDeviceAssignment(index, 'colaboradorId', e.target.value)}
-                      required
-                    >
-                      <option value="">
-                        {colaboradores.length === 0
-                          ? "⏳ Cargando colaboradores..."
-                          : "👤 Seleccionar colaborador"
-                        }
-                      </option>
-                      {colaboradores.length > 0 && (
-                        <option value="ALL_COLLABORATORS">
-                          👥 Todos los colaboradores ({colaboradores.length})
-                        </option>
-                      )}
-                      {colaboradores.map((colaborador) => (
-                        <option key={colaborador._id} value={colaborador._id}>
-                          👤 {colaborador.nombre} {colaborador.apellido_paterno} {colaborador.correo && `(${colaborador.correo})`}
-                        </option>
-                      ))}
-                    </select>
-                    {colaboradores.length === 0 && (
-                      <p className="text-sm text-red-500 mt-1">
-                        ⚠️ No se encontraron colaboradores disponibles
-                      </p>
-                    )}
-                    {assignment.colaboradorId === 'ALL_COLLABORATORS' && (
-                      <p className="text-sm text-blue-600 mt-1">
-                        ℹ️ Este dispositivo se asignará a todos los colaboradores ({colaboradores.length} personas)
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <label>Notas</label>
+                    <label>Nombre del Período</label>
                     <input
                       type="text"
-                      value={assignment.notas || ''}
-                      onChange={(e) => updateDeviceAssignment(index, 'notas', e.target.value)}
-                      placeholder="Notas adicionales..."
+                      value={newPeriodo.nombre}
+                      onChange={(e) => setNewPeriodo({ ...newPeriodo, nombre: e.target.value })}
+                      placeholder="Ej: Mantenimiento Octubre 2025"
+                      required
                     />
                   </div>
 
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Fecha Inicio</label>
+                      <input
+                        type="date"
+                        value={newPeriodo.fechaInicio}
+                        onChange={(e) => setNewPeriodo({ ...newPeriodo, fechaInicio: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Fecha Fin</label>
+                      <input
+                        type="date"
+                        value={newPeriodo.fechaFin}
+                        onChange={(e) => setNewPeriodo({ ...newPeriodo, fechaFin: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Descripción (Opcional)</label>
+                    <textarea
+                      value={newPeriodo.descripcion}
+                      onChange={(e) => setNewPeriodo({ ...newPeriodo, descripcion: e.target.value })}
+                      placeholder="Descripción del período de mantenimiento..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="modal-actions">
+                    <button type="button" onClick={() => {
+                      setShowCreateForm(false);
+                      setIsEditMode(false);
+                      setEditingPeriodoId(null);
+                      setNewPeriodo({
+                        nombre: '',
+                        fechaInicio: '',
+                        fechaFin: '',
+                        descripcion: ''
+                      });
+                    }}>
+                      Cancelar
+                    </button>
+                    <button type="submit" disabled={loading}>
+                      {loading
+                        ? (isEditMode ? 'Actualizando...' : 'Creando...')
+                        : (isEditMode ? 'Actualizar Período' : 'Crear Período')
+                      }
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Lista de períodos */}
+          <div className="periodos-list">
+            {periodos.map((periodo) => (
+              <div key={periodo._id} className="periodo-wrapper">
+                {/* Flecha izquierda */}
+                <div className="periodo-arrow left">
+                  <i className="bi bi-chevron-left"></i>
+                </div>
+
+                {/* Contenido del período */}
+                <div className="periodo-card">
+                  {/* CONTENEDOR SUPERIOR CON INFORMACIÓN, ESTADÍSTICAS Y BOTONES */}
+                  <div className="periodo-stats-top">
+                    {/* INFORMACIÓN DEL PERÍODO (izquierda) */}
+                    <div className="periodo-info-inline">
+                      <h3>{periodo.nombre}</h3>
+                      <p>{formatDateRangeUTC(periodo.fechaInicio, periodo.fechaFin)}</p>
+                      <span className={`status ${periodo.activo ? 'active' : 'inactive'}`}>
+                        {periodo.activo ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+
+                    {/* ESTADÍSTICAS (centro) */}
+                    <div className="stats-container">
+                      <div className="stat">
+                        <span className="number">{calculateRealStats(periodo).dispositivosCompletados}</span>
+                        <span className="label">completados</span>
+                      </div>
+                      <div className="stat">
+                        <span className="number">{calculateRealStats(periodo).totalDispositivos}</span>
+                        <span className="label">total</span>
+                      </div>
+                      <div className="stat">
+                        <span className="number">{calculateRealStats(periodo).porcentajeCompletado}%</span>
+                        <span className="label">progreso</span>
+                      </div>
+                    </div>
+
+                    {/* BOTONES DE ACCIÓN (derecha) */}
+                    {!isColaborador && (
+                      <div className="periodo-actions-inline">
+                        <button
+                          className="btn-action-periodo btn-assign-periodo"
+                          onClick={() => openAssignModal(periodo._id)}
+                          title="Asignar Dispositivos"
+                        >
+                          <i className="bi bi-plus-square"></i>
+                        </button>
+
+                        <button
+                          className="btn-action-periodo btn-edit-periodo"
+                          onClick={() => handleEditarPeriodo(periodo)}
+                          disabled={loading}
+                          title="Editar período MP"
+                        >
+                          <CiEdit />
+                        </button>
+
+                        <button
+                          className="btn-action-periodo btn-delete-periodo"
+                          onClick={() => eliminarPeriodo(periodo._id, periodo.nombre)}
+                          disabled={loading}
+                          title="Eliminar período MP"
+                        >
+                          <CiTrash />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dispositivos asignados con tabla scrollable */}
+                  {periodo.dispositivos.length > 0 && (
+                    <div className="dispositivos-asignados">
+                      <h4>Dispositivos Asignados</h4>
+                      <div className="dispositivos-table-container">
+                        <table className="dispositivos-table">
+                          <thead>
+                            <tr>
+                              <th>
+                                <i className="bi bi-cpu me-2"></i>
+                                Dispositivo
+                              </th>
+                              <th>
+                                <i className="bi bi-person me-2"></i>
+                                Colaborador
+                              </th>
+                              <th>
+                                <i className="bi bi-calendar-event me-2"></i>
+                                Asignación
+                              </th>
+                              <th>
+                                <i className="bi bi-circle-fill me-2"></i>
+                                Estado
+                              </th>
+                              <th>
+                                <i className="bi bi-gear me-2"></i>
+                                Acciones
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {groupDevicesForDisplay(periodo.dispositivos, periodo._id).map((item) => (
+                              <tr key={item.id}>
+                                <td>
+                                  <div className="device-info">
+                                    <strong>{item.deviceCatalog.identifier}</strong>
+                                    <small>{item.deviceCatalog.type} - {item.deviceCatalog.ubication}</small>
+                                  </div>
+                                </td>
+                                <td>
+                                  <div>
+                                    {item.colaborador}
+                                    {item.completadoPor && !item.colaborador.includes('Trabajo colaborativo:') && !item.colaborador.includes('Completado por:') && (
+                                      <small style={{ display: 'block', color: '#666', marginTop: '2px' }}>
+                                        Completado por: {item.completadoPor}
+                                      </small>
+                                    )}
+                                  </div>
+                                </td>
+                                <td>
+                                  {/* Solo mostrar fecha de asignación aquí */}
+                                  {formatDateUTC(item.fechaAsignacion)}
+                                </td>
+                                <td>
+                                  {/* Estado con fecha de completado si aplica */}
+                                  <div>
+                                    <span className={`status ${item.estado}`}>
+                                      {item.estado}
+                                    </span>
+                                    {item.estado === 'completado' && item.fechaCompletado && (
+                                      <small style={{ display: 'block', color: '#666', marginTop: '4px', fontSize: '0.65rem' }}>
+                                        {formatDateUTC(item.fechaCompletado)}
+                                      </small>
+                                    )}
+                                  </div>
+                                </td>
+                                <td>
+                                  <div className="table-actions">
+                                    {/* Botones principales de editar y eliminar - solo para coordinadores */}
+                                    {!isColaborador && (
+                                      <>
+                                        <button
+                                          className="btn-accion editar"
+                                          title="Editar dispositivo"
+                                          style={{ marginRight: '8px' }}
+                                          onClick={() => handleEditarDispositivo(periodo._id, item)}
+                                          disabled={loading}
+                                        >
+                                          <CiEdit />
+                                        </button>
+
+                                        <button
+                                          className="btn-accion eliminar"
+                                          title="Eliminar dispositivo"
+                                          style={{ marginRight: '8px' }}
+                                          onClick={() => {
+                                            if (item.asignacionMultiple) {
+                                              eliminarDispositivoAsignacionMultiple(
+                                                periodo._id,
+                                                item.deviceCatalog._id,
+                                                item.deviceCatalog.identifier
+                                              );
+                                            } else {
+                                              // Para asignaciones individuales, usar la función correcta
+                                              const deleteUrl = `${getBaseApiUrl()}/periodos-mp/${periodo._id}/dispositivos/${item.deviceCatalog._id}/${item.colaboradorAsignado?._id || ''}`;
+
+                                              const confirmacion = window.confirm(
+                                                `¿Estás seguro de que deseas eliminar la asignación del dispositivo "${item.deviceCatalog.identifier}"?\n\nEsta acción no se puede deshacer.`
+                                              );
+
+                                              if (confirmacion) {
+                                                fetch(deleteUrl, {
+                                                  method: 'DELETE',
+                                                  headers: {
+                                                    Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : '',
+                                                  },
+                                                })
+                                                  .then(response => response.json())
+                                                  .then(data => {
+                                                    if (data.success !== false) {
+                                                      toast.success('Dispositivo desasignado exitosamente');
+                                                      refreshSectionOnly();
+                                                    } else {
+                                                      toast.error(data.message || 'Error eliminando dispositivo asignado');
+                                                    }
+                                                  })
+                                                  .catch(error => {
+                                                    console.error('Error:', error);
+                                                    toast.error('Error eliminando dispositivo asignado');
+                                                  });
+                                              }
+                                            }
+                                          }}
+                                          disabled={loading}
+                                        >
+                                          <CiTrash />
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {/* Botones funcionales existentes */}
+                                    {!item.asignacionMultiple && item.colaboradorAsignado?._id && (
+                                      <>
+                                        {/* Botón de Subir Reporte para colaboradores en asignaciones individuales */}
+                                        {isColaborador && (item.estado === 'pendiente' || item.estado === 'en_progreso') && (
+                                          <button
+                                            className="btn-success-small"
+                                            onClick={() => handleSubirReporte(periodo._id, item)}
+                                            title="Subir Reporte"
+                                            disabled={loading}
+                                            style={{ marginRight: '8px' }}
+                                          >
+                                            <i className="bi bi-cloud-upload"></i> Subir Reporte
+                                          </button>
+                                        )}
+
+                                        {/* Botón especial para eliminar reporte de dispositivos completados */}
+                                        {item.estado === 'completado' && (
+                                          <button
+                                            className="btn-warning-small"
+                                            onClick={() => handleEliminarReporte(
+                                              periodo._id,
+                                              item.deviceCatalog._id,
+                                              item.deviceCatalog.identifier
+                                            )}
+                                            title="Eliminar reporte y revertir a pendiente"
+                                            disabled={loading}
+                                            style={{ marginRight: '5px' }}
+                                          >
+                                            <i className="bi bi-arrow-counterclockwise"></i>
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
+                                    {/* Botón para asignaciones múltiples */}
+                                    {item.asignacionMultiple && (
+                                      <>
+                                        {/* Botón de Subir Reporte para colaboradores en asignaciones múltiples */}
+                                        {isColaborador && (item.estado === 'pendiente' || item.estado === 'en_progreso') && (
+                                          <button
+                                            className="btn-success-small"
+                                            onClick={() => handleSubirReporte(periodo._id, item)}
+                                            title="Subir Reporte"
+                                            disabled={loading}
+                                            style={{ marginRight: '8px' }}
+                                          >
+                                            <i className="bi bi-cloud-upload"></i> Subir Reporte
+                                          </button>
+                                        )}
+
+                                        {/* Botón especial para eliminar reporte de dispositivos múltiples completados */}
+                                        {item.estado === 'completado' && (
+                                          <button
+                                            className="btn-warning-small"
+                                            onClick={() => handleEliminarReporte(
+                                              periodo._id,
+                                              item.deviceCatalog._id,
+                                              item.deviceCatalog.identifier
+                                            )}
+                                            title="Eliminar reporte y revertir a pendiente"
+                                            disabled={loading}
+                                            style={{ marginRight: '5px' }}
+                                          >
+                                            <i className="bi bi-arrow-counterclockwise"></i>
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Flecha derecha */}
+                <div className="periodo-arrow right">
+                  <i className="bi bi-chevron-right"></i>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Modal asignar dispositivos - solo para coordinadores */}
+          {showAssignForm && !isColaborador && (
+            <div className="modal-overlay">
+              <div className="modal-content large">
+                <div className="modal-header">
+                  <h3>{editingAssignment ? 'Editar Asignación de Dispositivo' : 'Asignar Dispositivos'}</h3>
                   <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => removeDeviceAssignment(index)}
+                    className="btn-close"
+                    onClick={closeAssignModal}
                   >
-                    Eliminar
+                    ×
                   </button>
                 </div>
-              ))}
-            </div>
 
-            <div className="modal-actions">
-              <button type="button" onClick={addDeviceAssignment}>
-                Agregar Dispositivo
-              </button>
-              <button type="button" onClick={closeAssignModal}>
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAssignDevices(showAssignForm)}
-                disabled={loading}
-              >
-                {loading
-                  ? (editingAssignment ? 'Actualizando...' : 'Asignando...')
-                  : (editingAssignment ? 'Actualizar Asignación' : 'Asignar Dispositivos')
-                }
-              </button>
+                <div className="assignments-list">
+                  {deviceAssignments.map((assignment, index) => (
+                    <div key={index} className="assignment-row">
+                      <div className="form-group">
+                        <label>Dispositivo</label>
+                        <select
+                          value={assignment.deviceCatalogId}
+                          onChange={(e) => updateDeviceAssignment(index, 'deviceCatalogId', e.target.value)}
+                          required
+                        >
+                          <option value="">Seleccionar dispositivo</option>
+                          {dispositivos.map((device) => (
+                            <option key={device._id} value={device._id}>
+                              {device.identifier} - {device.type} ({device.ubication})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label>
+                          Colaborador {colaboradores.length > 0 && `(${colaboradores.length} disponibles)`}
+                        </label>
+                        <select
+                          value={assignment.colaboradorId}
+                          onChange={(e) => updateDeviceAssignment(index, 'colaboradorId', e.target.value)}
+                          required
+                        >
+                          <option value="">
+                            {colaboradores.length === 0
+                              ? "Cargando colaboradores..."
+                              : "Trabajo Colaborativo"
+                            }
+                          </option>
+                          {colaboradores.length > 0 && (
+                            <option value="ALL_COLLABORATORS">
+                              Todos los colaboradores ({colaboradores.length})
+                            </option>
+                          )}
+                          {colaboradores.map((colaborador) => (
+                            <option key={colaborador._id} value={colaborador._id}>
+                              {colaborador.nombre} {colaborador.apellido_paterno} {colaborador.correo && `(${colaborador.correo})`}
+                            </option>
+                          ))}
+                        </select>
+                        {colaboradores.length === 0 && (
+                          <p className="text-sm text-red-500 mt-1">
+                            No se encontraron colaboradores disponibles
+                          </p>
+                        )}
+                        {assignment.colaboradorId === 'ALL_COLLABORATORS' && (
+                          <p className="text-sm text-blue-600 mt-1">
+
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label>Notas</label>
+                        <input
+                          type="text"
+                          value={assignment.notas || ''}
+                          onChange={(e) => updateDeviceAssignment(index, 'notas', e.target.value)}
+                          placeholder="Notas adicionales..."
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        className="btn-danger"
+                        onClick={() => removeDeviceAssignment(index)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="modal-actions">
+                  <button type="button" onClick={addDeviceAssignment}>
+                    Agregar Dispositivo
+                  </button>
+                  <button type="button" onClick={closeAssignModal}>
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAssignDevices(showAssignForm)}
+                    disabled={loading}
+                  >
+                    {loading
+                      ? (editingAssignment ? 'Actualizando...' : 'Asignando...')
+                      : (editingAssignment ? 'Actualizar Asignación' : 'Asignar Dispositivos')
+                    }
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
         </div>
-      )}
-
-
+      </div>
     </div>
   );
 };

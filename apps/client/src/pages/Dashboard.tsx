@@ -94,7 +94,6 @@ const Dashboard: React.FC = () => {
 
   // Estados para SubirReporteSection
   const [dispositivosSubidos, setDispositivosSubidos] = useState<any[]>([]);  // Dispositivos subidos en la sesión
-  const [isSubirReporteExpanded, setIsSubirReporteExpanded] = useState(false); // Control del modo expandido para subir reporte
 
   // Referencias para el DOM y temporizadores
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -141,18 +140,18 @@ const Dashboard: React.FC = () => {
       component: Encargados,
       roles: ['administrador', 'coordinador']
     },
+    // ORDEN PARA COLABORADORES: 1. Períodos MP, 2. Subir Reporte, 3. Mi Historial
     {
       section: 'periodos',
       icon: 'calendar-range',
       text: 'Periodos MP',
       component: PeriodosMPSection,
-      roles: ['coordinador']
+      roles: ['coordinador', 'encargado', 'auxiliar']
     },
     {
-      section: 'dispositivosAsignados',
-      icon: 'list-task',
-      text: 'Mis Dispositivos',
-      component: DispositivosAsignadosSection,
+      section: 'subirReporte',
+      icon: 'upload',
+      text: 'Subir Reporte',
       roles: ['encargado', 'auxiliar']
     },
     {
@@ -162,11 +161,13 @@ const Dashboard: React.FC = () => {
       component: HistorialReportesSection,
       roles: ['encargado', 'auxiliar']
     },
+    // MIS DISPOSITIVOS - TEMPORALMENTE OCULTO (sin roles asignados)
     {
-      section: 'subirReporte',
-      icon: 'upload',
-      text: 'Subir Reporte',
-      roles: ['encargado', 'auxiliar']
+      section: 'dispositivosAsignados',
+      icon: 'list-task',
+      text: 'Mis Dispositivos',
+      component: DispositivosAsignadosSection,
+      roles: [] // Oculto temporalmente - cambiar a ['encargado', 'auxiliar'] para mostrar
     }
   ];
 
@@ -831,11 +832,9 @@ const Dashboard: React.FC = () => {
         <SubirReporteSection
           dispositivos={dispositivosSubidos}
           isLoading={isLoading}
-          isPreviewExpanded={isSubirReporteExpanded}
           onDeviceAdded={handleDeviceAdded}
           onLoadingStart={handleSubirReporteLoadingStart}
           onLoadingEnd={handleSubirReporteLoadingEnd}
-          onPreviewExpanded={setIsSubirReporteExpanded}
         />
       );
     }
@@ -939,11 +938,9 @@ const Dashboard: React.FC = () => {
             <SubirReporteSection
               dispositivos={dispositivosSubidos}
               isLoading={isLoading}
-              isPreviewExpanded={isSubirReporteExpanded}
               onDeviceAdded={handleDeviceAdded}
               onLoadingStart={handleSubirReporteLoadingStart}
               onLoadingEnd={handleSubirReporteLoadingEnd}
-              onPreviewExpanded={setIsSubirReporteExpanded}
             />
           </div>
         </div>

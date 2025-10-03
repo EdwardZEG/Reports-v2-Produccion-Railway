@@ -139,7 +139,7 @@ const CollaborativeWorkSelector: React.FC<CollaborativeWorkSelectorProps> = ({
                                 onChange={handleToggleCollaborative}
                             />
                             <span className="toggle-text">
-                                {isCollaborative ? '👥 Trabajo Colaborativo Activado' : '👤 Trabajo Individual'}
+                                {isCollaborative ? <><i className="bi bi-people-fill"></i> Trabajo Colaborativo Activado</> : <><i className="bi bi-people"></i> Trabajo Colaborativo</>}
                             </span>
                         </label>
                     </div>

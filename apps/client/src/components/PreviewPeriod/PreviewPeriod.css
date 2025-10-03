@@ -3,10 +3,12 @@
   background-color: #fff;
   border-radius: 12px;
   padding: 16px;
-  flex: 1;
+  flex: 0.6; /* Reducido 40% - ahora ocupa 60% del espacio original */
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-  width: 100%;
+  width: 60%; /* Ancho reducido al 60% */
+  max-width: 60%; /* Máximo ancho al 60% */
   overflow-x: auto;
+  align-self: flex-start; /* Alineación al inicio para evitar estiramiento */
 }
 
 .PeriodosMP-tableTitle {
@@ -20,16 +22,18 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 500px;
+  min-width: 300px; /* Reducido de 500px a 300px para adaptarse al contenedor más pequeño */
+  font-size: 0.9rem; /* Ligeramente más pequeño para optimizar espacio */
 }
 
 .PeriodosMP-table th,
 .PeriodosMP-table td {
   border: 1px solid #ddd;
-  padding: 10px;
+  padding: 8px; /* Reducido de 10px a 8px para optimizar espacio */
   text-align: center;
-  min-width: 100px;
+  min-width: 80px; /* Reducido de 100px a 80px */
   vertical-align: middle;
+  font-size: 0.85rem; /* Tamaño de fuente ligeramente menor */
 }
 
 .PeriodosMP-table th {

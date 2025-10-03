@@ -81,79 +81,129 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
             try {
                 const deviceInfo = JSON.parse(selectedDevice);
                 console.log('📝 Device info parseado:', deviceInfo);
-                console.log('📝 Obteniendo datos del dispositivo con ID:', deviceInfo.deviceId);
 
-                // Obtener los datos frescos del dispositivo desde la API
-                const fetchDeviceData = async () => {
-                    try {
-                        const token = localStorage.getItem('token');
-                        const response = await fetch(`${getBaseApiUrl()}/device-catalog/${deviceInfo.deviceId}`, {
-                            headers: {
-                                Authorization: token ? `Bearer ${token}` : '',
-                            },
-                        });
+                // Verificar si tenemos los datos completos del dispositivo (nuevos campos)
+                if (deviceInfo.deviceType && deviceInfo.deviceUbication && deviceInfo.deviceBuilding) {
+                    console.log('✅ Usando datos completos desde localStorage (optimizado)');
 
-                        if (response.ok) {
-                            const result = await response.json();
-                            const device = result.data;
+                    // Autocompletar el formulario directamente con los datos del localStorage
+                    setDeviceData({
+                        type: deviceInfo.deviceType || "",
+                        ubication: deviceInfo.deviceUbication || "",
+                        identifier: deviceInfo.deviceIdentifier || "",
+                        building: deviceInfo.deviceBuilding || "",
+                        level: deviceInfo.deviceLevel || "",
+                        note: deviceInfo.deviceNote || "",
+                    });
 
-                            console.log('✅ Datos del dispositivo obtenidos:', device);
+                    // Establecer los IDs necesarios para actualización
+                    setSelectedDeviceId(deviceInfo.deviceId);
+                    setSelectedPeriodoId(deviceInfo.periodoId);
+                    setSelectedColaboradorId(deviceInfo.colaboradorId);
 
-                            // Autocompletar el formulario con los datos actualizados
-                            setDeviceData({
-                                type: device.type || "",
-                                ubication: device.ubication || "",
-                                identifier: device.identifier || "",
-                                building: device.building || "",
-                                level: device.level || "",
-                                note: device.note || "",
-                            });
+                    // Verificar si es asignación múltiple y configurar trabajo colaborativo
+                    if (deviceInfo.isMultipleAssignment && deviceInfo.collaborators && deviceInfo.collaborators.length > 0) {
+                        console.log('🎯 Detectada asignación múltiple - configurando trabajo colaborativo automáticamente');
+                        setIsCollaborativeWork(true);
 
-                            // Establecer los IDs necesarios para actualización
-                            setSelectedDeviceId(deviceInfo.deviceId);
-                            setSelectedPeriodoId(deviceInfo.periodoId);
-                            setSelectedColaboradorId(deviceInfo.colaboradorId);
+                        // Configurar colaboradores disponibles (excluir al usuario actual)
+                        const otherCollaborators = deviceInfo.collaborators.filter(
+                            (col: any) => col._id !== deviceInfo.colaboradorId
+                        );
+                        setSelectedColaboradores(otherCollaborators.map((col: any) => col._id));
 
-                            // Verificar si es asignación múltiple y configurar trabajo colaborativo
-                            if (deviceInfo.isMultipleAssignment && deviceInfo.collaborators && deviceInfo.collaborators.length > 0) {
-                                console.log('🎯 Detectada asignación múltiple - configurando trabajo colaborativo automáticamente');
-                                setIsCollaborativeWork(true);
-
-                                // Configurar colaboradores disponibles (excluir al usuario actual)
-                                const otherCollaborators = deviceInfo.collaborators.filter(
-                                    (col: any) => col._id !== deviceInfo.colaboradorId
-                                );
-                                setSelectedColaboradores(otherCollaborators.map((col: any) => col._id));
-
-                                console.log('👥 Colaboradores configurados automáticamente:', otherCollaborators.length);
-                            }
-
-                            console.log('✅ IDs configurados para completado:', {
-                                selectedDeviceId: deviceInfo.deviceId,
-                                selectedPeriodoId: deviceInfo.periodoId,
-                                selectedColaboradorId: deviceInfo.colaboradorId,
-                                isFromMisDispositivos: true,
-                                isMultipleAssignment: deviceInfo.isMultipleAssignment,
-                                collaboratorsCount: deviceInfo.collaborators?.length || 0
-                            });
-
-                            // Limpiar el localStorage DESPUÉS de configurar los valores
-                            localStorage.removeItem('selectedDeviceForReport');
-
-                            // Mostrar mensaje de confirmación
-                            toast.success(`Formulario autocompletado para ${device.identifier}`);
-
-                        } else {
-                            console.error('❌ Error al obtener datos del dispositivo:', response.status);
-                            toast.error('Error al cargar datos del dispositivo');
-                        }
-                    } catch (error) {
-                        console.error('❌ Error en la petición:', error);
-                        toast.error('Error al conectar con el servidor');
+                        console.log('👥 Colaboradores configurados automáticamente:', otherCollaborators.length);
                     }
-                };
 
-                fetchDeviceData();
+                    console.log('✅ IDs configurados para completado:', {
+                        selectedDeviceId: deviceInfo.deviceId,
+                        selectedPeriodoId: deviceInfo.periodoId,
+                        selectedColaboradorId: deviceInfo.colaboradorId,
+                        isFromMisDispositivos: true,
+                        isMultipleAssignment: deviceInfo.isMultipleAssignment,
+                        collaboratorsCount: deviceInfo.collaborators?.length || 0
+                    });
+
+                    // Limpiar el localStorage DESPUÉS de configurar los valores
+                    localStorage.removeItem('selectedDeviceForReport');
+
+                    // Mostrar mensaje de confirmación
+                    toast.success(`Formulario autocompletado para ${deviceInfo.deviceIdentifier}`);
+
+                } else {
+                    console.log('⚠️ Datos incompletos en localStorage, obteniendo desde API');
+                    // Fallback: Obtener los datos frescos del dispositivo desde la API
+                    const fetchDeviceData = async () => {
+                        try {
+                            const token = localStorage.getItem('token');
+                            const response = await fetch(`${getBaseApiUrl()}/device-catalog/${deviceInfo.deviceId}`, {
+                                headers: {
+                                    Authorization: token ? `Bearer ${token}` : '',
+                                },
+                            });
+
+                            if (response.ok) {
+                                const result = await response.json();
+                                const device = result.data;
+
+                                console.log('✅ Datos del dispositivo obtenidos desde API:', device);
+
+                                // Autocompletar el formulario con los datos actualizados
+                                setDeviceData({
+                                    type: device.type || "",
+                                    ubication: device.ubication || "",
+                                    identifier: device.identifier || "",
+                                    building: device.building || "",
+                                    level: device.level || "",
+                                    note: device.note || "",
+                                });
+
+                                // Establecer los IDs necesarios para actualización
+                                setSelectedDeviceId(deviceInfo.deviceId);
+                                setSelectedPeriodoId(deviceInfo.periodoId);
+                                setSelectedColaboradorId(deviceInfo.colaboradorId);
+
+                                // Verificar si es asignación múltiple y configurar trabajo colaborativo
+                                if (deviceInfo.isMultipleAssignment && deviceInfo.collaborators && deviceInfo.collaborators.length > 0) {
+                                    console.log('🎯 Detectada asignación múltiple - configurando trabajo colaborativo automáticamente');
+                                    setIsCollaborativeWork(true);
+
+                                    // Configurar colaboradores disponibles (excluir al usuario actual)
+                                    const otherCollaborators = deviceInfo.collaborators.filter(
+                                        (col: any) => col._id !== deviceInfo.colaboradorId
+                                    );
+                                    setSelectedColaboradores(otherCollaborators.map((col: any) => col._id));
+
+                                    console.log('👥 Colaboradores configurados automáticamente:', otherCollaborators.length);
+                                }
+
+                                console.log('✅ IDs configurados para completado:', {
+                                    selectedDeviceId: deviceInfo.deviceId,
+                                    selectedPeriodoId: deviceInfo.periodoId,
+                                    selectedColaboradorId: deviceInfo.colaboradorId,
+                                    isFromMisDispositivos: true,
+                                    isMultipleAssignment: deviceInfo.isMultipleAssignment,
+                                    collaboratorsCount: deviceInfo.collaborators?.length || 0
+                                });
+
+                                // Limpiar el localStorage DESPUÉS de configurar los valores
+                                localStorage.removeItem('selectedDeviceForReport');
+
+                                // Mostrar mensaje de confirmación
+                                toast.success(`Formulario autocompletado para ${device.identifier}`);
+
+                            } else {
+                                console.error('❌ Error al obtener datos del dispositivo:', response.status);
+                                toast.error('Error al cargar datos del dispositivo');
+                            }
+                        } catch (error) {
+                            console.error('❌ Error en la petición:', error);
+                            toast.error('Error al conectar con el servidor');
+                        }
+                    };
+
+                    fetchDeviceData();
+                }
             } catch (error) {
                 console.error('❌ Error parseando device info:', error);
             }

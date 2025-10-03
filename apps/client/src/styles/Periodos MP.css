@@ -1,33 +1,171 @@
-/* Contenedor principal */
-.periodosmp-wrapper {
-  margin-top: 30px;
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  padding: 20px;
-  background: linear-gradient(to bottom right, #f2f2f2, #e6e6e6);
-  flex-wrap: wrap;
+/* ===== ESTILOS CONTENEDOR PRINCIPAL ===== */
+/* Layout principal del módulo de períodos MP igual que colaboradores */
+.periodosmp-container {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 20px !important; /* Márgenes uniformes en los 4 lados */
+  align-items: center !important; /* Centrar el contenido */
+  width: 100% !important;
+  max-width: none !important; /* Sin límite máximo para ocupar más espacio */
+  margin: 0 !important; /* Sin márgenes externos */
+  height: calc(100vh - 40px) !important; /* Altura controlada menos el padding superior e inferior */
+  box-sizing: border-box !important;
+  overflow: hidden !important; /* Evitar scroll en el contenedor principal */
 }
 
-/* Lado izquierdo: buscador + fechas */
+/* ===== NUEVA VISTA PREVIA DE PERÍODOS MP (SISTEMA EXACTO DE COLABORADORES) ===== */
+/* Sección principal con diseño neomórfico exacto */
+
+/* Contenedor principal de la vista previa con diseño neomórfico exacto */
+.preview-section-periodosmp {
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+  padding: 1.5rem !important; /* Más padding interno */
+  box-shadow: 
+    4px 4px 12px rgba(0, 0, 0, 0.06),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.02) !important; /* Efecto neomórfico sutil */
+  border: none !important;
+  width: 100% !important; /* Usa todo el ancho disponible */
+  max-width: 100% !important;
+  margin: 0 !important; /* Sin márgenes para que ocupe más espacio */
+  min-height: fit-content !important; /* Ajustar al contenido */
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  flex: 1 !important; /* Ocupa todo el espacio disponible */
+  max-height: calc(100vh - 80px) !important; /* Límite máximo más apropiado */
+}
+
+/* REGLA ESPECÍFICA PARA FORZAR ALTURA - NO MOVER NI CAMBIAR */
+.periodosmp-container .preview-section-periodosmp {
+  height: calc(100% - 0px) !important; /* Ocupa todo el espacio disponible del contenedor */
+  min-height: 500px !important; /* Altura mínima aumentada para mejor visualización */
+  max-height: 100% !important; /* No exceder el contenedor padre */
+  overflow: hidden !important; /* Evitar desbordamiento */
+}
+
+/* ===== HEADER DE LA SECCIÓN ===== */
+/* Header principal con título y botón crear período - EXACTO COMO COLABORADORES */
+.section-header-periodosmp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000000; /* Línea negra como separador visual */
+}
+
+/* ===== TÍTULO DE LA SECCIÓN ===== */
+/* Título con icono igual que colaboradores */
+.section-title-periodosmp {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #111827;
+}
+
+/* Icono del título (periodos MP) - EXACTO COMO COLABORADORES */
+.section-title-periodosmp i {
+  color: #000000; /* Negro como en Vista Previa */
+  font-size: 1.5rem; /* Mismo tamaño que Vista Previa */
+}
+
+/* Título principal - EXACTO COMO COLABORADORES */
+.section-title-periodosmp h3 {
+  color: #3A0707; /* Mismo color que Vista Previa */
+  font-weight: 700; /* Misma negritas que Vista Previa */
+  font-size: 1.4rem; /* Mismo tamaño que Vista Previa */
+  margin: 0;
+  font-family: 'Open Sans', sans-serif; /* Misma tipografía */
+}
+
+/* ===== CONTROLES DE LA SECCIÓN ===== */
+/* Contenedor de controles (botón crear período) - EXACTO COMO COLABORADORES */
+.section-controls-periodosmp {
+  display: flex;
+  align-items: center; /* Centrado vertical perfecto */
+  gap: 1rem;
+  height: 40px; /* Altura fija igual a la barra de búsqueda */
+}
+
+/* ===== BOTÓN CREAR PERÍODO ===== */
+/* Botón principal para crear nuevo período - EXACTO COMO COLABORADORES */
+.btn-crear-periodo {
+  background: #4927F5;
+  border: none;
+  border-radius: 50px; /* Misma forma redondeada que la barra */
+  color: white;
+  padding: 0 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.2),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(73, 39, 245, 0.3); /* Efectos neomórficos */
+  font-family: 'Open Sans', sans-serif;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  height: 40px !important; /* Exactamente la misma altura que la barra */
+  min-width: 140px; /* Suficiente para el texto */
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Borde sutil como la barra */
+  margin: 0 !important; /* Sin márgenes que desalineen */
+  flex-shrink: 0; /* No se comprime */
+}
+
+/* Efecto hover del botón crear período */
+.btn-crear-periodo:hover {
+  background: #3a1fd1;
+  transform: translateY(-1px);
+  box-shadow: 
+    inset 2px 2px 5px rgba(255, 255, 255, 0.3),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.1),
+    0 3px 8px rgba(73, 39, 245, 0.4);
+}
+
+/* Icono del botón crear período - igual que colaboradores */
+.btn-crear-periodo i {
+  font-size: 1rem;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+/* Distribución en dos columnas pero ocupando todo el espacio disponible */
+.periodosmp-content {
+  display: flex !important;
+  gap: 24px !important; /* Espacio entre columnas */
+  align-items: flex-start !important;
+  flex: 1 !important;
+  width: 100% !important;
+  height: calc(100% - 80px) !important; /* Espacio disponible menos el header */
+  overflow: hidden !important; /* Controlar desbordamiento */
+}
+
+/* Lado izquierdo: buscador + fechas - más espacio */
 .periodosmp-left {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 400px;
+  gap: 20px;
+  width: 450px; /* Más ancho */
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
 }
 
-.periodosmp-left h2 {
-  text-align: center;
-}
-
-/* Lado derecho: tabla */
+/* Lado derecho: tabla - ocupa todo el espacio restante */
 .periodosmp-right {
   flex: 1;
   min-width: 0;
+  height: 100%;
+  overflow: auto;
 }
 
-/* Selector de fechas y botón */
+/* Selector de fechas */
 .periodosmp-periodContainer {
   display: flex;
   flex-direction: column;
@@ -35,27 +173,22 @@
   margin-top: 10px;
 }
 
-/* Botón crear periodo */
-.periodosmp-addButton {
-  background-color: #920000;
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  font-size: 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s ease-in-out;
-}
-
-.periodosmp-addButton:hover {
-  background-color: #0056b3;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .periodosmp-wrapper {
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+  .periodosmp-container {
+    padding: 16px !important; /* Reducir padding en pantallas más pequeñas */
+  }
+  
+  .preview-section-periodosmp {
+    height: calc(100vh - 100px) !important; /* Ajustar altura */
+    min-height: 600px !important;
+    padding: 1rem !important;
+  }
+  
+  .periodosmp-content {
     flex-direction: column;
-    padding: 16px;
+    gap: 20px;
+    overflow-y: auto;
   }
 
   .periodosmp-left {
@@ -64,6 +197,54 @@
 
   .periodosmp-right {
     width: 100%;
-    margin-top: 16px;
+    height: auto;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .periodosmp-container {
+    padding: 12px !important;
+  }
+  
+  .preview-section-periodosmp {
+    padding: 0.75rem !important;
+  }
+  
+  .section-header-periodosmp {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .section-title-periodosmp h3 {
+    font-size: 1.25rem;
+  }
+  
+  .section-controls-periodosmp {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .btn-crear-periodo {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-title-periodosmp {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .section-title-periodosmp i {
+    font-size: 1.5rem;
+    padding: 0.375rem;
+  }
+  
+  .section-title-periodosmp h3 {
+    font-size: 1.125rem;
   }
 }
