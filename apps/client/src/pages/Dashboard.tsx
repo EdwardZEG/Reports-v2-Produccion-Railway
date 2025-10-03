@@ -176,6 +176,19 @@ const Dashboard: React.FC = () => {
     item.roles.includes(role || '')
   );
 
+  // Establecer sección inicial basada en el rol del usuario
+  useEffect(() => {
+    const isCollaborator = role === 'encargado' || role === 'auxiliar';
+    
+    if (isCollaborator) {
+      // Para colaboradores, iniciar en Períodos MP
+      setActiveSection('periodos');
+    } else {
+      // Para coordinadores y administradores, iniciar en Inicio
+      setActiveSection('inicio');
+    }
+  }, [role]);
+
 
 
   /**
@@ -881,10 +894,8 @@ const Dashboard: React.FC = () => {
       setNombreUsuario(userData);
     }
 
-    // Configurar sección inicial según el rol del usuario
-    if (role === 'encargado' || role === 'auxiliar') {
-      setActiveSection('subirReporte');
-    }
+    // La configuración inicial de sección se maneja en otro useEffect basado en rol
+    // NO establecer sección aquí para evitar conflictos
 
     // Configurar eventos de responsividad y manejo de clics
     checkMobile();
