@@ -1177,10 +1177,10 @@
 
 .section-description-compact {
   color: #887A7A;
-  font-size: 0.75rem;
+  font-size: 0.8rem !important; /* AUMENTADO para mejor legibilidad */
   margin: 0;
   font-weight: 500;
-  line-height: 1.3;
+  line-height: 1.4 !important; /* AUMENTADO para mejor legibilidad */
 }
 
 .search-form-header {
@@ -1743,90 +1743,104 @@
 .stat-item-compact {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.5rem; /* Aumentado para mejor separación visual */
+  padding: 0.75rem 1rem; /* Aumentado para mejor presencia visual */
+  min-height: 56px; /* Ligeramente más alto para mejor apariencia */
+  max-height: 60px;
+  overflow: hidden;
+  border-radius: 12px; /* Más redondeado para diseño moderno */
+  background: #FFFFFF; /* Fondo blanco limpio */
+  border: 2px solid #E5E7EB; /* Borde sutil */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* Sombra sutil para elevación */
+  transition: all 0.2s ease; /* Transición suave */
+}
+
+.stat-item-compact:hover {
+  transform: translateY(-1px); /* Efecto hover sutil */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #D1D5DB;
 }
 
 .stat-icon-compact {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px; /* Ligeramente más grande */
+  height: 36px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #000000; /* Iconos en negro como solicitaste */
-  background: transparent; /* Sin fondo de color */
-  font-size: 0.9rem;
+  color: #1F2937; /* Negro más elegante */
+  background: #F9FAFB; /* Fondo gris muy claro */
+  font-size: 1rem; /* Ligeramente más grande */
   font-weight: 600;
-  box-shadow: none; /* Sin sombra */
+  border: 1px solid #E5E7EB; /* Borde sutil */
   flex-shrink: 0;
 }
 
 .stat-icon-compact.primary {
-  background: transparent; /* Sin fondo de color */
-  color: #000000; /* Icono negro */
-  box-shadow: none;
+  background: #F9FAFB;
+  color: #1F2937;
+  border-color: #E5E7EB;
 }
 
 .stat-icon-compact.secondary {
-  background: transparent; /* Sin fondo de color */
-  color: #000000; /* Icono negro */
-  box-shadow: none;
+  background: #F9FAFB;
+  color: #1F2937;
+  border-color: #E5E7EB;
 }
 
 .stat-icon-compact.success {
-  background: transparent; /* Sin fondo de color */
-  color: #000000; /* Icono negro */
-  box-shadow: none;
+  background: #F9FAFB;
+  color: #1F2937;
+  border-color: #E5E7EB;
 }
 
 .stat-info-compact {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0.4rem !important; /* Mejor separación */
   flex: 1;
 }
 
 .stat-label-compact {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #000000; /* Cambio a negro como solicitaste */
+  font-size: 0.75rem; /* Ligeramente más grande y legible */
+  font-weight: 800; /* Más bold como solicitaste */
+  color: #1F2937; /* Negro elegante */
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  line-height: 1.2; /* Ajustado para mejor alineación */
+  letter-spacing: 0.8px; /* Más espaciado para elegancia */
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.stat-value-compact {
+  font-size: 1.4rem; /* Más grande para mejor legibilidad */
+  font-weight: 800; /* Más bold */
+  color: #E9383B;
+  line-height: 1;
   display: flex;
   align-items: center;
 }
 
-.stat-value-compact {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #E9383B;
-  line-height: 1;
-}
-
-/* Estilos específicos para contadores REPORTES y DOCUMENTOS */
+/* Estilos específicos para contadores REPORTES */
 .stat-item-compact:nth-child(1) .stat-value-compact {
   color: #E9383B; /* Rojo para contador de REPORTES */
-}
-
-.stat-item-compact:nth-child(2) .stat-value-compact {
-  color: #383BE9; /* Color igual al botón de búsqueda para contador de DOCUMENTOS */
 }
 
 /* Alineación específica para el botón de descarga */
 .stat-item-compact.generated .stat-value-compact {
   display: flex;
-  align-items: center;
+  align-items: center !important;
   margin: 0;
   padding: 0;
 }
 
 .stat-item-compact.generated .stat-info-compact {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
   flex: 1;
 }
 
@@ -1837,52 +1851,77 @@
 }
 
 .download-btn-compact {
-  background: #383BE9; /* Color igual al botón de búsqueda */
+  background: #383BE9; /* Azul elegante */
   color: #FFFFFF;
   border: none;
-  border-radius: 6px; /* Cambiado a rectangular */
-  width: auto; /* Ancho automático */
-  height: 28px; /* Altura ajustada para mejor centrado */
-  padding: 0 10px; /* Padding horizontal para contenido */
-  font-size: 0.75rem; /* Tamaño más pequeño */
-  font-weight: 600;
+  border-radius: 8px; /* Más redondeado */
+  padding: 0.5rem 0.75rem; /* Mejor padding */
+  font-size: 0.75rem;
+  font-weight: 700; /* Más bold */
+  text-transform: uppercase; /* Mayúsculas como solicitaste */
+  letter-spacing: 0.5px;
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(56, 59, 233, 0.2);
-  line-height: 1;
-  vertical-align: middle; /* Alineación vertical centrada */
-  margin: 0; /* Sin márgenes */
+  margin: 0; /* Sin margen */
 }
 
 .download-btn-compact:hover {
-  background: #2c2fb8; /* Color más oscuro en hover */
+  background: #2D30D9;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(56, 59, 233, 0.3);
 }
 
+.download-btn-compact:active {
+  transform: translateY(0);
+}
+
 /* Estilos para estados de generación y loading */
 .stat-item-compact.generating {
-  background: linear-gradient(145deg, #FFF3E0, #FFE0B2);
-  border-left: 4px solid #FF9800;
+  background: linear-gradient(145deg, #FFF3E0, #FFE0B2) !important;
+  border-left: 4px solid #FF9800 !important;
   animation: pulse-orange 2s infinite;
+  padding: 0.5rem 0.6rem !important; /* Forzado con important */
+  min-height: 40px !important; /* Forzado con important */
+  max-height: 44px !important; /* Forzado con important */
+  border-radius: 6px !important; /* Forzado con important */
+  gap: 0.15rem !important; /* Forzado con important */
+  width: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+/* Texto específico para el modal de generación - mismo estilo que otros títulos */
+.stat-item-compact.generating .stat-label-compact {
+  font-size: 0.65rem !important; /* Forzado con important */
+  font-weight: 700 !important; 
+  line-height: 1.2 !important; 
+  letter-spacing: 0.5px !important; 
+  color: #000000 !important; 
+  text-transform: uppercase !important;
+  margin: 0 !important;
+  margin-left: 0.2rem !important; 
 }
 
 .stat-icon-compact.loading {
   background: linear-gradient(145deg, #FF9800, #F57C00);
   color: white;
+  width: 28px; /* Más cuadrado */
+  height: 28px; /* Más cuadrado */
+  font-size: 0.75rem; /* Icono proporcionado */
+  border-radius: 4px; /* Bordes redondeados solo para loading */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* No permitir que se encoja */
 }
 
 .stat-icon-compact.loading i {
   animation: spin 1s linear infinite;
-}
-
-/* Asegurar que el texto en el estado generating tenga el mismo color */
-.stat-item-compact.generating .stat-label-compact,
-.stat-item-compact.generating .stat-value-compact {
-  color: #000000 !important; /* Mismo color negro que el label */
 }
 
 @keyframes spin {
@@ -2526,5 +2565,205 @@ select.search-form__input:focus {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* === MODAL DE MEJORAS CON ESTILO COORDINADORES === */
+.modal-overlay-mejoras {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000; /* Por encima de todo */
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content-mejoras {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 0;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: slideInMejoras 0.3s ease;
+  overflow: hidden;
+}
+
+.modal-header-mejoras {
+  background: linear-gradient(135deg, #E9383B 0%, #D42E32 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  text-align: center;
+}
+
+.modal-title-mejoras {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.modal-title-mejoras i {
+  font-size: 1.5rem;
+}
+
+.modal-body-mejoras {
+  padding: 2rem;
+  text-align: center;
+}
+
+.mejoras-icon {
+  margin-bottom: 1.5rem;
+}
+
+.mejoras-icon i {
+  font-size: 3rem;
+  color: #E9383B;
+  animation: spin 2s linear infinite;
+}
+
+.mejoras-message {
+  font-size: 1.1rem;
+  color: #374151;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.mejoras-submessage {
+  font-size: 0.95rem;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modal-footer-mejoras {
+  padding: 1.5rem 2rem;
+  background: #F9FAFB;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-aceptar-mejoras {
+  background: #E9383B;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.btn-aceptar-mejoras:hover {
+  background: #D42E32;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(233, 56, 59, 0.3);
+}
+
+.btn-aceptar-mejoras:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInMejoras {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Modal GENERANDO REPORTE superpuesto en estadísticas */
+.stats-loading-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 100;
+  animation: fadeInModal 0.3s ease-out;
+}
+
+.stats-loading-content {
+  text-align: center;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loading-icon-large {
+  font-size: 2.5rem;
+  color: #E9383B;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text h4 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #E9383B;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.loading-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Asegurar que el contenedor de estadísticas sea relativo para el posicionamiento */
+.stats-header-section {
+  position: relative;
 }
 

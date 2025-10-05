@@ -43,7 +43,7 @@ const SubirReporte: React.FC = () => {
     setNombreUsuario(nombre || "");
     setRolUsuario(rol || "");
 
-    // Autocompletar campos si viene desde Mis Dispositivos
+    // Verificar si hay dispositivo seleccionado en localStorage
     const selectedDevice = localStorage.getItem('selectedDeviceForReport');
     console.log('🔍 Verificando localStorage selectedDeviceForReport:', selectedDevice);
 
@@ -349,7 +349,7 @@ const SubirReporte: React.FC = () => {
         shouldComplete: !!(selectedDeviceId && selectedPeriodoId && selectedColaboradorId)
       });
 
-      // Si viene desde Mis Dispositivos, actualizar el estado del dispositivo en el período MP
+      // Actualizar el estado del dispositivo en el período MP si es necesario
       console.log('🔍 DEBUG COMPLETO - Datos disponibles para completado:', {
         selectedDeviceId,
         selectedPeriodoId,

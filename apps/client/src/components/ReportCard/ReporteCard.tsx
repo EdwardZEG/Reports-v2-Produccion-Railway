@@ -39,7 +39,7 @@ const ReporteCard: React.FC<ReporteCardProps> = ({ nombreArchivo, urlDescarga })
                 className="reporte-card__descargar"
                 title="Descargar reporte"
               >
-                <i className="bi bi-download"></i>
+                <i className="bi bi-file-earmark-word"></i>
               </a>
             </div>
           </>
@@ -55,7 +55,7 @@ const ReporteCard: React.FC<ReporteCardProps> = ({ nombreArchivo, urlDescarga })
               <span className="reporte-card__formato">Word</span>
               {/* Botón de descarga deshabilitado */}
               <div className="reporte-card__descargar disabled">
-                <i className="bi bi-download"></i>
+                <i className="bi bi-file-earmark-word"></i>
               </div>
             </div>
           </div>

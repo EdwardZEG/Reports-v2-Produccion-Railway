@@ -61,10 +61,10 @@ const HistorialReportesSection: React.FC = () => {
                     <div className="section-header-compact">
                         <div className="section-title-compact">
                             <i className="bi bi-search"></i>
-                            <h3>Buscar Mis Dispositivos</h3>
+                            <h3>Buscar Reportes</h3>
                         </div>
                         <p className="section-description-compact">
-                            Revisa y edita tus reportes de dispositivos por especialidad y período
+                            Revisa y edita tus reportes por especialidad y período
                         </p>
                     </div>
 
@@ -123,7 +123,7 @@ const HistorialReportesSection: React.FC = () => {
                 <div className="section-header-full">
                     <div className="section-title-full">
                         <i className="bi bi-eye-fill"></i>
-                        <h3>Vista Previa de Dispositivos</h3>
+                        <h3>Vista Previa</h3>
                     </div>
 
                     {/* Botón de expandir/contraer - solo visible cuando hay resultados */}

@@ -22,6 +22,7 @@ interface InicioSectionProps {
     showModal: boolean;
     isPreviewExpanded: boolean;
     isReportDownloaded: boolean;
+    hasSearched: boolean; // Nueva prop para controlar visibilidad de contadores
     resultadosData: {
         porcentaje: string;
         distribucion: string;
@@ -34,13 +35,15 @@ interface InicioSectionProps {
     };
     onSearch: (devices: any[]) => void; // Cambiado a any[]
     onReporteGenerado: (nombre: string, url: string) => void;
-    onShowModal: () => void;
     onLoadingStart: () => void;
     onLoadingEnd: () => void;
     onProgressUpdate: (progress: number, message: string, timeRemaining?: number) => void;
     onPreviewExpanded: (expanded: boolean) => void;
     onReportDownloaded: (downloaded: boolean) => void;
     onCloseModal: () => void;
+    showMejorasModal: boolean;
+    onShowMejorasModal: () => void;
+    onCloseMejorasModal: () => void;
 }
 
 /**
@@ -54,16 +57,19 @@ const InicioSection: React.FC<InicioSectionProps> = ({
     showModal,
     isPreviewExpanded,
     isReportDownloaded,
+    hasSearched,
     resultadosData,
     onSearch,
     onReporteGenerado,
-    onShowModal,
     onLoadingStart,
     onLoadingEnd,
     onProgressUpdate,
     onPreviewExpanded,
     onReportDownloaded,
     onCloseModal,
+    showMejorasModal,
+    onShowMejorasModal,
+    onCloseMejorasModal,
 }) => {
     // Usar directamente los dispositivos sin procesamiento costoso adicional
     // Las imágenes ya vienen procesadas desde el SearchForm
@@ -76,10 +82,10 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                     <div className="section-header-compact">
                         <div className="section-title-compact">
                             <i className="bi bi-search"></i>
-                            <h3>Buscar Dispositivos</h3>
+                            <h3>Buscar Reportes</h3>
                         </div>
                         <p className="section-description-compact">
-                            Filtra y genera reportes de dispositivos por póliza, especialidad y período
+                            Filtra y genera reportes de mantenimientos por póliza, especialidad y período
                         </p>
                     </div>
 
@@ -87,48 +93,39 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                         <SearchReportForm
                             onSearch={onSearch}
                             onReporteGenerado={onReporteGenerado}
-                            onShowModal={onShowModal}
                             hasResults={dispositivos.length > 0}
                             onLoadingStart={onLoadingStart}
                             onLoadingEnd={onLoadingEnd}
                             onProgressUpdate={onProgressUpdate}
+                            onShowMejorasModal={onShowMejorasModal}
                         />
                     </div>
                 </div>
 
                 {/* Estadísticas a la derecha */}
                 <div className="stats-header-section">
-                    <div className="stats-bar-compact">
-                        <div className="stat-item-compact">
-                            <div className="stat-icon-compact primary">
-                                <i className="bi bi-clipboard-data"></i>
-                            </div>
-                            <div className="stat-info-compact">
-                                <span className="stat-label-compact">REPORTES</span>
-                                <span className="stat-value-compact">{dispositivos.length}</span>
-                            </div>
-                        </div>
-
-                        <div className="stat-item-compact">
-                            <div className="stat-icon-compact secondary">
-                                <i className="bi bi-file-earmark-text"></i>
-                            </div>
-                            <div className="stat-info-compact">
-                                <span className="stat-label-compact">DOCUMENTOS</span>
-                                <span className="stat-value-compact">{reporte.nombre ? '1' : '0'}</span>
-                            </div>
-                        </div>
-
-                        {isLoading && (
-                            <div className="stat-item-compact generating">
-                                <div className="stat-icon-compact loading">
-                                    <i className="bi bi-arrow-repeat"></i>
+                    {hasSearched && dispositivos.length > 0 && (
+                        <div className="stats-bar-compact">
+                            <div className="stat-item-compact">
+                                <div className="stat-icon-compact primary">
+                                    <i className="bi bi-clipboard-data"></i>
                                 </div>
                                 <div className="stat-info-compact">
-                                    <span className="stat-label-compact">GENERANDO REPORTE...</span>
+                                    <span className="stat-label-compact">REPORTES</span>
+                                    <span className="stat-value-compact">{dispositivos.length}</span>
                                 </div>
                             </div>
-                        )}
+
+                            {isLoading && (
+                                <div className="stat-item-compact generating">
+                                    <div className="stat-icon-compact loading">
+                                        <i className="bi bi-arrow-repeat"></i>
+                                    </div>
+                                    <div className="stat-info-compact">
+                                        <span className="stat-label-compact">GENERANDO REPORTE...</span>
+                                    </div>
+                                </div>
+                            )}
 
                         {!isLoading && reporte.nombre && (
                             <div className="stat-item-compact generated">
@@ -188,7 +185,7 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                                                 </>
                                             ) : (
                                                 <>
-                                                    <i className="bi bi-download me-2"></i>
+                                                    <i className="bi bi-file-earmark-word me-2"></i>
                                                     <span>Descargar</span>
                                                 </>
                                             )}
@@ -197,7 +194,23 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                                 </div>
                             </div>
                         )}
-                    </div>
+                        </div>
+                    )}
+                    
+                    {/* Modal GENERANDO REPORTE superpuesto en el área de estadísticas */}
+                    {isLoading && hasSearched && (
+                        <div className="stats-loading-modal">
+                            <div className="stats-loading-content">
+                                <div className="loading-icon-large">
+                                    <i className="bi bi-arrow-repeat"></i>
+                                </div>
+                                <div className="loading-text">
+                                    <h4>GENERANDO REPORTE</h4>
+                                    <p>Por favor espere...</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -206,7 +219,7 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                 <div className="section-header-full">
                     <div className="section-title-full">
                         <i className="bi bi-eye-fill"></i>
-                        <h3>Vista Previa de Dispositivos</h3>
+                        <h3>Vista Previa</h3>
                     </div>
 
                     {/* Botón de expandir/contraer - solo visible cuando hay resultados */}
@@ -286,6 +299,49 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                                 onClick={onCloseModal}
                             >
                                 Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de mejoras */}
+            {showMejorasModal && (
+                <div className="modal-overlay-mejoras">
+                    <div className="modal-content-mejoras">
+                        <div className="modal-header-mejoras">
+                            <h3>Mejoras Implementadas</h3>
+                            <button 
+                                className="modal-close-mejoras"
+                                onClick={onCloseMejorasModal}
+                            >
+                                <i className="bi bi-x"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body-mejoras">
+                            <div className="mejora-item">
+                                <i className="bi bi-check-circle-fill text-success me-2"></i>
+                                <span>Interfaz optimizada para mejor experiencia de usuario</span>
+                            </div>
+                            <div className="mejora-item">
+                                <i className="bi bi-check-circle-fill text-success me-2"></i>
+                                <span>Búsqueda mejorada de reportes y mantenimientos</span>
+                            </div>
+                            <div className="mejora-item">
+                                <i className="bi bi-check-circle-fill text-success me-2"></i>
+                                <span>Estadísticas en tiempo real actualizadas</span>
+                            </div>
+                            <div className="mejora-item">
+                                <i className="bi bi-check-circle-fill text-success me-2"></i>
+                                <span>Descarga de reportes mejorada con formato Word</span>
+                            </div>
+                        </div>
+                        <div className="modal-footer-mejoras">
+                            <button
+                                className="btn-primary-mejoras"
+                                onClick={onCloseMejorasModal}
+                            >
+                                Entendido
                             </button>
                         </div>
                     </div>

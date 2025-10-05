@@ -16,7 +16,6 @@ import Coordinadores from './Coordinadores';
 import Encargados from './Encargados';
 import SubirReporteSection from '../components/SubirReporteSection/SubirReporteSection';
 import PeriodosMPSection from '../components/PeriodosMP/PeriodosMPSection';
-import DispositivosAsignadosSection from '../components/DispositivosAsignados/DispositivosAsignadosSection';
 import HistorialReportesSection from '../components/HistorialReportes/HistorialReportesSection';
 
 // Importar logo y contexto DVD
@@ -44,11 +43,13 @@ const Dashboard: React.FC = () => {
   // Estados para la funcionalidad del dashboard original - búsqueda y reportes
   const [nombreUsuario, setNombreUsuario] = useState<string>("");
   const [dispositivos, setDispositivos] = useState<any[]>([]);              // Dispositivos encontrados en búsqueda
+  const [hasSearched, setHasSearched] = useState<boolean>(false);           // Indica si se ha realizado una búsqueda
   const [reporte, setReporte] = useState<{ nombre: string; url: string }>({ // Estado del reporte generado
     nombre: "",
     url: ""
   });
   const [showModal, setShowModal] = useState<boolean>(false);               // Control del modal de resultados
+  const [showMejorasModal, setShowMejorasModal] = useState<boolean>(false); // Control del modal de mejoras
   const [isLoading, setIsLoading] = useState<boolean>(false);               // Estado de carga global
   const [loadingStats, setLoadingStats] = useState<boolean>(false);        // Estado de carga de estadísticas
 
@@ -160,14 +161,6 @@ const Dashboard: React.FC = () => {
       text: 'Mi Historial',
       component: HistorialReportesSection,
       roles: ['encargado', 'auxiliar']
-    },
-    // MIS DISPOSITIVOS - TEMPORALMENTE OCULTO (sin roles asignados)
-    {
-      section: 'dispositivosAsignados',
-      icon: 'list-task',
-      text: 'Mis Dispositivos',
-      component: DispositivosAsignadosSection,
-      roles: [] // Oculto temporalmente - cambiar a ['encargado', 'auxiliar'] para mostrar
     }
   ];
 
@@ -179,7 +172,7 @@ const Dashboard: React.FC = () => {
   // Establecer sección inicial basada en el rol del usuario
   useEffect(() => {
     const isCollaborator = role === 'encargado' || role === 'auxiliar';
-    
+
     if (isCollaborator) {
       // Para colaboradores, iniciar en Períodos MP
       setActiveSection('periodos');
@@ -305,6 +298,7 @@ const Dashboard: React.FC = () => {
   // Callbacks optimizados para evitar re-renders innecesarios
   const handleSearch = useCallback((data: any[]) => {
     setDispositivos(data);
+    setHasSearched(true); // Marcar que se ha realizado una búsqueda
 
     // Calcular distribución real por colaborador
     const total = data.length;
@@ -347,8 +341,6 @@ const Dashboard: React.FC = () => {
     setIsLoading(false);
     stopProgressBar(); // Detener barra de progreso
   }, [stopProgressBar]);
-
-  const handleShowModal = useCallback(() => setShowModal(true), []);
 
   // Callbacks para SubirReporteSection
   const handleDeviceAdded = useCallback((device: any) => {
@@ -557,16 +549,19 @@ const Dashboard: React.FC = () => {
           showModal={showModal}
           isPreviewExpanded={isPreviewExpanded}
           isReportDownloaded={isReportDownloaded}
+          hasSearched={hasSearched}
           resultadosData={resultadosData}
           onSearch={handleSearch}
           onReporteGenerado={handleReporteGenerado}
-          onShowModal={handleShowModal}
           onLoadingStart={handleLoadingStart}
           onLoadingEnd={handleLoadingEnd}
           onProgressUpdate={handleProgressUpdate}
           onPreviewExpanded={setIsPreviewExpanded}
           onReportDownloaded={setIsReportDownloaded}
           onCloseModal={() => setShowModal(false)}
+          showMejorasModal={showMejorasModal}
+          onShowMejorasModal={() => setShowMejorasModal(true)}
+          onCloseMejorasModal={() => setShowMejorasModal(false)}
         />
       );
     }
@@ -582,10 +577,10 @@ const Dashboard: React.FC = () => {
               <div className="section-header-compact">
                 <div className="section-title-compact">
                   <i className="bi bi-search"></i>
-                  <h3>Buscar Dispositivos</h3>
+                  <h3>Buscar Reportes</h3>
                 </div>
                 <p className="section-description-compact">
-                  Filtra y genera reportes de dispositivos por póliza, especialidad y período
+                  Filtra y genera reportes de mantenimientos por póliza, especialidad y período
                 </p>
               </div>
 
@@ -597,66 +592,57 @@ const Dashboard: React.FC = () => {
 
             {/* Estadísticas a la derecha */}
             <div className="stats-header-section">
-              <div className="stats-bar-compact">
-                <div className="stat-item-compact">
-                  <div className="stat-icon-compact primary">
-                    <i className="bi bi-clipboard-data"></i>
-                  </div>
-                  <div className="stat-info-compact">
-                    <span className="stat-label-compact">REPORTES</span>
-                    <span className="stat-value-compact">{dispositivos.length}</span>
-                  </div>
-                </div>
-
-                <div className="stat-item-compact">
-                  <div className="stat-icon-compact secondary">
-                    <i className="bi bi-file-earmark-text"></i>
-                  </div>
-                  <div className="stat-info-compact">
-                    <span className="stat-label-compact">DOCUMENTOS</span>
-                    <span className="stat-value-compact">{reporte.nombre ? '1' : '0'}</span>
-                  </div>
-                </div>
-
-                {isLoading && (
-                  <div className="stat-item-compact generating">
-                    <div className="stat-icon-compact loading">
-                      <i className="bi bi-arrow-repeat"></i>
+              {hasSearched && dispositivos.length > 0 && (
+                <div className="stats-bar-compact">
+                  <div className="stat-item-compact">
+                    <div className="stat-icon-compact primary">
+                      <i className="bi bi-clipboard-data"></i>
                     </div>
                     <div className="stat-info-compact">
-                      <span className="stat-label-compact">GENERANDO REPORTE...</span>
+                      <span className="stat-label-compact">REPORTES</span>
+                      <span className="stat-value-compact">{dispositivos.length}</span>
                     </div>
                   </div>
-                )}
 
-                {!isLoading && reporte.nombre && (
-                  <div className="stat-item-compact generated">
-                    <div className="stat-icon-compact success">
-                      <i className="bi bi-download"></i>
+                  {isLoading && (
+                    <div className="stat-item-compact generating">
+                      <div className="stat-icon-compact loading">
+                        <i className="bi bi-arrow-repeat"></i>
+                      </div>
+                      <div className="stat-info-compact">
+                        <span className="stat-label-compact">GENERANDO REPORTE...</span>
+                      </div>
                     </div>
-                    <div className="stat-info-compact">
-                      <span className="stat-label-compact">REPORTE</span>
-                      <span className="stat-value-compact">
-                        <button
-                          className={`download-btn-compact ${isReportDownloaded ? 'downloaded' : ''}`}
-                          disabled={isReportDownloaded}
-                          onClick={async () => {
-                            if (isReportDownloaded) return;
+                  )}
 
-                            try {
-                              // Sección: Descarga segura con autorización JWT
-                              const response = await fetch(reporte.url, {
-                                method: 'GET',
-                                headers: {
-                                  'Authorization': `Bearer ${getToken()}`,
+                  {!isLoading && reporte.nombre && (
+                    <div className="stat-item-compact generated">
+                      <div className="stat-icon-compact success">
+                        <i className="bi bi-download"></i>
+                      </div>
+                      <div className="stat-info-compact">
+                        <span className="stat-label-compact">REPORTE</span>
+                        <span className="stat-value-compact">
+                          <button
+                            className={`download-btn-compact ${isReportDownloaded ? 'downloaded' : ''}`}
+                            disabled={isReportDownloaded}
+                            onClick={async () => {
+                              if (isReportDownloaded) return;
+
+                              try {
+                                // Sección: Descarga segura con autorización JWT
+                                const response = await fetch(reporte.url, {
+                                  method: 'GET',
+                                  headers: {
+                                    'Authorization': `Bearer ${getToken()}`,
+                                  }
+                                });
+
+                                if (!response.ok) {
+                                  throw new Error(`Error: ${response.status}`);
                                 }
-                              });
 
-                              if (!response.ok) {
-                                throw new Error(`Error: ${response.status}`);
-                              }
-
-                              // Sección: Procesamiento del archivo descargado
+                                // Sección: Procesamiento del archivo descargado
                               const blob = await response.blob();
                               const downloadUrl = window.URL.createObjectURL(blob);
 
@@ -688,7 +674,8 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -697,7 +684,7 @@ const Dashboard: React.FC = () => {
             <div className="section-header-full">
               <div className="section-title-full">
                 <i className="bi bi-eye-fill"></i>
-                <h3>Vista Previa de Dispositivos</h3>
+                <h3>Vista Previa</h3>
               </div>
 
               {/* Botón de expandir/contraer - solo visible cuando hay resultados */}
@@ -831,6 +818,36 @@ const Dashboard: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal de mejoras con estilo coordinadores */}
+          {showMejorasModal && (
+            <div className="modal-overlay-mejoras" onClick={() => setShowMejorasModal(false)}>
+              <div className="modal-content-mejoras" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header-mejoras">
+                  <h3 className="modal-title-mejoras">
+                    <i className="bi bi-tools"></i>
+                    ¡Estamos mejorando esta sección!
+                  </h3>
+                </div>
+                <div className="modal-body-mejoras">
+                  <div className="mejoras-icon">
+                    <i className="bi bi-gear-fill"></i>
+                  </div>
+                  <p className="mejoras-message">
+                    Nuestro equipo en Rowan Networks está trabajando para habilitarla pronto.
+                  </p>
+                  <p className="mejoras-submessage">
+                    Gracias por tu paciencia mientras preparamos la próxima actualización.
+                  </p>
+                </div>
+                <div className="modal-footer-mejoras">
+                  <button className="btn-aceptar-mejoras" onClick={() => setShowMejorasModal(false)}>
+                    Aceptar
+                  </button>
                 </div>
               </div>
             </div>

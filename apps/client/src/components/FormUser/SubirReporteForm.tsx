@@ -72,7 +72,7 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
     // Función para cargar datos del reporte existente
     // Se eliminó loadExistingReport - solo modo de creación
 
-    // Verificar si viene desde Mis Dispositivos y configurar datos
+    // Verificar si hay dispositivo seleccionado en localStorage y configurar datos
     useEffect(() => {
         const selectedDevice = localStorage.getItem('selectedDeviceForReport');
         console.log('🔍 Verificando localStorage selectedDeviceForReport:', selectedDevice);
@@ -498,7 +498,7 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
                 shouldComplete: !!(selectedDeviceId && selectedPeriodoId && selectedColaboradorId)
             });
 
-            // Si viene desde Mis Dispositivos, actualizar el estado del dispositivo en el período MP
+            // Actualizar el estado del dispositivo en el período MP si es necesario
             if (selectedDeviceId && selectedPeriodoId && selectedColaboradorId) {
                 try {
                     console.log('🔄 INICIANDO completado de dispositivo en período MP:', {

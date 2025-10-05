@@ -30,11 +30,11 @@ interface Device {
 interface SearchReportFormProps {
   onSearch: (devices: Device[]) => void;           // Callback cuando se encuentran dispositivos
   onReporteGenerado: (nombre: string, url: string) => void; // Callback cuando se genera reporte
-  onShowModal?: () => void;                        // Callback para mostrar modal de resultados
   hasResults?: boolean;                            // Indica si hay resultados para mostrar modal
   onLoadingStart?: () => void;                     // Callback cuando inicia carga
   onLoadingEnd?: () => void;                       // Callback cuando termina carga
   onProgressUpdate?: (progress: number, message: string, timeRemaining?: number) => void; // Callback para actualizar progreso
+  onShowMejorasModal?: () => void;                 // Callback para mostrar modal de mejoras
 }
 
 /**
@@ -45,11 +45,11 @@ interface SearchReportFormProps {
 const SearchReportForm: React.FC<SearchReportFormProps> = ({
   onSearch,
   onReporteGenerado,
-  onShowModal,
   hasResults = false,
   onLoadingStart,
   onLoadingEnd,
   onProgressUpdate,
+  onShowMejorasModal,
 }) => {
   // Estados para los campos del formulario
   const [poliza, setPoliza] = useState("");           // ID de la póliza seleccionada
@@ -258,7 +258,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
       onSearch(devices);
 
       if (devices.length === 0) {
-        toast.info("No hay dispositivos para generar reporte");
+        toast.info("No hay mantenimientos que mostrar en el período seleccionado");
         return;
       }
 
@@ -365,7 +365,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
         <button
           type="submit"
           className="search-form__button"
-          title={isLoading ? "Buscando..." : "Buscar dispositivos"}
+          title={isLoading ? "Buscando..." : "Buscar reportes"}
           disabled={isLoading}
         >
           {/* Cambio: Icono dinámico que muestra estado de carga con animación */}
@@ -376,7 +376,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
         <button
           type="button"
           className={`modal-toggle-button ${hasResults ? 'enabled' : ''}`}
-          onClick={hasResults ? onShowModal : undefined}
+          onClick={hasResults ? onShowMejorasModal : undefined}
           disabled={!hasResults}
           title={hasResults ? "Ver resultados detallados" : "Realizar búsqueda para ver resultados"}
         >
