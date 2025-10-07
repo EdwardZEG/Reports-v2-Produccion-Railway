@@ -1,7 +1,18 @@
 /**
  * Hook personalizado para gestionar operaciones CRUD de coordinadores
  * Incluye funcionalidad de resaltado y navegación automática
- * Integrado con sistema de notificaciones toast
+ * Integrado con sistema de notificaci  const eliminarCoordinador = async (_id: string) => {
+    try {
+      await api.delete(`/coordinadores/${_id}`);
+      // REFETCH COMPLETO: Obtener datos actualizados después de eliminar
+      await fetchData();
+      toast.success("Coordinador eliminado exitosamente.");
+    } catch (error) {
+      toast.error("Error al eliminar el coordinador.");
+      // Refetch en caso de error para mantener sincronización
+      await fetchData();
+    }
+  };t
  */
 import { useEffect, useState, useRef } from "react";
 import api from "../../api";
@@ -95,26 +106,33 @@ export const useCoordinadores = () => {
   const crearCoordinador = async (nuevo: NuevoCoordinador) => {
     try {
       const response = await api.post("/coordinadores", nuevo);
-      const nuevoCoordinador = { ...response.data, resaltado: true };
-      const coordinadoresActualizados = [...coordinadores.map(c => ({ ...c, resaltado: false })), nuevoCoordinador];
-      setCoordinadores(coordinadoresActualizados);
+
+      // REFETCH COMPLETO: Obtener datos actualizados después de crear
+      await fetchData();
+
+      // Después del refetch, resaltar el coordinador recién creado
+      setCoordinadores(prev => prev.map(c =>
+        c._id === response.data._id ? { ...c, resaltado: true } : { ...c, resaltado: false }
+      ));
 
       // Quitar el resaltado después de 3 segundos con sistema de timers
       const nuevoTimer = setTimeout(() => {
         setCoordinadores(prev => prev.map(c =>
-          c._id === nuevoCoordinador._id ? { ...c, resaltado: false } : c
+          c._id === response.data._id ? { ...c, resaltado: false } : c
         ));
-        timersResaltado.current.delete(nuevoCoordinador._id);
+        timersResaltado.current.delete(response.data._id);
       }, 3000);
 
-      timersResaltado.current.set(nuevoCoordinador._id, nuevoTimer);
+      timersResaltado.current.set(response.data._id, nuevoTimer);
 
-      // Toast message removed as requested
-      return { success: true, data: nuevoCoordinador, coordinadores: coordinadoresActualizados };
+      toast.success("Coordinador creado exitosamente");
+      return { success: true, data: response.data, coordinadores: coordinadores };
     } catch (error: any) {
       const mensaje = error.response?.data?.message || "Error al crear el coordinador.";
       toast.error(mensaje);
       setError(mensaje);
+      // Refetch en caso de error para mantener sincronización
+      await fetchData();
       return { success: false };
     }
   };
@@ -137,11 +155,13 @@ export const useCoordinadores = () => {
     try {
       await api.put(`/coordinadores/${_id}`, datos);
 
-      // Confirmar actualización con resaltado - USAR coordinadoresOptimistas en lugar de coordinadores original
-      const coordinadoresActualizados = coordinadoresOptimistas.map(coor =>
-        coor._id === _id ? { ...coor, ...datos, resaltado: true } : { ...coor, resaltado: false }
-      );
-      setCoordinadores(coordinadoresActualizados);
+      // REFETCH COMPLETO: Obtener datos actualizados del servidor para sincronización en tiempo real
+      await fetchData();
+
+      // Después del refetch, resaltar el coordinador actualizado
+      setCoordinadores(prev => prev.map(coor =>
+        coor._id === _id ? { ...coor, resaltado: true } : { ...coor, resaltado: false }
+      ));
 
       // Limpiar timer anterior si existe
       const timerAnterior = timersResaltado.current.get(_id);
@@ -159,12 +179,11 @@ export const useCoordinadores = () => {
 
       timersResaltado.current.set(_id, nuevoTimer);
 
-      // Toast message removed as requested
-      return { success: true, coordinadorId: _id, coordinadores: coordinadoresActualizados };
+      toast.success("Coordinador actualizado exitosamente");
+      return { success: true, coordinadorId: _id, coordinadores: coordinadores };
     } catch (error: any) {
-      // En caso de error, revertir la actualización optimista usando el estado original
-      const coordinadoresOriginales = coordinadores.map(coor => ({ ...coor, resaltado: false }));
-      setCoordinadores(coordinadoresOriginales);
+      // En caso de error, revertir la actualización optimista y refetch para mantener sincronización
+      await fetchData();
       toast.error(error.response?.data?.message || "Error al actualizar el coordinador.");
       return { success: false };
     }

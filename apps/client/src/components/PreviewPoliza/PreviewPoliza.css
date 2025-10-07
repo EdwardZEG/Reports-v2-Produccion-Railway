@@ -122,9 +122,7 @@
   margin: 0; /* Sin márgenes externos */
   box-sizing: border-box;
   position: relative; /* Para asegurar el contexto de scroll */
-  overflow-anchor: none; /* Evita saltos automáticos de scroll */
-  contain: layout style; /* Aisla los cambios de layout y estilo */
-  scroll-behavior: auto; /* Evita animaciones de scroll indeseadas */
+  scroll-behavior: smooth; /* Scroll suave para mejor UX */
 }
 
 /* ===== SCROLLBAR PERSONALIZADO PARA WRAPPER ===== */
@@ -159,14 +157,15 @@
   height: auto; /* Altura automática en lugar de 100% */
   align-content: start; /* Alinear todo el contenido del grid al inicio */
   position: relative; /* Para controlar superposición */
-  overflow-anchor: none; /* Evita saltos automáticos de scroll durante expansiones */
 }
 
-/* Card expandida - sin margen adicional por defecto */
+/* Card expandida - mejor control de expansión */
 .preview-poliza__card.expandida {
   min-height: 220px; /* Altura expandida más compacta */
   z-index: 2; /* Elevar para evitar que el contenido se superponga */
   position: relative; /* Mantener posición en el flujo del documento */
+  transform: translateZ(0); /* Forzar nueva capa de compositing para evitar glitches */
+  will-change: min-height; /* Optimizar para cambios de altura */
 }
 
 /* Margen SOLO para las últimas cards cuando están expandidas */
@@ -179,8 +178,6 @@
   margin-bottom: 2.5rem; /* Margen un poco mayor para la última card */
 }
 
-/* Remover todos los márgenes de cards no expandidas */
-
 /* ===== CARDS INDIVIDUALES ===== */
 /* Tarjetas rectangulares con tamaño compacto y diseño uniforme */
 .preview-poliza__card {
@@ -190,7 +187,7 @@
   box-shadow: 
     0 4px 6px rgba(0, 0, 0, 0.07),
     0 1px 3px rgba(0, 0, 0, 0.06); /* Sombras sutiles para profundidad */
-  transition: min-height 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transición suave sincronizada con contenido */
+  transition: min-height 0.3s ease-out, box-shadow 0.2s ease; /* Transiciones más rápidas y suaves */
   overflow: hidden; /* Ocultar contenido que exceda para respetar border-radius */
   display: flex;
   flex-direction: column;
@@ -198,6 +195,7 @@
   min-height: 75px; /* Altura mínima más pequeña para aprovechar espacio */
   position: relative; /* Mantener posición fija en el grid */
   box-sizing: border-box; /* Incluir padding y border en el tamaño */
+  backface-visibility: hidden; /* Mejorar performance de animaciones */
 }
 
 /* Efecto hover para las cards - sin transformaciones */
@@ -371,9 +369,9 @@
   overflow: hidden;
   max-height: 0; /* Inicialmente contraída */
   opacity: 0;
-  transition: max-height 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), 
-              opacity 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), 
-              padding 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transiciones más suaves y lentas */
+  transition: max-height 0.3s ease-out, 
+              opacity 0.3s ease-out, 
+              padding 0.3s ease-out; /* Transiciones más rápidas y naturales */
   position: relative; /* Para controlar z-index si es necesario */
   border-radius: 0 0 11px 11px; /* Bordes redondeados en la parte inferior */
 }

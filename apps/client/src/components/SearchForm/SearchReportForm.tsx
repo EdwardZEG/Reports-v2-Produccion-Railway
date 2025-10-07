@@ -258,7 +258,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
       onSearch(devices);
 
       if (devices.length === 0) {
-        toast.info("No hay mantenimientos que mostrar en el período seleccionado");
+        toast.info("Nada que mostrar en este período");
         return;
       }
 
@@ -372,13 +372,13 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
           <i className={isLoading ? "bi bi-arrow-clockwise loading-spin" : "bi bi-search"}></i>
         </button>
 
-        {/* Cambio: Botón para modal de resultados con estado condicional habilitado/deshabilitado */}
+        {/* Cambio: Botón para modal de mejoras temporalmente deshabilitado */}
         <button
           type="button"
           className={`modal-toggle-button ${hasResults ? 'enabled' : ''}`}
           onClick={hasResults ? onShowMejorasModal : undefined}
           disabled={!hasResults}
-          title={hasResults ? "Ver resultados detallados" : "Realizar búsqueda para ver resultados"}
+          title={hasResults ? "Ver estadísticas (temporalmente deshabilitado)" : "Realizar búsqueda para ver estadísticas"}
         >
           <i className="bi bi-graph-up-arrow"></i>
         </button>

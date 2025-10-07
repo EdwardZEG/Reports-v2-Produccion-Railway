@@ -1119,14 +1119,13 @@ input:not(:checked) + .switch-slider {
   left: 0;
   right: 0;
   bottom: 0;
-  background: none !important;
-  background-color: transparent !important;
-  backdrop-filter: none !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(2px) !important;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  pointer-events: none;
+  pointer-events: all;
 }
 
 .modal-content-coordinadores {
@@ -1205,6 +1204,27 @@ input:not(:checked) + .switch-slider {
   font-weight: 700;
 }
 
+/* Mensaje de advertencia en modal de desactivación */
+.modal-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
+  color: #856404;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.modal-warning i {
+  color: #f39c12;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
 /* Botones del modal */
 .modal-buttons {
   display: flex;
@@ -1237,12 +1257,12 @@ input:not(:checked) + .switch-slider {
 }
 
 .modal-btn-confirmar {
-  background-color: #F5B027;
+  background-color: #E9383B !important;
   color: white;
 }
 
 .modal-btn-confirmar:hover {
-  background-color: #e09a1f;
+  background-color: #d32f2f !important;
 }
 
 /* Animaciones */
@@ -1255,6 +1275,22 @@ input:not(:checked) + .switch-slider {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+@keyframes slideOut {
+  from { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to { 
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+}
+
+/* Clase para animación de salida */
+.modal-content-coordinadores.closing {
+  animation: slideOut 0.3s ease;
 }
 
 /* Header de la tabla - títulos con iconos alineados a la izquierda ESPECÍFICOS */

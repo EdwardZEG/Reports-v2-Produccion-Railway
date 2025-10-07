@@ -546,11 +546,9 @@ const Dashboard: React.FC = () => {
           dispositivos={dispositivos}
           reporte={reporte}
           isLoading={isLoading}
-          showModal={showModal}
           isPreviewExpanded={isPreviewExpanded}
           isReportDownloaded={isReportDownloaded}
           hasSearched={hasSearched}
-          resultadosData={resultadosData}
           onSearch={handleSearch}
           onReporteGenerado={handleReporteGenerado}
           onLoadingStart={handleLoadingStart}
@@ -558,7 +556,6 @@ const Dashboard: React.FC = () => {
           onProgressUpdate={handleProgressUpdate}
           onPreviewExpanded={setIsPreviewExpanded}
           onReportDownloaded={setIsReportDownloaded}
-          onCloseModal={() => setShowModal(false)}
           showMejorasModal={showMejorasModal}
           onShowMejorasModal={() => setShowMejorasModal(true)}
           onCloseMejorasModal={() => setShowMejorasModal(false)}
@@ -592,88 +589,104 @@ const Dashboard: React.FC = () => {
 
             {/* Estadísticas a la derecha */}
             <div className="stats-header-section">
-              {hasSearched && dispositivos.length > 0 && (
+              {/* Contenedor de estadísticas que muestra loading o resultados */}
+              {hasSearched && (
                 <div className="stats-bar-compact">
-                  <div className="stat-item-compact">
-                    <div className="stat-icon-compact primary">
-                      <i className="bi bi-clipboard-data"></i>
-                    </div>
-                    <div className="stat-info-compact">
-                      <span className="stat-label-compact">REPORTES</span>
-                      <span className="stat-value-compact">{dispositivos.length}</span>
-                    </div>
-                  </div>
-
+                  {/* Modal GENERANDO REPORTE dentro del contenedor */}
                   {isLoading && (
-                    <div className="stat-item-compact generating">
-                      <div className="stat-icon-compact loading">
+                    <div className="stats-loading-content-inline">
+                      <div className="loading-icon-inline">
                         <i className="bi bi-arrow-repeat"></i>
                       </div>
-                      <div className="stat-info-compact">
-                        <span className="stat-label-compact">GENERANDO REPORTE...</span>
+                      <div className="loading-text-inline">
+                        <span>Generando Reporte...</span>
                       </div>
                     </div>
                   )}
 
-                  {!isLoading && reporte.nombre && (
-                    <div className="stat-item-compact generated">
-                      <div className="stat-icon-compact success">
-                        <i className="bi bi-download"></i>
+                  {/* Contadores de estadísticas con animación de entrada */}
+                  {!isLoading && dispositivos.length > 0 && (
+                    <div className="stats-content-transition">
+                      <div className="stat-item-compact">
+                        <div className="stat-icon-compact primary">
+                          <i className="bi bi-clipboard-data"></i>
+                        </div>
+                        <div className="stat-info-compact">
+                          <span className="stat-label-compact">REPORTES</span>
+                          <span className="stat-value-compact">{dispositivos.length}</span>
+                        </div>
                       </div>
-                      <div className="stat-info-compact">
-                        <span className="stat-label-compact">REPORTE</span>
-                        <span className="stat-value-compact">
-                          <button
-                            className={`download-btn-compact ${isReportDownloaded ? 'downloaded' : ''}`}
-                            disabled={isReportDownloaded}
-                            onClick={async () => {
-                              if (isReportDownloaded) return;
 
-                              try {
-                                // Sección: Descarga segura con autorización JWT
-                                const response = await fetch(reporte.url, {
-                                  method: 'GET',
-                                  headers: {
-                                    'Authorization': `Bearer ${getToken()}`,
+                      {reporte.nombre && (
+                        <div className="stat-item-compact generated">
+                          <div className="stat-icon-compact success">
+                            <i className="bi bi-download"></i>
+                          </div>
+                          <div className="stat-info-compact">
+                            <span className="stat-label-compact">REPORTE</span>
+                            <span className="stat-value-compact">
+                              <button
+                                className={`download-btn-compact ${isReportDownloaded ? 'downloaded' : ''}`}
+                                disabled={isReportDownloaded}
+                                onClick={async () => {
+                                  if (isReportDownloaded) return;
+
+                                  try {
+                                    // Sección: Descarga segura con autorización JWT
+                                    const response = await fetch(reporte.url, {
+                                      method: 'GET',
+                                      headers: {
+                                        'Authorization': `Bearer ${getToken()}`,
+                                      }
+                                    });
+
+                                    if (!response.ok) {
+                                      throw new Error(`Error: ${response.status}`);
+                                    }
+
+                                    // Sección: Procesamiento del archivo descargado
+                                    const blob = await response.blob();
+                                    const downloadUrl = window.URL.createObjectURL(blob);
+
+                                    // Sección: Creación y ejecución de descarga automática
+                                    const link = document.createElement('a');
+                                    link.href = downloadUrl;
+                                    link.download = reporte.nombre;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+
+                                    // Sección: Limpieza de recursos temporales
+                                    window.URL.revokeObjectURL(downloadUrl);
+
+                                    // Sección: Actualización de estado de descarga
+                                    setIsReportDownloaded(true);
+                                    // Archivo descargado exitosamente
+                                  } catch (error) {
+                                    console.error('Error al descargar archivo:', error);
+                                    // Mostrar error al usuario
+                                    alert('Error al descargar el archivo. Por favor, intenta nuevamente.');
                                   }
-                                });
-
-                                if (!response.ok) {
-                                  throw new Error(`Error: ${response.status}`);
-                                }
-
-                                // Sección: Procesamiento del archivo descargado
-                              const blob = await response.blob();
-                              const downloadUrl = window.URL.createObjectURL(blob);
-
-                              // Sección: Creación y ejecución de descarga automática
-                              const link = document.createElement('a');
-                              link.href = downloadUrl;
-                              link.download = reporte.nombre;
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
-
-                              // Sección: Limpieza de recursos temporales
-                              window.URL.revokeObjectURL(downloadUrl);
-
-                              // Sección: Actualización de estado de descarga
-                              setIsReportDownloaded(true);
-                              // Archivo descargado exitosamente
-                            } catch (error) {
-                              console.error('Error al descargar archivo:', error);
-                              // Mostrar error al usuario
-                              alert('Error al descargar el archivo. Por favor, intenta nuevamente.');
-                            }
-                          }}
-                        >
-                          <i className={`bi ${isReportDownloaded ? 'bi-check-circle' : 'bi-file-word'} me-2`}></i>
-                          {isReportDownloaded ? 'Descargado' : 'Descargar'}
-                        </button>
-                      </span>
+                                }}
+                              >
+                                {isReportDownloaded ? (
+                                  <>
+                                    <i className="bi bi-check-circle-fill me-2"></i>
+                                    <span>Descargado</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="bi bi-file-earmark-word me-2"></i>
+                                    <span>Descargar</span>
+                                  </>
+                                )}
+                              </button>
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  )}
                 </div>
               )}
             </div>
@@ -823,29 +836,38 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Modal de mejoras con estilo coordinadores */}
+          {/* Modal de mejoras con diseño de coordinador y bloqueo completo */}
           {showMejorasModal && (
-            <div className="modal-overlay-mejoras" onClick={() => setShowMejorasModal(false)}>
-              <div className="modal-content-mejoras" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header-mejoras">
-                  <h3 className="modal-title-mejoras">
+            <div className="modal-overlay-blocking">
+              <div className="modal-content-coordinador">
+                <div className="modal-header-coordinador">
+                  <h3 className="modal-title-coordinador">
                     <i className="bi bi-tools"></i>
                     ¡Estamos mejorando esta sección!
                   </h3>
+                  <button
+                    className="modal-close-coordinador"
+                    onClick={() => setShowMejorasModal(false)}
+                  >
+                    <i className="bi bi-x"></i>
+                  </button>
                 </div>
-                <div className="modal-body-mejoras">
-                  <div className="mejoras-icon">
+                <div className="modal-body-coordinador">
+                  <div className="mejoras-icon-large">
                     <i className="bi bi-gear-fill"></i>
                   </div>
-                  <p className="mejoras-message">
-                    Nuestro equipo en Rowan Networks está trabajando para habilitarla pronto.
+                  <p className="mejoras-message-main">
+                    Nuestro equipo está trabajando para habilitarla pronto.
                   </p>
-                  <p className="mejoras-submessage">
+                  <p className="mejoras-message-sub">
                     Gracias por tu paciencia mientras preparamos la próxima actualización.
                   </p>
                 </div>
-                <div className="modal-footer-mejoras">
-                  <button className="btn-aceptar-mejoras" onClick={() => setShowMejorasModal(false)}>
+                <div className="modal-footer-coordinador">
+                  <button
+                    className="btn-aceptar-coordinador"
+                    onClick={() => setShowMejorasModal(false)}
+                  >
                     Aceptar
                   </button>
                 </div>

@@ -1723,6 +1723,7 @@
 .stats-header-section {
   display: flex;
   align-items: center;
+  position: relative; /* Necesario para el posicionamiento absoluto del modal */
 }
 
 .stats-bar-compact {
@@ -1737,6 +1738,7 @@
   min-width: 280px;
   height: fit-content;
   transition: all 0.3s ease; /* Transición suave para el efecto de recorte */
+  position: relative; /* Asegurar contexto de posicionamiento */
 }
 
 
@@ -2091,6 +2093,104 @@
   box-shadow: none; /* Sin sombra */
   width: 100%; /* Asegurar que use todo el ancho */
   height: 100%; /* Asegurar que use toda la altura */
+}
+
+/* === ESTILOS PARA LOADING EN CONTENEDOR COMPLETO === */
+.loading-container-full {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E5E5E5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loading-content-centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading-spinner-large {
+  font-size: 3rem;
+  color: #E9383B;
+  animation: loadingSpinLarge 1s linear infinite;
+}
+
+.loading-text-large {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.loading-text-large span {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333333;
+}
+
+.loading-text-large small {
+  font-size: 0.9rem;
+  color: #666666;
+  font-weight: 400;
+}
+
+.loading-spin {
+  animation: loadingSpinLarge 1s linear infinite;
+}
+
+@keyframes loadingSpinLarge {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* === ESTILOS PARA LOADING SIMPLE SIN CONTENEDOR === */
+.loading-message-simple {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.loading-spinner-simple {
+  font-size: 2.5rem;
+  color: #E9383B;
+  animation: loadingSpinSimple 1s linear infinite;
+}
+
+.loading-text-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.loading-text-simple span {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333333;
+}
+
+.loading-text-simple small {
+  font-size: 0.85rem;
+  color: #666666;
+  font-weight: 400;
+}
+
+@keyframes loadingSpinSimple {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* === ESTILOS PARA BOTÓN DE DESCARGA DESHABILITADO === */
@@ -2567,6 +2667,262 @@ select.search-form__input:focus {
   }
 }
 
+/* === MODAL DE MEJORAS CON DISEÑO DE COORDINADOR Y BLOQUEO COMPLETO === */
+.modal-overlay-blocking {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999; /* Máxima prioridad para bloquear toda la sección */
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content-coordinador {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 350px;
+  width: 85%;
+  min-height: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideInCoordinador 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.modal-header-coordinador {
+  background: linear-gradient(135deg, #E9383B 0%, #D42E32 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  position: relative;
+}
+
+.modal-title-coordinador {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  line-height: 1.4;
+}
+
+.modal-title-coordinador i {
+  font-size: 1.5rem;
+}
+
+.modal-close-coordinador {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+}
+
+.modal-close-coordinador:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.modal-body-coordinador {
+  padding: 0.5rem 2rem 1rem 2rem;
+  text-align: center;
+}
+
+.mejoras-icon-large {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mejoras-icon-large i {
+  font-size: 4rem;
+  color: #E9383B;
+  animation: spin 3s linear infinite;
+}
+
+.mejoras-message-main {
+  font-size: 1.1rem;
+  color: #374151;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.mejoras-message-main strong {
+  color: #E9383B;
+  font-weight: 700;
+}
+
+.mejoras-message-sub {
+  font-size: 0.95rem;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.modal-footer-coordinador {
+  padding: 2rem 1rem;
+  background: #F9FAFB;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #E5E7EB;
+}
+
+.btn-aceptar-coordinador {
+  background: #E9383B;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.btn-aceptar-coordinador:hover {
+  background: #D42E32;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(233, 56, 59, 0.3);
+}
+
+.btn-aceptar-coordinador:active {
+  transform: translateY(0);
+}
+
+/* === ESTILOS AZULES PARA MODAL DE MEJORAS === */
+.modal-header-coordinador-blue {
+  background: linear-gradient(135deg, #4927F5 0%, #3A1FCC 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  position: relative;
+}
+
+/* === ESTILOS NEGROS PARA MODAL DE MEJORAS === */
+.modal-header-coordinador-black {
+  background: #000000;
+  color: white;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-header {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  margin: 0.5rem 0;
+  padding: 0;
+}
+
+.btn-aceptar-coordinador-blue {
+  background: #4927F5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-aceptar-coordinador-blue:hover {
+  background: #3A1FCC;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(73, 39, 245, 0.3);
+}
+
+.btn-aceptar-coordinador-blue:active {
+  transform: translateY(0);
+}
+
+.logo-mejoras {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  display: block;
+}
+
+.rowan-text-black {
+  color: #000000;
+  font-weight: 700;
+}
+
+.mejoras-message-single {
+  font-size: 1.2rem;
+  line-height: 1.4;
+  color: #2D3748;
+  margin: 1.5rem 0 0.8rem 0;
+  text-align: center;
+  padding: 0 1.5rem;
+  font-weight: 600;
+}
+
+.mejoras-message-sub {
+  font-size: 1rem;
+  line-height: 1.3;
+  color: #718096;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+  padding: 0 1.5rem;
+  font-weight: 400;
+}
+
+@keyframes slideInCoordinador {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* === MODAL DE MEJORAS CON ESTILO COORDINADORES === */
 .modal-overlay-mejoras {
   position: fixed;
@@ -2703,7 +3059,166 @@ select.search-form__input:focus {
   }
 }
 
-/* Modal GENERANDO REPORTE superpuesto en estadísticas */
+/* === CONTENIDO DE LOADING INLINE EN EL MISMO CONTENEDOR === */
+.stats-loading-content-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #FFF5F5 0%, #FFEAEA 100%);
+  border: 2px solid #E9383B;
+  border-radius: 12px;
+  color: #E9383B;
+  min-height: 80px;
+  transition: all 0.3s ease;
+  animation: pulseLoading 2s infinite;
+}
+
+.loading-icon-inline {
+  font-size: 1.4rem;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+}
+
+.loading-text-inline {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Animación de pulsación suave para el loading */
+@keyframes pulseLoading {
+  0%, 100% {
+    border-color: #E9383B;
+    box-shadow: 0 0 0 0 rgba(233, 56, 59, 0.4);
+  }
+  50% {
+    border-color: #FF5A5F;
+    box-shadow: 0 0 0 8px rgba(233, 56, 59, 0.1);
+  }
+}
+
+/* Contenido de transición para los contadores */
+.stats-content-transition {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: slideInSmoothly 0.6s ease-out;
+}
+
+@keyframes slideInSmoothly {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal GENERANDO REPORTE compacto - centrado en stats-bar-compact */
+.stats-loading-modal-compact {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.98);
+  border: 2px solid #E9383B;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  box-shadow: 0 6px 20px rgba(233, 56, 59, 0.25);
+  z-index: 10;
+  min-width: 140px;
+  max-width: 180px;
+  animation: slideInCompact 0.3s ease-out;
+  white-space: nowrap;
+}
+
+.stats-loading-modal-compact.slide-out {
+  animation: slideOutCompact 0.4s ease-in forwards;
+}
+
+.stats-loading-content-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #E9383B;
+  justify-content: center;
+}
+
+.loading-icon-compact {
+  font-size: 1rem;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+}
+
+.loading-text-compact {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+/* Animación de entrada para el modal compacto */
+@keyframes slideInCompact {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -70%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Animación de salida para el modal compacto */
+@keyframes slideOutCompact {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, 20%) scale(0.9);
+  }
+}
+
+/* Animación de entrada desde arriba para los contadores */
+.slide-in-from-top {
+  animation: slideInFromTop 0.5s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Asegurar que el contenedor de estadísticas tenga posicionamiento correcto */
+.stats-header-section {
+  position: relative;
+  z-index: 1;
+}
+
+.stats-bar-compact {
+  transition: all 0.3s ease;
+}
+
+/* Efecto de desvanecimiento suave al cambiar entre modal y contadores */
+.stats-loading-modal-compact,
+.stats-bar-compact {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Modal GENERANDO REPORTE superpuesto en estadísticas - ESTILO ORIGINAL (mantenido como respaldo) */
 .stats-loading-modal {
   position: absolute;
   top: 0;

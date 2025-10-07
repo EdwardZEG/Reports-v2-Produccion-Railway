@@ -945,3 +945,315 @@
     padding: 20px; /* Mismo padding que colaboradores */
   }
 }
+
+/* ===== MODAL DE CONFIRMACIÓN ELIMINAR PÓLIZAS ===== */
+/* Modal especializado para confirmar eliminación de pólizas */
+/* Reutiliza estilos de coordinadores para consistencia visual */
+.modal-overlay-coordinadores {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(2px) !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  pointer-events: all;
+}
+
+.modal-content-coordinadores {
+  background: white;
+  border-radius: 8px;
+  padding: 28px;
+  width: 550px;
+  max-width: 95vw;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+  position: relative;
+  pointer-events: all;
+}
+
+/* Botón cerrar */
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+/* Título del modal */
+.modal-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+  margin-bottom: 18px;
+  line-height: 1.3;
+  text-align: left;
+  padding-right: 40px;
+  word-break: keep-all;
+  hyphens: none;
+}
+
+.modal-title strong {
+  font-weight: 700;
+  color: #000;
+}
+
+/* Información del usuario */
+.modal-user-info {
+  margin-bottom: 20px;
+}
+
+.modal-user-info p {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  color: #000;
+  line-height: 1.4;
+}
+
+.modal-user-info p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-user-info strong {
+  color: #000;
+  font-weight: 700;
+}
+
+/* Mensaje de advertencia en modal de eliminar */
+.modal-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
+  color: #856404;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.modal-warning i {
+  color: #f39c12;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Botones del modal */
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.modal-btn-cancelar {
+  background-color: #6c757d;
+  color: white;
+}
+
+.modal-btn-cancelar:hover {
+  background-color: #5a6268;
+}
+
+.modal-btn-confirmar {
+  background-color: #E9383B !important;
+  color: white;
+}
+
+.modal-btn-confirmar:hover {
+  background-color: #d32f2f !important;
+}
+
+.modal-btn-confirmar-poliza {
+  background-color: #4927F5 !important;
+  color: white;
+}
+
+.modal-btn-confirmar-poliza:hover {
+  background-color: #3a1fd1 !important;
+}
+
+/* Animaciones */
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideOut {
+  from { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to { 
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+}
+
+/* Clase para animación de salida */
+.modal-content-coordinadores.closing {
+  animation: slideOut 0.3s ease;
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA MODAL DE MEJORAS ===== */
+.mejoras-info {
+  text-align: center;
+  padding: 30px 0 20px 0; /* Más espacio arriba sin el título */
+}
+
+.mejoras-message-single {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.mejoras-message-sub {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 0;
+  line-height: 1.3;
+}
+
+/* Asegurar que el header negro ocupe todo el modal sin márgenes */
+.modal-content-coordinadores .modal-header-coordinador-black {
+  background-color: #000;
+  margin: -28px -28px 0 -28px; /* Usar -28px para cancelar el padding del contenedor */
+  padding: 20px;
+  border-radius: 8px 8px 0 0; /* Coincidir con el border-radius del modal */
+  text-align: center;
+}
+
+.modal-content-coordinadores .logo-header {
+  height: 50px; /* Aumentar un poco el tamaño del logo */
+  width: auto;
+}
+
+/* ===== ESTILOS PARA CARRUSEL DE POLIZAS EN ESPECIALIDADES ===== */
+.polizas-carrusel {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #f9f9f9;
+}
+
+.carrusel-navegacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 100px;
+}
+
+.carrusel-poliza-contenido {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 300px; /* Controlar el ancho máximo de la poliza */
+}
+
+.poliza-card {
+  background: white;
+  border: 1px solid #e0e0e0; /* Mismo grosor que inputs normales */
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 100px;
+  justify-content: center;
+  width: 100%; /* Ocupar todo el ancho disponible */
+}
+
+.poliza-card:hover {
+  border-color: #4927F5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(73, 39, 245, 0.2);
+}
+
+.poliza-card.poliza-selected {
+  background: linear-gradient(135deg, #4927F5 0%, #6366f1 100%);
+  border: 1px solid #4927F5; /* Mismo grosor, solo cambia el color */
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(73, 39, 245, 0.3);
+}
+
+.poliza-card.poliza-selected:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(73, 39, 245, 0.4);
+}
+
+.poliza-card i:first-child {
+  font-size: 1.5rem;
+  color: #4927F5;
+}
+
+.poliza-card.poliza-selected i:first-child {
+  color: white;
+}
+
+.poliza-card span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.poliza-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: white;
+  font-size: 1.2rem;
+  /* Sin fondo - solo el icono */
+}

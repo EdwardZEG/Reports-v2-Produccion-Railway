@@ -1418,3 +1418,53 @@ input:not(:checked) + .switch-slider {
     justify-content: flex-start;
   }
 }
+
+/* ===== ESTILOS PARA MENSAJE DE ADVERTENCIA EN MODAL ===== */
+/* Mensaje de advertencia cuando se desactiva un colaborador con póliza */
+.modal-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
+  color: #856404;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.modal-warning i {
+  color: #f39c12;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* ===== OVERRIDE PARA BOTÓN CONFIRMAR EN MODALES ===== */
+/* Forzar el color rojo para el botón de confirmar en todas las instancias */
+.modal-btn-confirmar {
+  background-color: #E9383B !important;
+  color: white !important;
+}
+
+.modal-btn-confirmar:hover {
+  background-color: #d32f2f !important;
+}
+
+/* ===== ANIMACIONES ADICIONALES PARA MODALES ===== */
+@keyframes slideOut {
+  from { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to { 
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+}
+
+/* Clase para animación de salida */
+.modal-content-coordinadores.closing {
+  animation: slideOut 0.3s ease;
+}

@@ -39,6 +39,10 @@ const Polizas = () => {
   const [error, setError] = useState<string | null>(null);
   const [errores, setErrores] = useState<{ [key: string]: string }>({});
 
+  // Estados para modal de confirmación de eliminar
+  const [showModalEliminar, setShowModalEliminar] = useState(false);
+  const [polizaAEliminar, setPolizaAEliminar] = useState<Poliza | null>(null);
+
   const [formData, setFormData] = useState({
     nombre: "",
     ubicacion: "",
@@ -123,7 +127,7 @@ const Polizas = () => {
     });
   };
 
-  // Efecto para filtrar pólizas con búsqueda inteligente mejorada
+  // Efecto para filtrar pólizas con búsqueda optimizada y precisa
   useEffect(() => {
     if (!terminoBusqueda.trim()) {
       // Sin término de búsqueda - mostrar todas
@@ -133,45 +137,48 @@ const Polizas = () => {
         const terminoOriginal = terminoBusqueda.trim();
         const terminoNormalizado = normalizarTexto(terminoOriginal);
 
-        // Crear contenido completo searchable de la card
+        // Crear contenido básico searchable de la card - SIN términos adicionales confusos
         const contenidoCompleto = [
           pol.nombre,
           pol.ubicacion,
           getCoordinadorNombre(pol.coordinador), // Nombre del coordinador
-          // Términos adicionales inteligentes basados en contenido
-          pol.nombre.toLowerCase().includes('oficina') ? 'edificio espacio lugar trabajo' : '',
-          pol.nombre.toLowerCase().includes('seguro') ? 'proteccion cobertura asegurado' : '',
-          pol.ubicacion.toLowerCase().includes('centro') ? 'plaza comercial mall centro' : '',
-          pol.ubicacion.toLowerCase().includes('piso') ? 'nivel planta edificio' : '',
         ].join(' ');
 
         const contenidoNormalizado = normalizarTexto(contenidoCompleto);
 
-        // 1. Búsqueda exacta normalizada (sin acentos, case-insensitive)
+        // 1. Búsqueda exacta normalizada (sin acentos, case-insensitive) - PRIORIDAD ALTA
         if (contenidoNormalizado.includes(terminoNormalizado)) return true;
 
-        // 2. Búsqueda por palabras individuales (para términos con espacios)
+        // 2. Búsqueda por palabras individuales (para términos con espacios) - PRIORIDAD MEDIA
         const palabrasBusqueda = terminoNormalizado.split(' ').filter(palabra => palabra.length > 2);
         if (palabrasBusqueda.length > 1) {
           const todasCoinciden = palabrasBusqueda.every(palabra =>
-            contenidoNormalizado.includes(palabra) ||
-            coincidenciaDifusa(palabra, contenidoCompleto, 1)
+            contenidoNormalizado.includes(palabra)
           );
           if (todasCoinciden) return true;
         }
 
-        // 3. Búsqueda difusa (tolerante a errores ortográficos)
-        if (terminoNormalizado.length >= 4) {
-          if (coincidenciaDifusa(terminoOriginal, pol.nombre, 2)) return true;
-          if (coincidenciaDifusa(terminoOriginal, pol.ubicacion, 2)) return true;
+        // 3. Búsqueda difusa MUY RESTRICTIVA (solo para errores ortográficos obvios)
+        if (terminoNormalizado.length >= 5) { // Solo para términos de 5+ caracteres
+          // Buscar solo en nombre y ubicación directamente
+          if (coincidenciaDifusa(terminoOriginal, pol.nombre, 1)) return true; // Tolerancia máxima 1
+          if (coincidenciaDifusa(terminoOriginal, pol.ubicacion, 1)) return true; // Tolerancia máxima 1
+
+          // Para coordinador, buscar por partes del nombre
+          const coordNombre = getCoordinadorNombre(pol.coordinador);
+          if (coordNombre !== "Sin asignar") {
+            const partesCoord = coordNombre.split(' ');
+            if (partesCoord.some(parte => parte.length >= 4 && coincidenciaDifusa(terminoOriginal, parte, 1))) {
+              return true;
+            }
+          }
         }
 
-        // 4. Búsqueda parcial flexible (subcadenas de 3+ caracteres)
-        if (terminoNormalizado.length >= 3) {
-          const palabrasContenido = contenidoNormalizado.split(' ');
+        // 4. Búsqueda parcial solo para subcadenas largas y específicas
+        if (terminoNormalizado.length >= 4) {
+          const palabrasContenido = contenidoNormalizado.split(' ').filter(palabra => palabra.length >= 3);
           return palabrasContenido.some(palabra =>
-            palabra.includes(terminoNormalizado) ||
-            (palabra.length >= 4 && terminoNormalizado.includes(palabra))
+            palabra.includes(terminoNormalizado) && terminoNormalizado.length >= palabra.length * 0.6 // Al menos 60% de la palabra
           );
         }
 
@@ -201,7 +208,16 @@ const Polizas = () => {
   // Función para manejar cambios en el input de búsqueda
   // Actualiza el término de búsqueda y dispara filtrado automático
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTerminoBusqueda(e.target.value);
+    const nuevoTermino = e.target.value;
+    setTerminoBusqueda(nuevoTermino);
+
+    // Cerrar todas las cards expandidas al empezar a escribir
+    window.dispatchEvent(new CustomEvent('closeExpandedCard'));
+
+    // Si se está escribiendo algo nuevo, ir a página 1
+    if (nuevoTermino.trim()) {
+      setPaginaActual(1);
+    }
   };
 
   // Función para manejar clic en el botón de búsqueda
@@ -216,6 +232,9 @@ const Polizas = () => {
   const limpiarBusqueda = () => {
     setTerminoBusqueda("");
     setPaginaActual(1); // Resetear a primera página
+
+    // Cerrar todas las cards expandidas al limpiar búsqueda
+    window.dispatchEvent(new CustomEvent('closeExpandedCard'));
   };
 
   // ===== LÓGICA DE PAGINACIÓN =====
@@ -244,6 +263,12 @@ const Polizas = () => {
       setPaginaActual(numeroPagina);
       // Cerrar cualquier card expandida al cambiar de página
       window.dispatchEvent(new CustomEvent('closeExpandedCard'));
+
+      // Hacer scroll suave hacia arriba al cambiar página
+      const wrapper = document.querySelector('.preview-poliza__wrapper');
+      if (wrapper) {
+        wrapper.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -253,6 +278,12 @@ const Polizas = () => {
       setPaginaActual(paginaActual - 1);
       // Cerrar cualquier card expandida al cambiar de página
       window.dispatchEvent(new CustomEvent('closeExpandedCard'));
+
+      // Hacer scroll suave hacia arriba al cambiar página
+      const wrapper = document.querySelector('.preview-poliza__wrapper');
+      if (wrapper) {
+        wrapper.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -262,6 +293,12 @@ const Polizas = () => {
       setPaginaActual(paginaActual + 1);
       // Cerrar cualquier card expandida al cambiar de página
       window.dispatchEvent(new CustomEvent('closeExpandedCard'));
+
+      // Hacer scroll suave hacia arriba al cambiar página
+      const wrapper = document.querySelector('.preview-poliza__wrapper');
+      if (wrapper) {
+        wrapper.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -271,6 +308,12 @@ const Polizas = () => {
       setPaginaActual(1); // Resetear a primera página al buscar
     }
   }, [terminoBusqueda]);
+
+  // useEffect para cerrar cards automáticamente al cambiar búsqueda
+  useEffect(() => {
+    // Cerrar todas las cards expandidas cuando cambia el término de búsqueda
+    window.dispatchEvent(new CustomEvent('closeExpandedCard'));
+  }, [terminoBusqueda]); // Se ejecuta cada vez que cambia el término de búsqueda
 
   // Función para manejar cambios en campos del formulario
   // Gestiona campos de texto y select
@@ -321,44 +364,106 @@ const Polizas = () => {
       if (modoEdicion && idEditando) {
         // Actualizar póliza existente
         polizaRes = await api.put(`/polizas/${idEditando}`, payloadPol);
-        // Actualizar estados locales con datos actualizados
+        // Actualizar estados locales con datos actualizados - PREVENIR DUPLICADOS
         const polizasActualizadas = polizas.map((p) =>
           p._id === idEditando ? { ...p, ...polizaRes.data, resaltado: true } : { ...p, resaltado: false }
         );
         setPolizas(polizasActualizadas);
-        setPolizasFiltradas(polizasActualizadas);
 
-        // Ir a la página donde está la póliza editada
-        const paginaPoliza = calcularPaginaParaPoliza(idEditando, polizasActualizadas);
-        setPaginaActual(paginaPoliza);
+        // Recalcular filtradas basado en la búsqueda actual
+        if (terminoBusqueda.trim()) {
+          const filtradas = polizasActualizadas.filter((pol) => {
+            const terminoNormalizado = normalizarTexto(terminoBusqueda.trim());
+            const contenidoCompleto = [
+              pol.nombre,
+              pol.ubicacion,
+              getCoordinadorNombre(pol.coordinador),
+            ].join(' ');
+            const contenidoNormalizado = normalizarTexto(contenidoCompleto);
+            return contenidoNormalizado.includes(terminoNormalizado);
+          });
+          setPolizasFiltradas(filtradas);
+          // Ir a la página donde está la póliza editada en los resultados filtrados
+          const paginaPoliza = calcularPaginaParaPoliza(idEditando, filtradas);
+          setPaginaActual(paginaPoliza);
+        } else {
+          setPolizasFiltradas(polizasActualizadas);
+          // Ir a la página donde está la póliza editada
+          const paginaPoliza = calcularPaginaParaPoliza(idEditando, polizasActualizadas);
+          setPaginaActual(paginaPoliza);
+        }
 
         // Quitar el resaltado después de 3 segundos
         setTimeout(() => {
           const polizasSinResaltar = polizasActualizadas.map(p => ({ ...p, resaltado: false }));
           setPolizas(polizasSinResaltar);
-          setPolizasFiltradas(polizasSinResaltar);
+          // También actualizar filtradas sin resaltado
+          if (terminoBusqueda.trim()) {
+            const filtradasSinResaltar = polizasSinResaltar.filter((pol) => {
+              const terminoNormalizado = normalizarTexto(terminoBusqueda.trim());
+              const contenidoCompleto = [
+                pol.nombre,
+                pol.ubicacion,
+                getCoordinadorNombre(pol.coordinador),
+              ].join(' ');
+              const contenidoNormalizado = normalizarTexto(contenidoCompleto);
+              return contenidoNormalizado.includes(terminoNormalizado);
+            });
+            setPolizasFiltradas(filtradasSinResaltar);
+          } else {
+            setPolizasFiltradas(polizasSinResaltar);
+          }
         }, 3000);
 
         toast.success("Póliza actualizada exitosamente.");
       } else {
         // Crear nueva póliza
         polizaRes = await api.post("/polizas", payloadPol);
-        // Agregar nueva póliza a ambos estados con resaltado
+        // Agregar nueva póliza a ambos estados con resaltado - PREVENIR DUPLICADOS
         const nuevaPoliza = { ...polizaRes.data, resaltado: true };
         const polizasActualizadas = [...polizas.map(p => ({ ...p, resaltado: false })), nuevaPoliza];
         setPolizas(polizasActualizadas);
-        setPolizasFiltradas(polizasActualizadas);
 
-        // Ir a la ÚLTIMA página donde se encuentra la nueva póliza (al final de la lista)
-        const totalPolizas = polizasActualizadas.length;
-        const ultimaPagina = Math.ceil(totalPolizas / CARDS_POR_PAGINA);
-        setPaginaActual(ultimaPagina);
+        // Manejar filtradas dependiendo de si hay búsqueda activa
+        if (terminoBusqueda.trim()) {
+          // Verificar si la nueva póliza coincide con la búsqueda actual
+          const terminoNormalizado = normalizarTexto(terminoBusqueda.trim());
+          const contenidoCompleto = [
+            nuevaPoliza.nombre,
+            nuevaPoliza.ubicacion,
+            getCoordinadorNombre(nuevaPoliza.coordinador),
+          ].join(' ');
+          const contenidoNormalizado = normalizarTexto(contenidoCompleto);
+
+          if (contenidoNormalizado.includes(terminoNormalizado)) {
+            // La nueva póliza coincide con la búsqueda - agregarla a filtradas
+            const filtradasActualizadas = [...polizasFiltradas.map(p => ({ ...p, resaltado: false })), nuevaPoliza];
+            setPolizasFiltradas(filtradasActualizadas);
+            const ultimaPagina = Math.ceil(filtradasActualizadas.length / CARDS_POR_PAGINA);
+            setPaginaActual(ultimaPagina);
+          } else {
+            // La nueva póliza no coincide - mantener filtradas sin cambios
+            setPolizasFiltradas(polizasFiltradas.map(p => ({ ...p, resaltado: false })));
+            // No cambiar página ya que la nueva póliza no se muestra
+          }
+        } else {
+          // Sin búsqueda - mostrar toda la lista
+          setPolizasFiltradas(polizasActualizadas);
+          const ultimaPagina = Math.ceil(polizasActualizadas.length / CARDS_POR_PAGINA);
+          setPaginaActual(ultimaPagina);
+        }
 
         // Quitar el resaltado después de 3 segundos
         setTimeout(() => {
           const polizasSinResaltar = polizasActualizadas.map(p => ({ ...p, resaltado: false }));
           setPolizas(polizasSinResaltar);
-          setPolizasFiltradas(polizasSinResaltar);
+          // También actualizar filtradas sin resaltado
+          if (terminoBusqueda.trim()) {
+            const filtradasSinResaltar = polizasFiltradas.map(p => ({ ...p, resaltado: false }));
+            setPolizasFiltradas(filtradasSinResaltar);
+          } else {
+            setPolizasFiltradas(polizasSinResaltar);
+          }
         }, 3000);
 
         toast.success("Póliza creada exitosamente.");
@@ -404,29 +509,80 @@ const Polizas = () => {
     return `${coord.nombre} ${coord.apellido_paterno} ${coord.apellido_materno || ""}`.trim();
   };
 
-  // Función para manejar clic en overlay del modal
-  // Cerrar modal si se hace clic fuera del contenido
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLDivElement).classList.contains("modal-poliza-container")) {
-      setMostrarModal(false);
-    }
-  };
+  // ===== FUNCIONES PARA MODAL DE ELIMINAR =====
+  const confirmarEliminacion = async () => {
+    if (polizaAEliminar) {
+      // Agregar clase de animación de salida
+      const modalContent = document.querySelector('.modal-content-coordinadores');
+      if (modalContent) {
+        modalContent.classList.add('closing');
+        // Esperar a que termine la animación antes de cerrar
+        setTimeout(() => {
+          setShowModalEliminar(false);
+          setPolizaAEliminar(null);
+        }, 300);
+      } else {
+        setShowModalEliminar(false);
+        setPolizaAEliminar(null);
+      }
 
-  // Función para manejar eliminación de póliza
-  // Incluye confirmación del usuario y actualización de ambos estados
-  const handleEliminar = async (id: string | undefined) => {
-    if (!id) return;
-    if (confirm("¿Estás seguro de que deseas eliminar esta póliza?")) {
       try {
-        await api.delete(`/polizas/${id}`);
-        // Actualizar ambos estados para mantener sincronización
-        setPolizas(polizas.filter((p) => p._id !== id));
-        setPolizasFiltradas(polizasFiltradas.filter((p) => p._id !== id));
+        await api.delete(`/polizas/${polizaAEliminar._id}`);
+        // Actualizar ambos estados para mantener sincronización - ORDEN IMPORTA
+        const nuevasPolizas = polizas.filter((p) => p._id !== polizaAEliminar._id);
+        setPolizas(nuevasPolizas);
+
+        // Filtrar inmediatamente basado en el término actual para evitar duplicados
+        if (terminoBusqueda.trim()) {
+          const filtradas = nuevasPolizas.filter((pol) => {
+            const terminoNormalizado = normalizarTexto(terminoBusqueda.trim());
+            const contenidoCompleto = [
+              pol.nombre,
+              pol.ubicacion,
+              getCoordinadorNombre(pol.coordinador),
+            ].join(' ');
+            const contenidoNormalizado = normalizarTexto(contenidoCompleto);
+            return contenidoNormalizado.includes(terminoNormalizado);
+          });
+          setPolizasFiltradas(filtradas);
+        } else {
+          setPolizasFiltradas(nuevasPolizas);
+        }
+
         toast.success("Póliza eliminada exitosamente.");
       } catch (err) {
         toast.error("Error al eliminar la póliza.");
         console.error("Error al eliminar la póliza:", err);
       }
+    }
+  };
+
+  const cancelarEliminacion = () => {
+    // Agregar clase de animación de salida
+    const modalContent = document.querySelector('.modal-content-coordinadores');
+    if (modalContent) {
+      modalContent.classList.add('closing');
+      // Esperar a que termine la animación antes de cerrar
+      setTimeout(() => {
+        setShowModalEliminar(false);
+        setPolizaAEliminar(null);
+      }, 300);
+    } else {
+      setShowModalEliminar(false);
+      setPolizaAEliminar(null);
+    }
+  };
+
+  // Función simplificada para abrir modal de eliminar
+  const handleEliminar = (id: string | undefined) => {
+    console.log('handleEliminar llamado con ID:', id);
+    if (!id) return;
+    const poliza = polizas.find(p => p._id === id);
+    console.log('Póliza encontrada:', poliza);
+    if (poliza) {
+      setPolizaAEliminar(poliza);
+      setShowModalEliminar(true);
+      console.log('Modal debería abrirse ahora');
     }
   };
 
@@ -467,6 +623,9 @@ const Polizas = () => {
             <button
               className="btn-registrar-poliza"
               onClick={() => {
+                // Cerrar cualquier card expandida al abrir modal
+                window.dispatchEvent(new CustomEvent('closeExpandedCard'));
+
                 setMostrarModal(true);
                 setModoEdicion(false); // Modo creación
                 setIdEditando(null);
@@ -557,71 +716,133 @@ const Polizas = () => {
 
       {/* Modal para creación y edición de pólizas */}
       {mostrarModal && (
-        <div className="modal-poliza-container" onClick={handleOverlayClick}>
-          <div className="modal-content-poliza">
-            {/* Título dinámico según modo */}
-            <h3>{modoEdicion ? "Editar Póliza" : "Nueva Póliza"}</h3>
+        <div className="modal-overlay-coordinadores">
+          <div className="modal-content-coordinadores">
+            <button className="modal-close" onClick={() => {
+              setMostrarModal(false);
+              setModoEdicion(false);
+              setIdEditando(null);
+              setFormData({ nombre: "", ubicacion: "", coordinador: "" });
+              setErrores({});
+            }}>
+              ×
+            </button>
+
+            <div className="modal-title" style={{ fontWeight: 'bold' }}>
+              {modoEdicion ? "Editar Póliza" : "Registrar Nueva Póliza"}
+            </div>
+
             <form onSubmit={handleSubmit}>
-              {/* Campo nombre de póliza con validación */}
-              <label>Nombre:</label>
-              <input
-                type="text"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                className={errores.nombre ? "input-error" : ""}
-              />
-              {errores.nombre && <span className="mensaje-error-poliza">{errores.nombre}</span>}
+              <div className="modal-user-info">
+                {/* Campo nombre de póliza con validación */}
+                <div className="form-group">
+                  <label>Nombre de la Póliza:</label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    value={formData.nombre}
+                    onChange={handleChange}
+                    className={errores.nombre ? "input-error" : ""}
+                    placeholder="Ingrese el nombre de la póliza"
+                  />
+                  {errores.nombre && <span className="mensaje-error-poliza">{errores.nombre}</span>}
+                </div>
 
-              {/* Campo ubicación con validación */}
-              <label>Ubicación:</label>
-              <input
-                type="text"
-                name="ubicacion"
-                value={formData.ubicacion}
-                onChange={handleChange}
-                className={errores.ubicacion ? "input-error" : ""}
-              />
-              {errores.ubicacion && <span className="mensaje-error-poliza">{errores.ubicacion}</span>}
+                {/* Campo ubicación con validación */}
+                <div className="form-group">
+                  <label>Ubicación:</label>
+                  <input
+                    type="text"
+                    name="ubicacion"
+                    value={formData.ubicacion}
+                    onChange={handleChange}
+                    className={errores.ubicacion ? "input-error" : ""}
+                    placeholder="Ingrese la ubicación"
+                  />
+                  {errores.ubicacion && <span className="mensaje-error-poliza">{errores.ubicacion}</span>}
+                </div>
 
-              {/* Selección de coordinador */}
-              <label>Coordinador (opcional):</label>
-              <select
-                name="coordinador"
-                value={formData.coordinador}
-                onChange={handleChange}
-              >
-                <option value="">Sin asignar</option>
-                {coordinadores.map((coord) => (
-                  <option key={coord._id} value={coord._id}>
-                    {formatCoordinador(coord)}
-                  </option>
-                ))}
-              </select>
+                {/* Selección de coordinador */}
+                <div className="form-group">
+                  <label>Coordinador (opcional):</label>
+                  <select
+                    name="coordinador"
+                    value={formData.coordinador}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sin asignar</option>
+                    {coordinadores.map((coord) => (
+                      <option key={coord._id} value={coord._id}>
+                        {formatCoordinador(coord)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
               {/* Botones de acción del modal */}
               <div className="modal-buttons">
-                <button type="submit" className="btn-guardar-poliza">
-                  Guardar
-                </button>
                 <button
                   type="button"
-                  className="btn-cancelar-poliza"
+                  className="modal-btn modal-btn-cancelar"
                   onClick={() => {
-                    // Limpiar todos los estados y cerrar modal
                     setMostrarModal(false);
                     setModoEdicion(false);
                     setIdEditando(null);
                     setFormData({ nombre: "", ubicacion: "", coordinador: "" });
+                    setErrores({});
                   }}
                 >
+                  <i className="bi bi-x-circle"></i>
                   Cancelar
+                </button>
+                <button type="submit" className="modal-btn modal-btn-confirmar-poliza">
+                  <i className="bi bi-check-circle"></i>
+                  {modoEdicion ? "Actualizar" : "Registrar"}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Modal de confirmación para eliminar */}
+      {(() => {
+        console.log('Renderizando modal - showModalEliminar:', showModalEliminar, 'polizaAEliminar:', polizaAEliminar);
+        return showModalEliminar && polizaAEliminar && (
+          <div className="modal-overlay-coordinadores">
+            <div className="modal-content-coordinadores">
+              <button className="modal-close" onClick={cancelarEliminacion}>
+                ×
+              </button>
+
+              <div className="modal-title">
+                ¿Seguro que quieres <strong>eliminar</strong> esta póliza?
+              </div>
+
+              <div className="modal-user-info">
+                <p><strong>Póliza:</strong> {polizaAEliminar.nombre}</p>
+                <p><strong>Ubicación:</strong> {polizaAEliminar.ubicacion}</p>
+                <div className="modal-warning">
+                  <i className="bi bi-exclamation-triangle"></i>
+                  <span>Esta acción es irreversible. Se perderá toda la información asociada, y tanto las personas como las especialidades vinculadas quedarán sin póliza.</span>
+                </div>
+              </div>
+
+              <div className="modal-buttons">
+                <button className="modal-btn modal-btn-cancelar" onClick={cancelarEliminacion}>
+                  <i className="bi bi-x-circle"></i>
+                  Cancelar
+                </button>
+                <button className="modal-btn modal-btn-confirmar" onClick={confirmarEliminacion}>
+                  <i className="bi bi-check-circle"></i>
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

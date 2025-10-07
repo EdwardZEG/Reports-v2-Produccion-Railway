@@ -38,6 +38,14 @@ const Especialidades = () => {
   const [error, setError] = useState<string | null>(null);
   const [errores, setErrores] = useState<{ [key: string]: string }>({});
 
+  // Estados para modal de confirmación de eliminar
+  const [showModalEliminar, setShowModalEliminar] = useState(false);
+  const [especialidadAEliminar, setEspecialidadAEliminar] = useState<Especialidad | null>(null);
+
+  // Estados para el carrusel de polizas
+  const [carruselIndex, setCarruselIndex] = useState(0);
+  const POLIZAS_POR_PAGINA = 1; // Mostrar 1 poliza a la vez
+
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
@@ -398,30 +406,72 @@ const Especialidades = () => {
     setArchivoActual(esp.reporte ? "Archivo cargado" : null); // Mostrar estado de plantilla
   };
 
-  // Función para manejar clic en overlay del modal
-  // Cerrar modal si se hace clic fuera del contenido
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLDivElement).classList.contains("modal-especialidad-container")) {
-      setMostrarModal(false);
+  // ===== FUNCIONES PARA CARRUSEL DE POLIZAS =====
+  const siguienteCarrusel = () => {
+    if (carruselIndex + POLIZAS_POR_PAGINA < polizas.length) {
+      setCarruselIndex(carruselIndex + POLIZAS_POR_PAGINA);
+    }
+  };
+
+  const anteriorCarrusel = () => {
+    if (carruselIndex > 0) {
+      setCarruselIndex(Math.max(0, carruselIndex - POLIZAS_POR_PAGINA));
+    }
+  };
+
+  const togglePolizaSeleccion = (polizaId: string) => {
+    const nuevasPolizas = formData.poliza.includes(polizaId)
+      ? formData.poliza.filter(id => id !== polizaId)
+      : [...formData.poliza, polizaId];
+
+    setFormData({
+      ...formData,
+      poliza: nuevasPolizas
+    });
+  };
+
+  const getPolizasVisibles = () => {
+    return polizas.slice(carruselIndex, carruselIndex + POLIZAS_POR_PAGINA);
+  };
+
+  // ===== FUNCIONES PARA MODAL DE ELIMINAR =====
+  const abrirModalEliminar = (id: string) => {
+    const especialidad = especialidades.find(esp => esp._id === id);
+    if (especialidad) {
+      setEspecialidadAEliminar(especialidad);
+      setShowModalEliminar(true);
+    }
+  };
+
+  const cancelarEliminacion = () => {
+    setShowModalEliminar(false);
+    setEspecialidadAEliminar(null);
+  };
+
+  const confirmarEliminacion = async () => {
+    if (!especialidadAEliminar) return;
+
+    try {
+      await api.delete(`/especialidades/${especialidadAEliminar._id}`);
+      // Actualizar ambos estados para mantener sincronización
+      setEspecialidades(especialidades.filter((e) => e._id !== especialidadAEliminar._id));
+      setEspecialidadesFiltradas(especialidadesFiltradas.filter((e) => e._id !== especialidadAEliminar._id));
+      toast.success("Especialidad eliminada exitosamente.");
+      setShowModalEliminar(false);
+      setEspecialidadAEliminar(null);
+    } catch (err) {
+      toast.error("Error al eliminar la especialidad.");
+      console.error("Error al eliminar la especialidad:", err);
+      setShowModalEliminar(false);
+      setEspecialidadAEliminar(null);
     }
   };
 
   // Función para manejar eliminación de especialidad
-  // Incluye confirmación del usuario y actualización de ambos estados
+  // Ahora abre el modal de confirmación en lugar del confirm() del navegador
   const handleEliminar = async (id: string | undefined) => {
     if (!id) return;
-    if (confirm("¿Estás seguro de que deseas eliminar esta especialidad?")) {
-      try {
-        await api.delete(`/especialidades/${id}`);
-        // Actualizar ambos estados para mantener sincronización
-        setEspecialidades(especialidades.filter((e) => e._id !== id));
-        setEspecialidadesFiltradas(especialidadesFiltradas.filter((e) => e._id !== id));
-        toast.success("Especialidad eliminada exitosamente.");
-      } catch (err) {
-        toast.error("Error al eliminar la especialidad.");
-        console.error("Error al eliminar la especialidad:", err);
-      }
-    }
+    abrirModalEliminar(id);
   };
 
   // Renderizado del componente principal
@@ -507,87 +557,177 @@ const Especialidades = () => {
 
       {/* Modal para creación y edición de especialidades */}
       {mostrarModal && (
-        <div className="modal-especialidad-container" onClick={handleOverlayClick}>
-          <div className="modal-content-especialidad">
-            {/* Título dinámico según modo */}
-            <h3>{modoEdicion ? "Editar Especialidad" : "Nueva Especialidad"}</h3>
+        <div className="modal-overlay-coordinadores">
+          <div className="modal-content-coordinadores">
+            <button className="modal-close" onClick={() => {
+              setMostrarModal(false);
+              setModoEdicion(false);
+              setIdEditando(null);
+              setFormData({ nombre: "", descripcion: "", poliza: [] });
+              setArchivo(null);
+              setArchivoActual(null);
+              setCarruselIndex(0);
+              setErrores({});
+            }}>
+              ×
+            </button>
+
+            <div className="modal-title" style={{ fontWeight: 'bold' }}>
+              {modoEdicion ? "Editar Especialidad" : "Registrar Nueva Especialidad"}
+            </div>
+
             <form onSubmit={handleSubmit}>
-              {/* Campo nombre de especialidad con validación */}
-              <label>Especialidad:</label>
-              <input
-                type="text"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                className={errores.nombre ? "input-error" : ""}
-              />
-              {errores.nombre && <span className="mensaje-error-poliza">{errores.nombre}</span>}
+              <div className="modal-user-info">
+                {/* Campo nombre de especialidad con validación */}
+                <div className="form-group">
+                  <label>Nombre de la Especialidad:</label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    value={formData.nombre}
+                    onChange={handleChange}
+                    className={errores.nombre ? "input-error" : ""}
+                    placeholder="Ingrese el nombre de la especialidad"
+                  />
+                  {errores.nombre && <span className="mensaje-error-poliza">{errores.nombre}</span>}
+                </div>
 
-              {/* Campo descripción con validación */}
-              <label>Descripción:</label>
-              <input
-                type="text"
-                name="descripcion"
-                value={formData.descripcion}
-                onChange={handleChange}
-                className={errores.descripcion ? "input-error" : ""}
-              />
-              {errores.descripcion && <span className="mensaje-error-poliza">{errores.descripcion}</span>}
+                {/* Campo descripción con validación */}
+                <div className="form-group">
+                  <label>Descripción:</label>
+                  <input
+                    type="text"
+                    name="descripcion"
+                    value={formData.descripcion}
+                    onChange={handleChange}
+                    className={errores.descripcion ? "input-error" : ""}
+                    placeholder="Ingrese la descripción"
+                  />
+                  {errores.descripcion && <span className="mensaje-error-poliza">{errores.descripcion}</span>}
+                </div>
 
-              {/* Selección múltiple de pólizas con checkboxes */}
-              <label>Pólizas:</label>
-              <div className="checkbox-group">
-                {polizas.map((p) => (
-                  <label key={p._id} className="checkbox-item">
-                    <input
-                      type="checkbox"
-                      name="poliza"
-                      value={p._id}
-                      checked={formData.poliza.includes(p._id)} // Estado basado en array
-                      onChange={handleChange}
-                    />
-                    {p.nombre}
-                  </label>
-                ))}
+                {/* Carrusel de pólizas */}
+                <div className="form-group">
+                  <label>Pólizas Asignadas:</label>
+                  <div className="polizas-carrusel">
+                    <div className="carrusel-navegacion">
+                      <button
+                        type="button"
+                        className="pagination-btn prev"
+                        onClick={anteriorCarrusel}
+                        disabled={carruselIndex === 0}
+                        title="Poliza anterior"
+                      >
+                        <i className="bi bi-chevron-left"></i>
+                      </button>
+
+                      <div className="carrusel-poliza-contenido">
+                        {getPolizasVisibles().map((poliza) => (
+                          <div
+                            key={poliza._id}
+                            className={`poliza-card ${formData.poliza.includes(poliza._id) ? 'poliza-selected' : ''}`}
+                            onClick={() => togglePolizaSeleccion(poliza._id)}
+                          >
+                            <i className="bi bi-shield-check"></i>
+                            <span>{poliza.nombre}</span>
+                            {formData.poliza.includes(poliza._id) && (
+                              <i className="bi bi-check-circle-fill poliza-check"></i>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="pagination-btn next"
+                        onClick={siguienteCarrusel}
+                        disabled={carruselIndex + POLIZAS_POR_PAGINA >= polizas.length}
+                        title="Poliza siguiente"
+                      >
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Campo para subir plantilla de reporte */}
+                <div className="form-group">
+                  <label>Plantilla de Reporte:</label>
+                  <input
+                    type="file"
+                    name="archivo"
+                    onChange={handleArchivoChange}
+                    accept=".pdf,.doc,.docx"
+                  />
+                  {/* Indicador de archivo existente en modo edición */}
+                  {modoEdicion && archivoActual && (
+                    <p style={{ fontSize: "0.85rem", marginTop: "0.5rem", color: "#555" }}>
+                      Archivo ya cargado.
+                    </p>
+                  )}
+                </div>
               </div>
-
-              {/* Campo para subir plantilla de reporte */}
-              <label>Plantilla de Reporte:</label>
-              <input
-                type="file"
-                name="archivo"
-                onChange={handleArchivoChange}
-                accept=".pdf,.doc,.docx" // Tipos de archivo permitidos
-              />
-              {/* Indicador de archivo existente en modo edición */}
-              {modoEdicion && archivoActual && (
-                <p style={{ fontSize: "0.85rem", marginTop: "0.5rem", color: "#555" }}>
-                  Archivo ya cargado.
-                </p>
-              )}
 
               {/* Botones de acción del modal */}
               <div className="modal-buttons">
-                <button type="submit" className="btn-guardar-especialidad">
-                  Guardar
-                </button>
                 <button
                   type="button"
-                  className="btn-cancelar-especialidad"
+                  className="modal-btn modal-btn-cancelar"
                   onClick={() => {
-                    // Limpiar todos los estados y cerrar modal
                     setMostrarModal(false);
                     setModoEdicion(false);
                     setIdEditando(null);
                     setFormData({ nombre: "", descripcion: "", poliza: [] });
                     setArchivo(null);
                     setArchivoActual(null);
+                    setCarruselIndex(0);
+                    setErrores({});
                   }}
                 >
+                  <i className="bi bi-x-circle"></i>
                   Cancelar
+                </button>
+                <button type="submit" className="modal-btn modal-btn-confirmar-poliza">
+                  <i className="bi bi-check-circle"></i>
+                  {modoEdicion ? "Actualizar" : "Registrar"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para eliminar especialidad */}
+      {showModalEliminar && especialidadAEliminar && (
+        <div className="modal-overlay-coordinadores">
+          <div className="modal-content-coordinadores">
+            <button className="modal-close" onClick={cancelarEliminacion}>
+              ×
+            </button>
+
+            <div className="modal-title">
+              ¿Seguro que quieres <strong>eliminar</strong> esta especialidad?
+            </div>
+
+            <div className="modal-user-info">
+              <p><strong>Especialidad:</strong> {especialidadAEliminar.nombre}</p>
+              <p><strong>Descripción:</strong> {especialidadAEliminar.descripcion}</p>
+              <div className="modal-warning">
+                <i className="bi bi-exclamation-triangle"></i>
+                <span>Al eliminar esta especialidad, se perderán las pólizas y plantillas asociadas.</span>
+              </div>
+            </div>
+
+            <div className="modal-buttons">
+              <button className="modal-btn modal-btn-cancelar" onClick={cancelarEliminacion}>
+                <i className="bi bi-x-circle"></i>
+                Cancelar
+              </button>
+              <button className="modal-btn modal-btn-confirmar" onClick={confirmarEliminacion}>
+                <i className="bi bi-check-circle"></i>
+                Confirmar
+              </button>
+            </div>
           </div>
         </div>
       )}

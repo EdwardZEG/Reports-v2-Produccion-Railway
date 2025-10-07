@@ -58,58 +58,62 @@ const PreviewPoliza: React.FC<PreviewPolizaProps> = ({
         };
     }, []);
 
-    // Función para toggle de expansión de cards con scroll bloqueado
+    // useEffect para cerrar cards expandidas cuando cambian las pólizas
+    useEffect(() => {
+        // Si hay una card expandida pero ya no existe en la lista actual, cerrarla
+        if (cardExpandida && !polizas.find(p => p._id === cardExpandida)) {
+            setCardExpandida(null);
+            lockedScrollPosition.current = null;
+        }
+    }, [polizas, cardExpandida]);
+
+    // Función para toggle de expansión de cards con scroll mejorado
     const toggleExpansion = (cardId: string) => {
         const wrapper = wrapperRef.current;
         if (!wrapper) return;
 
-        // Marcar que estamos en transición
-        isTransitioning.current = true;
-
-        // SIEMPRE guardar la posición actual del scroll antes de cualquier cambio
-        const currentScrollTop = wrapper.scrollTop;
-        lockedScrollPosition.current = currentScrollTop;
-
         const wasExpanded = cardExpandida === cardId;
         const newExpandedCard = wasExpanded ? null : cardId;
-        setCardExpandida(newExpandedCard);
 
-        // Función para restaurar el scroll
-        const forceScrollPosition = () => {
-            if (wrapper && lockedScrollPosition.current !== null) {
-                wrapper.scrollTop = lockedScrollPosition.current;
-            }
-        };
-
-        // Solo restaurar durante la transición inicial
-        setTimeout(() => {
-            forceScrollPosition();
-
-            // Finalizar transición después de que termine la animación
-            setTimeout(() => {
-                isTransitioning.current = false;
-
-                // Solo liberar el scroll si cerramos completamente todas las cards
-                if (wasExpanded && newExpandedCard === null) {
-                    lockedScrollPosition.current = null;
-                }
-            }, 500); // Duración de la animación CSS
-        }, 50);
-    };
-
-    // Función para resetear el scroll bloqueado cuando el usuario hace scroll manual
-    const handleManualScroll = () => {
-        // Solo permitir scroll libre cuando no hay transiciones activas
-        if (!isTransitioning.current && cardExpandida === null) {
-            lockedScrollPosition.current = null;
+        // Guardar posición de scroll SOLO al expandir una nueva card
+        if (!wasExpanded && newExpandedCard) {
+            lockedScrollPosition.current = wrapper.scrollTop;
         }
 
-        // Durante transiciones, permitir que el usuario ajuste manualmente
-        if (!isTransitioning.current && lockedScrollPosition.current !== null) {
-            // Actualizar la posición bloqueada con el scroll manual del usuario
+        // Cerrar cualquier card expandida antes de abrir nueva
+        if (cardExpandida && cardExpandida !== cardId) {
+            setCardExpandida(null);
+            // Permitir que la animación de cierre termine antes de abrir nueva
+            setTimeout(() => {
+                setCardExpandida(newExpandedCard);
+            }, 100);
+        } else {
+            setCardExpandida(newExpandedCard);
+        }
+
+        // Liberar scroll lock al cerrar completamente
+        if (wasExpanded) {
+            setTimeout(() => {
+                lockedScrollPosition.current = null;
+                isTransitioning.current = false;
+            }, 300);
+        }
+    };
+
+    // Función para manejar scroll manual del usuario - versión simplificada
+    const handleManualScroll = () => {
+        // Solo bloquear scroll durante expansiones activas
+        if (cardExpandida && lockedScrollPosition.current !== null) {
             const wrapper = wrapperRef.current;
             if (wrapper) {
-                lockedScrollPosition.current = wrapper.scrollTop;
+                // Permitir pequeños ajustes manuales pero mantener posición general
+                const currentScroll = wrapper.scrollTop;
+                const lockedPosition = lockedScrollPosition.current;
+
+                // Solo intervenir si el usuario se alejó mucho de la posición original
+                if (Math.abs(currentScroll - lockedPosition) > 50) {
+                    lockedScrollPosition.current = currentScroll;
+                }
             }
         }
     };
@@ -143,10 +147,10 @@ const PreviewPoliza: React.FC<PreviewPolizaProps> = ({
                 {hasPolizas ? (
                     // Grid de cards - nueva arquitectura visual
                     <div className="preview-poliza__cards-grid">
-                        {polizas.map((item) => {
+                        {polizas.map((item, index) => {
                             return (
                                 <div
-                                    key={item._id}
+                                    key={`${item._id}-${index}`} // Clave única para prevenir problemas de renderizado
                                     className={`preview-poliza__card ${item.resaltado ? 'resaltado' : ''} ${cardExpandida === item._id ? 'expandida' : ''}`}
                                 >
                                     {/* Header de la card con icono representativo - diseño negro uniforme */}
@@ -212,7 +216,7 @@ const PreviewPoliza: React.FC<PreviewPolizaProps> = ({
                 ) : (
                     // Estado vacío con mensaje informativo
                     <div className="preview-poliza__empty-state">
-                        <i className="bi bi-shield-exclamation loading-spin"></i>
+                        <i className="bi bi-shield-exclamation"></i>
                         <p>{isLoading ? "Cargando pólizas..." : "No hay pólizas disponibles"}</p>
                     </div>
                 )}

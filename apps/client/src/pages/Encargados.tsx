@@ -37,6 +37,10 @@ const Encargados = () => {
   const [showModalDesactivar, setShowModalDesactivar] = useState(false);
   const [encargadoADesactivar, setEncargadoADesactivar] = useState<any>(null);
 
+  // Estados para modal de confirmación de eliminar
+  const [showModalEliminar, setShowModalEliminar] = useState(false);
+  const [encargadoAEliminar, setEncargadoAEliminar] = useState<any>(null);
+
   // Estado para prevenir clicks múltiples en switches
   const [switchesEnProceso, setSwitchesEnProceso] = useState<Set<string>>(new Set());
 
@@ -267,6 +271,20 @@ const Encargados = () => {
 
   const confirmarDesactivacion = async () => {
     if (encargadoADesactivar) {
+      // Agregar clase de animación de salida
+      const modalContent = document.querySelector('.modal-content-coordinadores');
+      if (modalContent) {
+        modalContent.classList.add('closing');
+        // Esperar a que termine la animación antes de cerrar
+        setTimeout(() => {
+          setShowModalDesactivar(false);
+          setEncargadoADesactivar(null);
+        }, 300);
+      } else {
+        setShowModalDesactivar(false);
+        setEncargadoADesactivar(null);
+      }
+
       await actualizarEstadoEncargado(encargadoADesactivar._id, "Inactivo");
       // Remover de switches en proceso
       setSwitchesEnProceso(prev => {
@@ -274,12 +292,24 @@ const Encargados = () => {
         newSet.delete(encargadoADesactivar._id);
         return newSet;
       });
-      setShowModalDesactivar(false);
-      setEncargadoADesactivar(null);
     }
   };
 
   const cancelarDesactivacion = () => {
+    // Agregar clase de animación de salida
+    const modalContent = document.querySelector('.modal-content-coordinadores');
+    if (modalContent) {
+      modalContent.classList.add('closing');
+      // Esperar a que termine la animación antes de cerrar
+      setTimeout(() => {
+        setShowModalDesactivar(false);
+        setEncargadoADesactivar(null);
+      }, 300);
+    } else {
+      setShowModalDesactivar(false);
+      setEncargadoADesactivar(null);
+    }
+
     // Remover de switches en proceso al cancelar
     if (encargadoADesactivar) {
       setSwitchesEnProceso(prev => {
@@ -288,8 +318,47 @@ const Encargados = () => {
         return newSet;
       });
     }
-    setShowModalDesactivar(false);
-    setEncargadoADesactivar(null);
+  };
+
+  // ===== FUNCIONES PARA MODAL DE ELIMINAR =====
+  const confirmarEliminacion = async () => {
+    if (encargadoAEliminar) {
+      // Agregar clase de animación de salida
+      const modalContent = document.querySelector('.modal-content-coordinadores');
+      if (modalContent) {
+        modalContent.classList.add('closing');
+        // Esperar a que termine la animación antes de cerrar
+        setTimeout(() => {
+          setShowModalEliminar(false);
+          setEncargadoAEliminar(null);
+        }, 300);
+      } else {
+        setShowModalEliminar(false);
+        setEncargadoAEliminar(null);
+      }
+
+      try {
+        await eliminarEncargado(encargadoAEliminar._id);
+      } catch (err) {
+        toast.error("Error al eliminar colaborador");
+      }
+    }
+  };
+
+  const cancelarEliminacion = () => {
+    // Agregar clase de animación de salida
+    const modalContent = document.querySelector('.modal-content-coordinadores');
+    if (modalContent) {
+      modalContent.classList.add('closing');
+      // Esperar a que termine la animación antes de cerrar
+      setTimeout(() => {
+        setShowModalEliminar(false);
+        setEncargadoAEliminar(null);
+      }, 300);
+    } else {
+      setShowModalEliminar(false);
+      setEncargadoAEliminar(null);
+    }
   };
 
   const actualizarEstadoEncargado = async (id: string, nuevoEstado: string) => {
@@ -297,7 +366,16 @@ const Encargados = () => {
       // Encontrar el encargado actual
       const encargado = encargados.find(e => e._id === id);
       if (encargado) {
-        await actualizarEncargado({ ...encargado, estado: nuevoEstado });
+        // Si el colaborador pasa a inactivo, quitar la póliza asignada
+        const datosActualizados = {
+          ...encargado,
+          estado: nuevoEstado,
+          // Quitar póliza si el estado es inactivo, igual que coordinadores
+          poliza: nuevoEstado === "Inactivo" ? null : encargado.poliza
+        };
+
+        // El hook ahora maneja la actualización optimista internamente
+        await actualizarEncargado(datosActualizados);
       }
       // Toast messages removed as requested
     } catch (error) {
@@ -329,7 +407,7 @@ const Encargados = () => {
   const handleColaboradorCreado = async (colaboradorCreado?: Encargado) => {
     if (colaboradorCreado) {
       // Marcar el colaborador como creado con resaltado temporal
-      const resultado = marcarColaboradorCreado(colaboradorCreado);
+      const resultado = await marcarColaboradorCreado(colaboradorCreado);
 
       if (resultado.success && resultado.encargados) {
         // Ir a la ÚLTIMA página donde se encuentra el nuevo colaborador (al final de la lista)
@@ -383,14 +461,9 @@ const Encargados = () => {
     }
   };
 
-  const handleDeleteColaborador = async (id: string) => {
-    if (confirm("¿Estás seguro de que deseas eliminar al colaborador?")) {
-      try {
-        await eliminarEncargado(id);
-      } catch (err) {
-        toast.error("Error al eliminar colaborador");
-      }
-    }
+  const handleDeleteColaborador = (encargado: any) => {
+    setEncargadoAEliminar(encargado);
+    setShowModalEliminar(true);
   };
 
   const abrirModal = (encargado: Encargado) => {
@@ -579,7 +652,7 @@ const Encargados = () => {
                     </button>
                     <button
                       className="btn-accion eliminar"
-                      onClick={() => handleDeleteColaborador(encargado._id)}
+                      onClick={() => handleDeleteColaborador(encargado)}
                       title="Eliminar"
                     >
                       <CiTrash />
@@ -714,7 +787,9 @@ const Encargados = () => {
                       poliza: {
                         _id: e.target.value,
                         nombre: polizas.find(p => p._id === e.target.value)?.nombre || ""
-                      }
+                      },
+                      // Limpiar especialidades cuando se cambia la póliza
+                      especialidad: []
                     })
                   }>
                   <option value="">Selecciona una póliza</option>
@@ -776,12 +851,18 @@ const Encargados = () => {
             </button>
 
             <div className="modal-title">
-              ¿Seguro que quieres <strong>desactivar</strong> este Encargado?
+              ¿Seguro que quieres <strong>desactivar</strong> este Colaborador?
             </div>
 
             <div className="modal-user-info">
-              <p><strong>Encargado:</strong> {encargadoADesactivar.nombre} {encargadoADesactivar.apellido_paterno} {encargadoADesactivar.apellido_materno}</p>
+              <p><strong>Colaborador:</strong> {encargadoADesactivar.nombre} {encargadoADesactivar.apellido_paterno} {encargadoADesactivar.apellido_materno}</p>
               <p><strong>Correo:</strong> {encargadoADesactivar.correo}</p>
+              {encargadoADesactivar.poliza && (
+                <div className="modal-warning">
+                  <i className="bi bi-exclamation-triangle"></i>
+                  <span>Al desactivar este colaborador, perderá la póliza asignada.</span>
+                </div>
+              )}
             </div>
 
             <div className="modal-buttons">
@@ -790,6 +871,41 @@ const Encargados = () => {
                 Cancelar
               </button>
               <button className="modal-btn modal-btn-confirmar" onClick={confirmarDesactivacion}>
+                <i className="bi bi-check-circle"></i>
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para eliminar */}
+      {showModalEliminar && encargadoAEliminar && (
+        <div className="modal-overlay-coordinadores">
+          <div className="modal-content-coordinadores">
+            <button className="modal-close" onClick={cancelarEliminacion}>
+              ×
+            </button>
+
+            <div className="modal-title">
+              ¿Seguro que quieres <strong>eliminar</strong> este Colaborador?
+            </div>
+
+            <div className="modal-user-info">
+              <p><strong>Colaborador:</strong> {encargadoAEliminar.nombre} {encargadoAEliminar.apellido_paterno} {encargadoAEliminar.apellido_materno}</p>
+              <p><strong>Correo:</strong> {encargadoAEliminar.correo}</p>
+              <div className="modal-warning">
+                <i className="bi bi-exclamation-triangle"></i>
+                <span>Al eliminar este colaborador, su información asociada se perderá</span>
+              </div>
+            </div>
+
+            <div className="modal-buttons">
+              <button className="modal-btn modal-btn-cancelar" onClick={cancelarEliminacion}>
+                <i className="bi bi-x-circle"></i>
+                Cancelar
+              </button>
+              <button className="modal-btn modal-btn-confirmar" onClick={confirmarEliminacion}>
                 <i className="bi bi-check-circle"></i>
                 Confirmar
               </button>
