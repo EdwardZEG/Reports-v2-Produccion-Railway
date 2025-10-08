@@ -326,7 +326,7 @@ const Especialidades = () => {
         await api.put(`/especialidades/${espId}`, { reporte: reporteId });
       }
 
-      // Obtener datos actualizados de la especialidad para mostrar cambios
+      // Obtener datos actualizados de la especialidad 
       let nuevaEspData = especialidadRes.data;
       try {
         const fullRes = await api.get(`/especialidades/${espId}`);
@@ -335,16 +335,17 @@ const Especialidades = () => {
         console.warn("No se pudo obtener especialidad actualizada.");
       }
 
-      // Actualizar estado local según modo (edición o creación)
+      // Actualizar estado local de manera eficiente
       if (modoEdicion && idEditando) {
-        // Reemplazar especialidad editada en ambos arrays
-        setEspecialidades(especialidades.map(e => (e._id === espId ? nuevaEspData : e)));
-        setEspecialidadesFiltradas(especialidadesFiltradas.map(e => (e._id === espId ? nuevaEspData : e)));
+        // Reemplazar especialidad editada
+        const especialidadesActualizadas = especialidades.map(e => (e._id === espId ? nuevaEspData : e));
+        setEspecialidades(especialidadesActualizadas);
       } else {
-        // Agregar nueva especialidad a ambos arrays
-        setEspecialidades([...especialidades, nuevaEspData]);
-        setEspecialidadesFiltradas([...especialidadesFiltradas, nuevaEspData]);
+        // Agregar nueva especialidad
+        const especialidadesActualizadas = [...especialidades, nuevaEspData];
+        setEspecialidades(especialidadesActualizadas);
       }
+      // Las filtradas se actualizarán automáticamente por el useEffect del término de búsqueda
 
       // Limpiar formulario y cerrar modal
       setMostrarModal(false);
@@ -453,9 +454,12 @@ const Especialidades = () => {
 
     try {
       await api.delete(`/especialidades/${especialidadAEliminar._id}`);
-      // Actualizar ambos estados para mantener sincronización
-      setEspecialidades(especialidades.filter((e) => e._id !== especialidadAEliminar._id));
-      setEspecialidadesFiltradas(especialidadesFiltradas.filter((e) => e._id !== especialidadAEliminar._id));
+      
+      // Actualizar estado local eliminando la especialidad
+      const especialidadesActualizadas = especialidades.filter((e) => e._id !== especialidadAEliminar._id);
+      setEspecialidades(especialidadesActualizadas);
+      // Las filtradas se actualizarán automáticamente por el useEffect del término de búsqueda
+      
       toast.success("Especialidad eliminada exitosamente.");
       setShowModalEliminar(false);
       setEspecialidadAEliminar(null);

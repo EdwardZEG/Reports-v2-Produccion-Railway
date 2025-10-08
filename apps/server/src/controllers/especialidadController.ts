@@ -390,9 +390,8 @@ export const eliminarEspecialidad: RequestHandler = async (req, res, next) => {
     }
 
     if (especialidad.reporte) {
-      await Reporte.findByIdAndUpdate(especialidad.reporte, {
-        $unset: { idEspecialidad: "" }
-      });
+      // Eliminar completamente el reporte/plantilla de la base de datos
+      await Reporte.findByIdAndDelete(especialidad.reporte);
     }
 
     const polArray: string[] = Array.isArray(especialidad.poliza)
