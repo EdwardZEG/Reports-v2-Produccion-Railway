@@ -18,8 +18,9 @@ interface IDispositivoAsignado {
 }
 
 export interface IPeriodoMP extends Document {
-  nombre: string;
-  coordinador: Schema.Types.ObjectId;
+  especialidad: Schema.Types.ObjectId; // Especialidad a la que pertenece este período
+  poliza: Schema.Types.ObjectId; // Póliza a la que pertenece este período
+  coordinador: Schema.Types.ObjectId; // Coordinador que creó el período (para referencia)
   fechaInicio: Date;
   fechaFin: Date;
   activo: boolean;
@@ -81,7 +82,16 @@ const DispositivoAsignadoSchema = new Schema<IDispositivoAsignado>({
 }, { _id: false }); // No necesitamos _id para subdocumentos
 
 const PeriodoMPSchema = new Schema<IPeriodoMP>({
-  nombre: { type: String, required: true },
+  especialidad: {
+    type: Schema.Types.ObjectId,
+    ref: 'Especialidad',
+    required: true
+  },
+  poliza: {
+    type: Schema.Types.ObjectId,
+    ref: 'Poliza',
+    required: true
+  },
   coordinador: {
     type: Schema.Types.ObjectId,
     ref: 'Coordinador',
@@ -113,8 +123,22 @@ PeriodoMPSchema.pre('save', function (next) {
   next();
 });
 
+// Virtual para generar el nombre automáticamente basado en la especialidad
+PeriodoMPSchema.virtual('nombre').get(function (this: IPeriodoMP) {
+  if (this.populated('especialidad') && typeof this.especialidad === 'object' && 'nombre' in this.especialidad) {
+    const especialidadNombre = (this.especialidad as any).nombre;
+    return especialidadNombre; // Solo el nombre de la especialidad
+  }
+  return 'Período MP'; // Fallback si no hay especialidad
+});
+
+// Asegurar que el virtual se incluya en JSON
+PeriodoMPSchema.set('toJSON', { virtuals: true });
+PeriodoMPSchema.set('toObject', { virtuals: true });
+
 // Índices para búsquedas eficientes
-PeriodoMPSchema.index({ coordinador: 1, activo: 1 });
+PeriodoMPSchema.index({ poliza: 1, especialidad: 1, activo: 1 }); // Buscar por póliza y especialidad
+PeriodoMPSchema.index({ coordinador: 1, activo: 1 }); // Buscar por coordinador
 PeriodoMPSchema.index({ fechaInicio: -1, fechaFin: -1 });
 PeriodoMPSchema.index({ 'dispositivos.colaboradorAsignado': 1 });
 PeriodoMPSchema.index({ 'dispositivos.estado': 1 });

@@ -4,6 +4,29 @@ import DeviceReport from "../models/DeviceReport";
 import { AppError } from "../errors/customErrors";
 import Colaborador from "../models/Colaborador";
 
+/**
+ * Función auxiliar para formatear imágenes base64
+ * Agrega el prefijo data:image/jpeg;base64, si no lo tiene
+ */
+const formatImageBase64 = (base64Data: string | null | undefined): string => {
+  if (!base64Data || base64Data.trim() === '') {
+    return '';
+  }
+
+  // Si ya tiene el prefijo, devolverlo tal como está
+  if (base64Data.startsWith('data:image/')) {
+    return base64Data;
+  }
+
+  // Si es solo base64 crudo, agregar el prefijo
+  if (base64Data.match(/^[A-Za-z0-9+/=]+$/)) {
+    return `data:image/jpeg;base64,${base64Data}`;
+  }
+
+  // Si no es un formato reconocido, devolver vacío
+  return '';
+};
+
 export const createOrGetDevice = async (
   req: Request,
   res: Response,
@@ -172,7 +195,8 @@ export const getDevices = async (req: Request, res: Response) => {
         path: 'deviceCatalog',
         select: 'type ubication identifier building level note'
       })
-      .populate('colaborador', 'nombre correo rol')
+      .populate('colaborador', 'nombre apellido_paterno apellido_materno correo rol')
+      .populate('colaboradores', 'nombre apellido_paterno apellido_materno correo rol') // AGREGAR POPULATE PARA COLABORADORES
       .populate('especialidad', 'nombre')
       .populate({
         path: 'tipoParticipacion.colaborador',
@@ -207,13 +231,22 @@ export const getDevices = async (req: Request, res: Response) => {
     const devicesFormatted = filteredReports.map((report: any) => {
       const deviceCatalog = report.deviceCatalog || {};
 
-      // Crear formato de imagen esperado por el frontend
+      // Crear formato de imagen esperado por el frontend con prefijos correctos
       const images = [{
         _id: report._id,
-        WorkEvidence: report.WorkEvidence || '',
-        DeviceEvidence: report.DeviceEvidence || '',
-        ViewEvidence: report.ViewEvidence || ''
+        WorkEvidence: formatImageBase64(report.WorkEvidence),
+        DeviceEvidence: formatImageBase64(report.DeviceEvidence),
+        ViewEvidence: formatImageBase64(report.ViewEvidence)
       }];
+
+      console.log(`📸 Imágenes formateadas para ${deviceCatalog.identifier}:`, {
+        hasWorkEvidence: !!images[0].WorkEvidence,
+        hasDeviceEvidence: !!images[0].DeviceEvidence,
+        hasViewEvidence: !!images[0].ViewEvidence,
+        workEvidenceLength: images[0].WorkEvidence.length,
+        deviceEvidenceLength: images[0].DeviceEvidence.length,
+        viewEvidenceLength: images[0].ViewEvidence.length
+      });
 
       return {
         _id: report._id,
@@ -227,8 +260,9 @@ export const getDevices = async (req: Request, res: Response) => {
         createdAt: report.fechaReporte || report.createdAt,
         colaborador: report.colaborador,
         especialidad: report.especialidad,
-        // Agregar campos adicionales para compatibilidad
+        // Campos para trabajo colaborativo
         esColaborativo: report.esColaborativo || false,
+        colaboradores: report.colaboradores || [], // AGREGAR ESTE CAMPO
         tipoParticipacion: report.tipoParticipacion || []
       };
     });

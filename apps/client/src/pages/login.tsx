@@ -11,6 +11,7 @@ import DVDBackground from '../components/DVDBackground/DVDBackground';
 import { useResourcesReady } from '../hooks/useResourcesReady';
 
 import api from '../api';
+import { login as authLogin } from '../auth/authService';
 
 /**
  * Componente de login con funcionalidades avanzadas
@@ -150,18 +151,16 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
         correo: email,
         contraseña: password
       });
-      const { token, user } = response.data;
 
-      // Almacenar datos de sesión en localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("rol", user.rol);
-      localStorage.setItem("nombre", user.nombre);
+      // Verificar si la respuesta tiene 'colaborador' o 'user'
+      const userData = response.data.colaborador || response.data.user;
+      const token = response.data.token;
+
+      // Usar authService para almacenar datos consistentemente
+      authLogin(token, userData);
+
+      // También guardar email para recordar sesión
       localStorage.setItem("email", email);
-      if (user.polizaId) {
-        localStorage.setItem("polizaId", user.polizaId);
-      } else {
-        localStorage.removeItem("polizaId");
-      }
 
       // Funcionalidad "Recordar Sesión" - guarda/elimina credenciales según la preferencia
       if (rememberMe) {

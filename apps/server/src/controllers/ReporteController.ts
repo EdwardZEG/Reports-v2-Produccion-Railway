@@ -109,8 +109,37 @@ export const generarReporte = async (req: Request, res: Response, next: NextFunc
     const imageOpts = {
       centered: false,
       getImage: (tagValue: string) => {
-        const base64 = tagValue.split(';base64,').pop();
-        return Buffer.from(base64!, 'base64');
+        // Verificar si la imagen es válida
+        if (!tagValue || typeof tagValue !== "string" || tagValue.trim() === "") {
+          console.log('🚫 Imagen vacía o inválida detectada:', tagValue);
+          // Retornar un pixel transparente 1x1 en base64 como placeholder
+          return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+        }
+
+        let base64Data: string;
+
+        // Si ya tiene el prefijo data:image, extraer solo el base64
+        if (tagValue.includes("base64,")) {
+          base64Data = tagValue.split(';base64,').pop() || '';
+        }
+        // Si es solo base64 crudo (como está llegando), usarlo directamente
+        else if (tagValue.match(/^[A-Za-z0-9+/=]+$/)) {
+          base64Data = tagValue;
+          console.log('🔧 Base64 crudo detectado, procesando directamente...');
+        }
+        // Si no es ninguno de los formatos válidos
+        else {
+          console.log('🚫 Formato de imagen inválido:', tagValue.substring(0, 50) + '...');
+          return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+        }
+
+        if (!base64Data || base64Data.trim() === '') {
+          console.log('🚫 Base64 vacío después de procesamiento');
+          return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+        }
+
+        console.log('✅ Imagen válida detectada, tamaño base64:', base64Data.length);
+        return Buffer.from(base64Data, 'base64');
       },
       getSize: () => [150, 180],
     };
@@ -232,6 +261,7 @@ export const generarReporteConProgreso = async (req: Request, res: Response, nex
         });
 
         return {
+          numero: index + 1, // Número correlativo automático
           type: device.type || 'Sin tipo',
           ubication: device.ubication || 'Sin ubicación',
           identifier: device.identifier || 'Sin identificador',
@@ -266,12 +296,37 @@ export const generarReporteConProgreso = async (req: Request, res: Response, nex
     const imageMod = new ImageModule({
       centered: false,
       getImage: (tagValue: string) => {
-        if (typeof tagValue !== "string" || !tagValue.includes("base64,")) {
-          throw new Error("Etiqueta de imagen inválida");
+        // Verificar si la imagen es válida
+        if (!tagValue || typeof tagValue !== "string" || tagValue.trim() === "") {
+          console.log('🚫 Imagen vacía o inválida detectada:', tagValue);
+          // Retornar un pixel transparente 1x1 en base64 como placeholder
+          return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
         }
-        const base64 = tagValue.split(';base64,').pop();
-        if (!base64) throw new Error("Base64 inválido");
-        return Buffer.from(base64, 'base64');
+
+        let base64Data: string;
+
+        // Si ya tiene el prefijo data:image, extraer solo el base64
+        if (tagValue.includes("base64,")) {
+          base64Data = tagValue.split(';base64,').pop() || '';
+        }
+        // Si es solo base64 crudo (como está llegando), usarlo directamente
+        else if (tagValue.match(/^[A-Za-z0-9+/=]+$/)) {
+          base64Data = tagValue;
+          console.log('🔧 Base64 crudo detectado, procesando directamente...');
+        }
+        // Si no es ninguno de los formatos válidos
+        else {
+          console.log('🚫 Formato de imagen inválido:', tagValue.substring(0, 50) + '...');
+          return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+        }
+
+        if (!base64Data || base64Data.trim() === '') {
+          console.log('🚫 Base64 vacío después de procesamiento');
+          return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+        }
+
+        console.log('✅ Imagen válida detectada, tamaño base64:', base64Data.length);
+        return Buffer.from(base64Data, 'base64');
       },
       getSize: () => [150, 180],
     });
@@ -425,7 +480,7 @@ export const generarPlantillaPorEspecialidad = async (req: Request, res: Respons
 
     const validDevices = deviceReports
       .filter(report => report.deviceCatalog)
-      .map(report => {
+      .map((report, index) => {
         const device = report.deviceCatalog as any;
 
         console.log(`📝 [generarPlantillaPorEspecialidad] Procesando reporte:`, {
@@ -437,6 +492,7 @@ export const generarPlantillaPorEspecialidad = async (req: Request, res: Respons
         });
 
         return {
+          numero: index + 1, // Número correlativo automático
           type: device.type || 'Sin tipo',
           ubication: device.ubication || 'Sin ubicación',
           identifier: device.identifier || 'Sin identificador',
@@ -470,12 +526,37 @@ export const generarPlantillaPorEspecialidad = async (req: Request, res: Respons
     const imageMod = new ImageModule({
       centered: false,
       getImage: (tagValue: string) => {
-        if (typeof tagValue !== "string" || !tagValue.includes("base64,")) {
-          throw new Error("Etiqueta de imagen inválida");
+        // Verificar si la imagen es válida
+        if (!tagValue || typeof tagValue !== "string" || tagValue.trim() === "") {
+          console.log('🚫 Imagen vacía o inválida detectada:', tagValue);
+          // Retornar un pixel transparente 1x1 en base64 como placeholder
+          return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
         }
-        const base64 = tagValue.split(';base64,').pop();
-        if (!base64) throw new Error("Base64 inválido");
-        return Buffer.from(base64, 'base64');
+
+        let base64Data: string;
+
+        // Si ya tiene el prefijo data:image, extraer solo el base64
+        if (tagValue.includes("base64,")) {
+          base64Data = tagValue.split(';base64,').pop() || '';
+        }
+        // Si es solo base64 crudo (como está llegando), usarlo directamente
+        else if (tagValue.match(/^[A-Za-z0-9+/=]+$/)) {
+          base64Data = tagValue;
+          console.log('🔧 Base64 crudo detectado, procesando directamente...');
+        }
+        // Si no es ninguno de los formatos válidos
+        else {
+          console.log('🚫 Formato de imagen inválido:', tagValue.substring(0, 50) + '...');
+          return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+        }
+
+        if (!base64Data || base64Data.trim() === '') {
+          console.log('🚫 Base64 vacío después de procesamiento');
+          return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+        }
+
+        console.log('✅ Imagen válida detectada, tamaño base64:', base64Data.length);
+        return Buffer.from(base64Data, 'base64');
       },
       getSize: () => [150, 180],
     });
@@ -654,6 +735,8 @@ export const obtenerEstadisticas = async (req: Request, res: Response, next: Nex
         return {
           id: colaborador._id,
           nombre: colaborador.nombre,
+          apellido_paterno: colaborador.apellido_paterno,
+          nombreCompleto: `${colaborador.nombre} ${colaborador.apellido_paterno || ''}`.trim(),
           email: colaborador.correo,
           poliza: colaborador.poliza?.nombre || 'Sin póliza',
           reportes: devices, // Cambio: ahora reportes = devices para coincidir con vista previa

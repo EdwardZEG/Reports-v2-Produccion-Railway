@@ -1442,13 +1442,13 @@ input:not(:checked) + .switch-slider {
 }
 
 /* ===== OVERRIDE PARA BOTÓN CONFIRMAR EN MODALES ===== */
-/* Forzar el color rojo para el botón de confirmar en todas las instancias */
-.modal-btn-confirmar {
+/* Forzar el color rojo para el botón de confirmar en todas las instancias EXCEPTO SubirReporte */
+.modal-btn-confirmar:not(.modal-btn-subir-reporte) {
   background-color: #E9383B !important;
   color: white !important;
 }
 
-.modal-btn-confirmar:hover {
+.modal-btn-confirmar:not(.modal-btn-subir-reporte):hover {
   background-color: #d32f2f !important;
 }
 
@@ -1467,4 +1467,63 @@ input:not(:checked) + .switch-slider {
 /* Clase para animación de salida */
 .modal-content-coordinadores.closing {
   animation: slideOut 0.3s ease;
+}
+
+/* ===== ESTILOS PARA ESPECIALIDADES EN TABLA DE COLABORADORES ===== */
+/* Contenedor principal de información de póliza */
+.poliza-info-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+}
+
+/* Contenedor de la póliza principal (icono + nombre) */
+.poliza-principal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Contenedor de especialidades del colaborador */
+.colaborador-especialidades {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Contenedor de chips de especialidades en tabla */
+.especialidades-chips-tabla {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+/* Chip individual de especialidad en tabla */
+.especialidad-chip-tabla {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* Icono dentro del chip en tabla */
+.especialidad-chip-tabla i {
+  font-size: 0.6rem;
+  color: #64748b;
+}
+
+/* Hover effect para chips en tabla */
+.especialidad-chip-tabla:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
 }

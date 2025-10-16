@@ -15,15 +15,24 @@ const CollaborativeWorkSelector: React.FC<CollaborativeWorkSelectorProps> = ({
     onSelectionChange,
     onClose
 }) => {
-    const { encargados, fetchEncargadosParaColaborativo } = useEncargadosData(); // 🤝 Usar función específica
+    const { encargados, fetchEncargados } = useEncargadosData();
     const [colaboradores, setColaboradores] = useState<Encargado[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedColaboradores, setSelectedColaboradores] = useState<string[]>([]);
     const [isCollaborative, setIsCollaborative] = useState(false);
-    const [participationDescriptions, setParticipationDescriptions] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
         if (isVisible) {
+            const loadColaboradores = async () => {
+                try {
+                    setLoading(true);
+                    console.log('🤝 Cargando colaboradores para trabajo colaborativo...');
+                    await fetchEncargados(); // Usar endpoint básico
+                } catch (error) {
+                    console.error('Error cargando colaboradores:', error);
+                    setLoading(false);
+                }
+            };
             loadColaboradores();
         }
     }, [isVisible]);
@@ -35,39 +44,16 @@ const CollaborativeWorkSelector: React.FC<CollaborativeWorkSelectorProps> = ({
         setLoading(false);
     }, [encargados, currentColaboradorId]);
 
-    const loadColaboradores = async () => {
-        try {
-            setLoading(true);
-            console.log('🤝 Cargando colaboradores para trabajo colaborativo...');
-            await fetchEncargadosParaColaborativo(); // 🔒 Usar endpoint con filtrado estricto
-        } catch (error) {
-            console.error('Error cargando colaboradores:', error);
-            setLoading(false);
-        }
-    };
-
     const handleColaboradorToggle = (colaboradorId: string) => {
         setSelectedColaboradores(prev => {
             if (prev.includes(colaboradorId)) {
                 // Remover colaborador
-                const newSelected = prev.filter(id => id !== colaboradorId);
-                // Limpiar descripción si se deselecciona
-                const newDescriptions = { ...participationDescriptions };
-                delete newDescriptions[colaboradorId];
-                setParticipationDescriptions(newDescriptions);
-                return newSelected;
+                return prev.filter(id => id !== colaboradorId);
             } else {
                 // Agregar colaborador
                 return [...prev, colaboradorId];
             }
         });
-    };
-
-    const handleDescriptionChange = (colaboradorId: string, descripcion: string) => {
-        setParticipationDescriptions(prev => ({
-            ...prev,
-            [colaboradorId]: descripcion
-        }));
     };
 
     const handleToggleCollaborative = () => {
@@ -77,7 +63,6 @@ const CollaborativeWorkSelector: React.FC<CollaborativeWorkSelectorProps> = ({
         if (!newIsCollaborative) {
             // Si se desactiva el trabajo colaborativo, limpiar selecciones
             setSelectedColaboradores([]);
-            setParticipationDescriptions({});
         }
     };
 
@@ -99,7 +84,7 @@ const CollaborativeWorkSelector: React.FC<CollaborativeWorkSelectorProps> = ({
             ...selectedColaboradores.map(colId => ({
                 colaborador: colId,
                 rol: 'colaborador',
-                descripcion: participationDescriptions[colId] || 'Colaboró en el trabajo'
+                descripcion: 'Colaboró en el trabajo'
             }))
         ];
 
@@ -115,7 +100,6 @@ const CollaborativeWorkSelector: React.FC<CollaborativeWorkSelectorProps> = ({
         // Resetear estado
         setIsCollaborative(false);
         setSelectedColaboradores([]);
-        setParticipationDescriptions({});
         onSelectionChange(false, [], []);
         onClose();
     };
@@ -169,25 +153,8 @@ const CollaborativeWorkSelector: React.FC<CollaborativeWorkSelectorProps> = ({
                                                     </span>
                                                 </label>
                                             </div>
-
-                                            {selectedColaboradores.includes(colaborador._id) && (
-                                                <div className="participation-description">
-                                                    <textarea
-                                                        placeholder="Describe qué hizo este colaborador..."
-                                                        value={participationDescriptions[colaborador._id] || ''}
-                                                        onChange={(e) => handleDescriptionChange(colaborador._id, e.target.value)}
-                                                        rows={2}
-                                                    />
-                                                </div>
-                                            )}
                                         </div>
                                     ))}
-                                </div>
-                            )}
-
-                            {selectedColaboradores.length > 0 && (
-                                <div className="selection-summary">
-                                    <strong>Colaboradores seleccionados: {selectedColaboradores.length}</strong>
                                 </div>
                             )}
                         </div>

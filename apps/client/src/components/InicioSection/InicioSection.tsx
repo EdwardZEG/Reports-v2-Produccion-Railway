@@ -260,7 +260,7 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                                                 <div className="colaborador-avatar">
                                                     {colaborador.iniciales || colaborador.nombre?.substring(0, 2).toUpperCase()}
                                                 </div>
-                                                <span className="colaborador-nombre">{colaborador.nombre}</span>
+                                                <span className="colaborador-nombre">{colaborador.nombreCompleto || colaborador.nombre}</span>
                                             </div>
                                             <div className="stats-cell reportes-count">{colaborador.dispositivos}</div>
                                             <div className="stats-cell porcentaje-value">{colaborador.porcentaje}</div>

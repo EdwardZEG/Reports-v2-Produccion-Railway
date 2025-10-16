@@ -4,6 +4,7 @@ import axios, { AxiosResponse } from "axios";
 import api from "../api";
 import { toast } from "react-toastify";
 import PreviewEspecialidad from "../components/PreviewEspecialidad/PreviewEspecialidad"; // Importa nuevo componente de cards
+import { getRol, getToken, decodeJWT } from "../auth/authService";
 
 // Interfaces mantienen compatibilidad con backend existente
 interface Especialidad {
@@ -54,6 +55,34 @@ const Especialidades = () => {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [archivoActual, setArchivoActual] = useState<string | null>(null);
 
+  // Estado específico para mostrar progreso de subida de archivo
+  const [subiendoArchivo, setSubiendoArchivo] = useState(false);
+
+  // Estados para información del usuario logueado
+  const [userRole, setUserRole] = useState<string>("");
+  const [userPolizaId, setUserPolizaId] = useState<string | null>(null);
+  const [isCoordinador, setIsCoordinador] = useState<boolean>(false);
+
+  // useEffect para obtener información del usuario logueado
+  useEffect(() => {
+    const token = getToken();
+    const role = getRol()?.toLowerCase() || "";
+
+    setUserRole(role);
+    setIsCoordinador(role === "coordinador");
+
+    if (token) {
+      try {
+        const decodedToken = decodeJWT(token);
+        if (decodedToken?.polizaId) {
+          setUserPolizaId(decodedToken.polizaId);
+        }
+      } catch (error) {
+        console.error("Error decodificando token:", error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
@@ -61,17 +90,46 @@ const Especialidades = () => {
           api.get("/polizas"),
           api.get("/especialidades"),
         ]);
-        setPolizas(resPolizas.data);
-        setEspecialidades(resEspecialidades.data);
-        setEspecialidadesFiltradas(resEspecialidades.data); // Inicializar filtradas para búsqueda
+
+        // Filtrar pólizas para coordinadores (necesario para el formulario)
+        let polizasData = resPolizas.data;
+        if (isCoordinador && userPolizaId) {
+          polizasData = resPolizas.data.filter((poliza: Poliza) => poliza._id === userPolizaId);
+        }
+
+        // Filtrar especialidades para coordinadores: solo las de su póliza
+        let especialidadesData = resEspecialidades.data;
+        if (isCoordinador && userPolizaId) {
+          especialidadesData = resEspecialidades.data.filter((especialidad: Especialidad) => {
+            // Verificar si la especialidad pertenece a la póliza del coordinador
+            if (Array.isArray(especialidad.poliza)) {
+              return especialidad.poliza.some((pol: any) =>
+                typeof pol === 'string' ? pol === userPolizaId : pol._id === userPolizaId
+              );
+            } else if (typeof especialidad.poliza === 'string') {
+              return especialidad.poliza === userPolizaId;
+            } else if (especialidad.poliza && typeof especialidad.poliza === 'object') {
+              return (especialidad.poliza as Poliza)._id === userPolizaId;
+            }
+            return false;
+          });
+        }
+
+        setPolizas(polizasData);
+        setEspecialidades(especialidadesData);
+        setEspecialidadesFiltradas(especialidadesData); // Inicializar filtradas para búsqueda
       } catch (err) {
         console.error("Error al obtener datos:", err);
         setError("Error al cargar los datos. Intente nuevamente.");
         toast.error("Error al cargar los datos. Intente nuevamente.");
       }
     };
-    obtenerDatos();
-  }, []);
+
+    // Solo ejecutar si ya tenemos la información del usuario
+    if (userRole) {
+      obtenerDatos();
+    }
+  }, [isCoordinador, userPolizaId, userRole]);
 
   // useEffect para filtrar especialidades cuando cambia el término de búsqueda
   // Sistema de búsqueda avanzada con múltiples criterios
@@ -288,6 +346,12 @@ const Especialidades = () => {
       return;
     }
 
+    // Activar estado de subida inmediatamente si hay archivo para dar feedback instantáneo
+    if (archivo) {
+      setSubiendoArchivo(true);
+      toast.info("Procesando especialidad y plantilla...");
+    }
+
     try {
       let especialidadRes: AxiosResponse<any, any>;
       // Preparar datos para envío al backend
@@ -309,31 +373,41 @@ const Especialidades = () => {
       const espId = especialidadRes.data._id;
 
       // Manejar subida de archivo de plantilla si existe
+      let reporteId = null;
       if (archivo) {
+        toast.info("Subiendo plantilla, por favor espera...");
+
         const form = new FormData();
         form.append("archivo", archivo);
         form.append("idEspecialidad", espId);
         form.append("name", `${formData.nombre.trim()}-plantilla`);
 
-        // Subir plantilla al servidor
-        const resReporte = await api.post("/reportes", form, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        try {
+          // Subir plantilla al servidor
+          const resReporte = await api.post("/reportes", form, {
+            headers: { "Content-Type": "multipart/form-data" },
+            timeout: 30000, // 30 segundos timeout
+          });
 
-        const reporteId = resReporte.data._id;
+          reporteId = resReporte.data._id;
 
-        // Vincular plantilla con especialidad
-        await api.put(`/especialidades/${espId}`, { reporte: reporteId });
+          // Vincular plantilla con especialidad
+          await api.put(`/especialidades/${espId}`, { reporte: reporteId });
+
+          toast.success("Plantilla subida exitosamente");
+        } catch (uploadError) {
+          console.error("Error al subir plantilla:", uploadError);
+          toast.error("Error al subir la plantilla. Intenta de nuevo.");
+          throw uploadError; // Re-throw para que se maneje en el catch principal
+        }
       }
 
-      // Obtener datos actualizados de la especialidad 
-      let nuevaEspData = especialidadRes.data;
-      try {
-        const fullRes = await api.get(`/especialidades/${espId}`);
-        nuevaEspData = fullRes.data;
-      } catch {
-        console.warn("No se pudo obtener especialidad actualizada.");
-      }
+      // Usar los datos de la respuesta inicial y actualizar con reporte si se subió
+      let nuevaEspData = {
+        ...especialidadRes.data,
+        // Si se subió un reporte, agregarlo a los datos
+        ...(reporteId && { reporte: reporteId })
+      };
 
       // Actualizar estado local de manera eficiente
       if (modoEdicion && idEditando) {
@@ -354,9 +428,13 @@ const Especialidades = () => {
       setFormData({ nombre: "", descripcion: "", poliza: [] });
       setArchivo(null);
       setArchivoActual(null);
+      setSubiendoArchivo(false);
       setErrores({});
       toast.success("Especialidad guardada exitosamente.");
     } catch (err: any) {
+      // Resetear estado de subida en caso de error
+      setSubiendoArchivo(false);
+
       // Manejo de errores específicos del servidor
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 409) {
@@ -454,12 +532,12 @@ const Especialidades = () => {
 
     try {
       await api.delete(`/especialidades/${especialidadAEliminar._id}`);
-      
+
       // Actualizar estado local eliminando la especialidad
       const especialidadesActualizadas = especialidades.filter((e) => e._id !== especialidadAEliminar._id);
       setEspecialidades(especialidadesActualizadas);
       // Las filtradas se actualizarán automáticamente por el useEffect del término de búsqueda
-      
+
       toast.success("Especialidad eliminada exitosamente.");
       setShowModalEliminar(false);
       setEspecialidadAEliminar(null);
@@ -511,22 +589,25 @@ const Especialidades = () => {
                 <i className={`bi ${terminoBusqueda ? 'bi-x' : 'bi-search'}`}></i>
               </button>
             </div>
-            {/* Botón para abrir modal de registro/creación */}
-            <button
-              className="btn-registrar-especialidad"
-              onClick={() => {
-                setMostrarModal(true);
-                setModoEdicion(false); // Modo creación
-                setIdEditando(null);
-                // Limpiar formulario para nueva especialidad
-                setFormData({ nombre: "", descripcion: "", poliza: [] });
-                setArchivo(null);
-                setArchivoActual(null);
-              }}
-            >
-              <i className="bi bi-plus-circle"></i>
-              Registrar
-            </button>
+            {/* Botón para abrir modal de registro/creación - Solo para administradores */}
+            {!isCoordinador && (
+              <button
+                className="btn-registrar-especialidad"
+                onClick={() => {
+                  setMostrarModal(true);
+                  setModoEdicion(false); // Modo creación
+                  setIdEditando(null);
+                  // Limpiar formulario para nueva especialidad
+                  setFormData({ nombre: "", descripcion: "", poliza: [] });
+                  setArchivo(null);
+                  setArchivoActual(null);
+                  setSubiendoArchivo(false);
+                }}
+              >
+                <i className="bi bi-plus-circle"></i>
+                Registrar
+              </button>
+            )}
           </div>
         </div>
 
@@ -555,6 +636,7 @@ const Especialidades = () => {
             onEditar={handleEditar} // Callback para edición
             onEliminar={(id) => handleEliminar(id)} // Callback para eliminación
             isLoading={false}
+            isCoordinador={isCoordinador} // Pasar información del rol para ocultar botones CRUD
           />
         </div>
       </div>
@@ -570,6 +652,7 @@ const Especialidades = () => {
               setFormData({ nombre: "", descripcion: "", poliza: [] });
               setArchivo(null);
               setArchivoActual(null);
+              setSubiendoArchivo(false);
               setCarruselIndex(0);
               setErrores({});
             }}>
@@ -684,6 +767,7 @@ const Especialidades = () => {
                     setFormData({ nombre: "", descripcion: "", poliza: [] });
                     setArchivo(null);
                     setArchivoActual(null);
+                    setSubiendoArchivo(false);
                     setCarruselIndex(0);
                     setErrores({});
                   }}
@@ -691,9 +775,16 @@ const Especialidades = () => {
                   <i className="bi bi-x-circle"></i>
                   Cancelar
                 </button>
-                <button type="submit" className="modal-btn modal-btn-confirmar-poliza">
-                  <i className="bi bi-check-circle"></i>
-                  {modoEdicion ? "Actualizar" : "Registrar"}
+                <button
+                  type="submit"
+                  className="modal-btn modal-btn-confirmar-poliza"
+                  disabled={subiendoArchivo}
+                >
+                  <i className={subiendoArchivo ? "bi bi-hourglass-split" : "bi bi-check-circle"}></i>
+                  {subiendoArchivo
+                    ? "Subiendo..."
+                    : (modoEdicion ? "Actualizar" : "Registrar")
+                  }
                 </button>
               </div>
             </form>

@@ -45,8 +45,10 @@ export const searchDevicesForAutocomplete = async (
 
     const devices = await DeviceCatalog.find(filter)
       .limit(parseInt(limit as string))
-      .sort({ identifier: 1 })
-      .select('type ubication identifier building level')
+      .sort({ insertOrder: 1 }) // Ordenar por orden de inserción
+      .select('type ubication identifier building level poliza especialidad')
+      .populate('poliza', 'nombre')
+      .populate('especialidad', 'nombre')
       .lean();
 
     res.status(200).json({
@@ -103,7 +105,9 @@ export const getCatalogDevices = async (
       DeviceCatalog.find(filter)
         .skip(skip)
         .limit(parseInt(limit as string))
-        .sort({ createdAt: -1 })
+        .sort({ insertOrder: 1 }) // Ordenar por orden de inserción
+        .populate('poliza', 'nombre')
+        .populate('especialidad', 'nombre')
         .lean(),
       DeviceCatalog.countDocuments(filter)
     ]);
@@ -157,6 +161,7 @@ export const createOrGetCatalogDevice = async (
     }
 
     // Crear nuevo dispositivo en catálogo
+    // insertOrder se asigna automáticamente via middleware
     device = await DeviceCatalog.create({
       type,
       ubication,

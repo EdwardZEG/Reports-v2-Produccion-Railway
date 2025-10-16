@@ -257,23 +257,31 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
       // 4. Notificar al componente padre sobre los dispositivos encontrados
       onSearch(devices);
 
+      // 5. Terminar el estado de loading inmediatamente después de obtener dispositivos
+      setIsLoading(false);
+      onLoadingEnd?.(); // Notificar al componente padre
+
       if (devices.length === 0) {
         toast.info("Nada que mostrar en este período");
         return;
       }
 
-      // 5. Generar reporte con progreso en tiempo real usando Server-Sent Events
-      const { nombre, url } = await generarReporteConProgreso(devices, especialidad, poliza, fechaInicio, fechaFinal);
-
-      // 6. Notificar al componente padre sobre el reporte generado
-      onReporteGenerado(nombre, url);
+      // 6. Generar reporte en segundo plano (sin afectar el loading state)
+      try {
+        const { nombre, url } = await generarReporteConProgreso(devices, especialidad, poliza, fechaInicio, fechaFinal);
+        // 7. Notificar al componente padre sobre el reporte generado
+        onReporteGenerado(nombre, url);
+      } catch (reportError) {
+        console.error("Error generando reporte:", reportError);
+        toast.error("Error generando reporte, pero los datos se mostraron correctamente");
+        onReporteGenerado("", ""); // Resetear estado del reporte
+      }
     } catch (err: any) {
       // Cambio: Manejo robusto de errores con logging detallado y reseteo de estado
-      console.error("Error en generación:", err);
-      toast.error("Error buscando dispositivos o generando reporte");
+      console.error("Error en búsqueda de dispositivos:", err);
+      toast.error("Error buscando dispositivos");
       onReporteGenerado("", ""); // Resetear estado del reporte
-    } finally {
-      // Cambio: Garantizar que el estado de carga se desactive siempre, incluso en errores
+      // Terminar loading solo si no se terminó antes
       setIsLoading(false);
       onLoadingEnd?.(); // Notificar al componente padre
     }

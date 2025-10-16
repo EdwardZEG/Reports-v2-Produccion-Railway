@@ -30,6 +30,7 @@ interface PreviewEspecialidadProps {
     onEditar: (esp: Especialidad) => void;
     onEliminar: (id: string) => void;
     isLoading?: boolean;
+    isCoordinador?: boolean; // Nueva prop para identificar si es coordinador
 }
 
 const PreviewEspecialidad: React.FC<PreviewEspecialidadProps> = ({
@@ -37,7 +38,8 @@ const PreviewEspecialidad: React.FC<PreviewEspecialidadProps> = ({
     polizas,
     onEditar,
     onEliminar,
-    isLoading = false
+    isLoading = false,
+    isCoordinador = false // Default a false si no se proporciona
 }) => {
     // Verificar si hay especialidades para mostrar - manejo de estados vacíos
     const hasEspecialidades = especialidades && especialidades.length > 0;
@@ -80,22 +82,25 @@ const PreviewEspecialidad: React.FC<PreviewEspecialidadProps> = ({
                                             <h4 className="preview-especialidad__card-title">{item.nombre}</h4>
                                         </div>
                                         {/* Botones de acción - editar y eliminar */}
-                                        <div className="preview-especialidad__card-actions">
-                                            <button
-                                                className="btn-editar-card"
-                                                onClick={() => onEditar(item)}
-                                                title="Editar especialidad"
-                                            >
-                                                <CiEdit size={16} />
-                                            </button>
-                                            <button
-                                                className="btn-eliminar-card"
-                                                onClick={() => onEliminar(item._id)}
-                                                title="Eliminar especialidad"
-                                            >
-                                                <CiTrash size={16} />
-                                            </button>
-                                        </div>
+                                        {/* Botones de acción - solo para administradores */}
+                                        {!isCoordinador && (
+                                            <div className="preview-especialidad__card-actions">
+                                                <button
+                                                    className="btn-editar-card"
+                                                    onClick={() => onEditar(item)}
+                                                    title="Editar especialidad"
+                                                >
+                                                    <CiEdit size={16} />
+                                                </button>
+                                                <button
+                                                    className="btn-eliminar-card"
+                                                    onClick={() => onEliminar(item._id)}
+                                                    title="Eliminar especialidad"
+                                                >
+                                                    <CiTrash size={16} />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Contenido principal de la card - layout estructurado */}

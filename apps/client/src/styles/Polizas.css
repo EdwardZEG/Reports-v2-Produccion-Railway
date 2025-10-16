@@ -1093,12 +1093,12 @@
 }
 
 .modal-btn-confirmar {
-  background-color: #E9383B !important;
+  background-color: #4927F5 !important;
   color: white;
 }
 
 .modal-btn-confirmar:hover {
-  background-color: #d32f2f !important;
+  background-color: #3a1fd1 !important;
 }
 
 .modal-btn-confirmar-poliza {
@@ -1256,4 +1256,72 @@
   color: white;
   font-size: 1.2rem;
   /* Sin fondo - solo el icono */
+}
+
+/* ===== ESTILOS PARA OPCIÓN "SIN ASIGNAR" ===== */
+.poliza-card.sin-asignar {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px dashed #6c757d;
+  color: #6c757d;
+}
+
+.poliza-card.sin-asignar:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  border-color: #495057;
+  color: #495057;
+  transform: translateY(-2px);
+}
+
+.poliza-card.sin-asignar.poliza-selected {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-color: #dc3545;
+  color: white;
+}
+
+.poliza-card.sin-asignar.poliza-selected:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+}
+
+.poliza-card.sin-asignar i:first-child {
+  color: #6c757d;
+}
+
+.poliza-card.sin-asignar.poliza-selected i:first-child {
+  color: white;
+}
+
+/* ===== ESTILOS PARA BOTONES X MEJORADOS ===== */
+/* Botón X para limpiar búsqueda de coordinador */
+.clear-search-btn {
+  position: absolute;
+  right: 10px;
+  top: 1px;
+  bottom: 1px;
+  width: 18px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  color: #333;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  margin: auto 0;
+}
+
+.clear-search-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+.clear-search-btn:active {
+  transform: scale(0.95);
 }

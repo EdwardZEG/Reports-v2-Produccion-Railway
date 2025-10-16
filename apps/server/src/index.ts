@@ -2,6 +2,7 @@
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
+import http from 'http';
 import connectDB from './config/db';
 import authRoutes from './routes/authRoutes';
 import polizaRoutes from './routes/polizaRoutes';
@@ -10,6 +11,7 @@ import ColaboradoresRoutes from './routes/colaboradorRoutes';
 import EspecialidadRoutes from './routes/especialidadRoutes';
 import ReporteRoutes from './routes/ReporteRoutes';
 import { errorHandler } from './middlewares/errorHandler';
+import { imageHandler, documentHandler } from './middlewares/imageHandler';
 import TestRoutes from './routes/TestRoutes';
 import { authenticate } from './middlewares/auth';
 import deviceRoutes from './routes/deviceRoutes';
@@ -33,6 +35,7 @@ if (process.env.NODE_ENV !== 'production') {
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Configurar límites para manejar imágenes grandes y evitar error 431
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? true  // Permite todos los orígenes en producción
@@ -40,9 +43,30 @@ app.use(cors({
   credentials: true,
 }));
 
-// Aumentar límite para imágenes base64
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// Aumentar límite para imágenes base64 y datos grandes
+app.use(express.json({
+  limit: '100mb',
+  type: ['application/json', 'text/plain']
+}));
+app.use(express.urlencoded({
+  limit: '100mb',
+  extended: true,
+  parameterLimit: 100000
+}));
+
+// Middleware para manejar headers grandes (soluciona error 431)
+app.use((req, res, next) => {
+  // Configurar límites específicos para requests con imágenes
+  req.socket.setMaxListeners(0);
+  next();
+});
+
+// Middleware para manejo de imágenes grandes
+app.use(imageHandler);
+
+// Middleware específico para rutas de documentos
+app.use('/api/reportes/generar', documentHandler);
+app.use('/api/reportes/generate', documentHandler);
 
 // Middleware de debugging para endpoint de completado de dispositivos
 app.use((req, res, next) => {
@@ -54,6 +78,11 @@ app.use((req, res, next) => {
     console.log('   📋 BODY:', req.body);
     console.log('   🔑 HEADERS AUTH:', req.headers.authorization ? 'SI' : 'NO');
     console.log('   ⏰ TIMESTAMP:', new Date().toISOString());
+    console.log('   🎯 PATH BREAKDOWN:');
+    const pathParts = req.url.split('/');
+    pathParts.forEach((part, index) => {
+      console.log(`     [${index}]: "${part}"`);
+    });
   }
   next();
 });
@@ -146,12 +175,34 @@ app.get('/api/view-migrated-data', async (req: Request, res: Response) => {
 // RUTA PARA VER TODOS LOS DISPOSITIVOS EN CATÁLOGO
 app.get('/api/all-catalog-devices', async (req: Request, res: Response) => {
   try {
-    const allDevices = await DeviceCatalog.find({}).lean();
+    const allDevices = await DeviceCatalog.find({}).populate(['especialidad', 'poliza']).lean();
 
     res.json({
       success: true,
       data: allDevices,
       count: allDevices.length
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// RUTA PARA OBTENER UN DISPOSITIVO ESPECÍFICO POR ID
+app.get('/api/all-catalog-devices/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const device = await DeviceCatalog.findById(id).populate(['especialidad', 'poliza']).lean();
+
+    if (!device) {
+      return res.status(404).json({
+        success: false,
+        error: 'Dispositivo no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: device
     });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
@@ -174,6 +225,46 @@ app.get('/api/fix-active-field', async (req: Request, res: Response) => {
       modifiedCount: result.modifiedCount
     });
   } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// NUEVO: ASIGNAR SORTORDER A DISPOSITIVOS EXISTENTES
+app.get('/api/assign-sort-order', async (req: Request, res: Response) => {
+  try {
+    console.log('🔄 Iniciando asignación de sortOrder...');
+
+    // Obtener todos los dispositivos ordenados por identifier
+    const devices = await DeviceCatalog.find({})
+      .sort({ identifier: 1 })
+      .lean();
+
+    console.log(`📋 Encontrados ${devices.length} dispositivos`);
+
+    let updateCount = 0;
+
+    // Asignar sortOrder basado en el número extraído del identifier
+    for (const device of devices) {
+      // Extraer número del identifier (ej: N01L01D001 -> 1)
+      const match = device.identifier.match(/D(\d+)$/);
+      const sortOrder = match ? parseInt(match[1], 10) : (updateCount + 1);
+
+      await DeviceCatalog.findByIdAndUpdate(
+        device._id,
+        { $set: { sortOrder } }
+      );
+
+      updateCount++;
+    }
+
+    res.json({
+      success: true,
+      message: `SortOrder asignado exitosamente a ${updateCount} dispositivos`,
+      updatedCount: updateCount
+    });
+
+  } catch (error: any) {
+    console.error('❌ Error asignando sortOrder:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -291,7 +382,7 @@ app.get('/api/device-catalog-search', async (req: Request, res: Response) => {
 
     const devices = await DeviceCatalog.find(filter)
       .limit(parseInt(limit as string))
-      .sort({ identifier: 1 })
+      .sort({ insertOrder: 1 }) // Ordenar por orden de inserción
       .select('type ubication identifier building level')
       .lean();
 
@@ -346,9 +437,21 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+// Crear servidor HTTP con configuraciones personalizadas para manejar headers grandes
+const server = http.createServer(app);
+
+// Configurar límites del servidor para evitar error 431
+server.maxHeadersCount = 0; // Sin límite de headers
+server.headersTimeout = 120000; // 2 minutos timeout para headers
+server.requestTimeout = 300000; // 5 minutos timeout para requests
+
+server.listen(PORT, () => {
   console.log(`Servidor HTTP corriendo en http://localhost:${PORT}`);
   console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+  console.log(`🔧 Configuraciones para imágenes grandes activadas:`);
+  console.log(`   - Límite JSON/URL: 100MB`);
+  console.log(`   - Headers ilimitados`);
+  console.log(`   - Timeout extendido: 5min`);
   if (process.env.NODE_ENV === 'production') {
     console.log('✅ Sirviendo archivos estáticos del cliente React');
   }

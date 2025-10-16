@@ -23,6 +23,7 @@ interface PreviewPolizaProps {
     onEditar: (poliza: Poliza) => void;
     onEliminar: (id: string) => void;
     isLoading: boolean;
+    isCoordinador?: boolean; // Nueva prop para identificar si es coordinador
 }
 
 const PreviewPoliza: React.FC<PreviewPolizaProps> = ({
@@ -30,7 +31,8 @@ const PreviewPoliza: React.FC<PreviewPolizaProps> = ({
     coordinadores,
     onEditar,
     onEliminar,
-    isLoading
+    isLoading,
+    isCoordinador = false // Default a false si no se proporciona
 }) => {
     // Estado para manejar qué card está expandida
     const [cardExpandida, setCardExpandida] = useState<string | null>(null);
@@ -169,20 +171,25 @@ const PreviewPoliza: React.FC<PreviewPolizaProps> = ({
                                             >
                                                 <i className={`bi ${cardExpandida === item._id ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
                                             </button>
-                                            <button
-                                                className="btn-editar-card"
-                                                onClick={() => onEditar(item)}
-                                                title="Editar póliza"
-                                            >
-                                                <CiEdit size={16} />
-                                            </button>
-                                            <button
-                                                className="btn-eliminar-card"
-                                                onClick={() => onEliminar(item._id)}
-                                                title="Eliminar póliza"
-                                            >
-                                                <CiTrash size={16} />
-                                            </button>
+                                            {/* Botones de edición solo para administradores */}
+                                            {!isCoordinador && (
+                                                <>
+                                                    <button
+                                                        className="btn-editar-card"
+                                                        onClick={() => onEditar(item)}
+                                                        title="Editar póliza"
+                                                    >
+                                                        <CiEdit size={16} />
+                                                    </button>
+                                                    <button
+                                                        className="btn-eliminar-card"
+                                                        onClick={() => onEliminar(item._id)}
+                                                        title="Eliminar póliza"
+                                                    >
+                                                        <CiTrash size={16} />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
 

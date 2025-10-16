@@ -9,9 +9,17 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:4000',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        // Configuraciones para manejar requests grandes (error 431)
+        timeout: 300000, // 5 minutos timeout
+        headers: {
+          'Connection': 'keep-alive'
+        }
       }
-    }
+    },
+    // Configuraciones adicionales para requests grandes
+    host: true,
+    cors: true
   },
   build: {
     outDir: 'dist',

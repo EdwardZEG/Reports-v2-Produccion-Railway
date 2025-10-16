@@ -239,7 +239,10 @@ export const actualizarColaborador: RequestHandler = async (req, res, next) => {
       const salt = await bcrypt.genSalt(10);
       datosActualizados.contraseña = await bcrypt.hash(contraseña, salt);
     }
-    if (nuevaPolizaId !== undefined) datosActualizados.poliza = nuevaPolizaId || null;
+    // Solo actualizar póliza si se proporciona explícitamente en el request
+    if (nuevaPolizaId !== undefined) {
+      datosActualizados.poliza = nuevaPolizaId === "" ? null : nuevaPolizaId;
+    }
     if (nuevoCoordinadorId !== undefined) datosActualizados.coordinador = nuevoCoordinadorId || null;
     datosActualizados.especialidad = nuevasEspArray;
 

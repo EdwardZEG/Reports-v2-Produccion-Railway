@@ -14,7 +14,6 @@ import Especialidades from './Especialidad';
 import Polizas from './Polizas';
 import Coordinadores from './Coordinadores';
 import Encargados from './Encargados';
-import SubirReporteSection from '../components/SubirReporteSection/SubirReporteSection';
 import PeriodosMPSection from '../components/PeriodosMP/PeriodosMPSection';
 import HistorialReportesSection from '../components/HistorialReportes/HistorialReportesSection';
 
@@ -63,6 +62,8 @@ const Dashboard: React.FC = () => {
     colaboradores?: Array<{
       id?: string;
       nombre: string;
+      apellido_paterno?: string;
+      nombreCompleto?: string;
       dispositivos: number;
       porcentaje: string;
       iniciales?: string;
@@ -91,10 +92,8 @@ const Dashboard: React.FC = () => {
   const [sectionTransition, setSectionTransition] = useState('');          // Estado de transición entre secciones
 
   // Estado para el modo expandido de vista previa
+  // Estado para el modo expandido de vista previa
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);        // Control del modo expandido de vista previa
-
-  // Estados para SubirReporteSection
-  const [dispositivosSubidos, setDispositivosSubidos] = useState<any[]>([]);  // Dispositivos subidos en la sesión
 
   // Referencias para el DOM y temporizadores
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -141,19 +140,13 @@ const Dashboard: React.FC = () => {
       component: Encargados,
       roles: ['administrador', 'coordinador']
     },
-    // ORDEN PARA COLABORADORES: 1. Períodos MP, 2. Subir Reporte, 3. Mi Historial
+    // ORDEN PARA COLABORADORES: 1. Períodos MP, 2. Mi Historial
     {
       section: 'periodos',
       icon: 'calendar-range',
       text: 'Periodos MP',
       component: PeriodosMPSection,
       roles: ['coordinador', 'encargado', 'auxiliar']
-    },
-    {
-      section: 'subirReporte',
-      icon: 'upload',
-      text: 'Subir Reporte',
-      roles: ['encargado', 'auxiliar']
     },
     {
       section: 'historialReportes',
@@ -342,19 +335,6 @@ const Dashboard: React.FC = () => {
     stopProgressBar(); // Detener barra de progreso
   }, [stopProgressBar]);
 
-  // Callbacks para SubirReporteSection
-  const handleDeviceAdded = useCallback((device: any) => {
-    setDispositivosSubidos(prev => [...prev, device]);
-  }, []);
-
-  const handleSubirReporteLoadingStart = useCallback(() => {
-    setIsLoading(true);
-  }, []);
-
-  const handleSubirReporteLoadingEnd = useCallback(() => {
-    setIsLoading(false);
-  }, []);
-
   /**
    * Cargar estadísticas reales de colaboradores desde la API 
    * Obtiene datos reales de reportes y colaboradores para mostrar en el modal
@@ -382,6 +362,8 @@ const Dashboard: React.FC = () => {
       const colaboradoresConPorcentaje = colaboradores.map((colaborador: any) => ({
         id: colaborador.id,
         nombre: colaborador.nombre,
+        apellido_paterno: colaborador.apellido_paterno,
+        nombreCompleto: colaborador.nombreCompleto,
         dispositivos: colaborador.reportes,
         porcentaje: resumen.totalReportes > 0
           ? ((colaborador.reportes / resumen.totalReportes) * 100).toFixed(1) + '%'
@@ -396,7 +378,7 @@ const Dashboard: React.FC = () => {
         .filter((colaborador: any) => colaborador.reportes > 0)
         .map((colaborador: any) => {
           const porcentaje = ((colaborador.reportes / resumen.totalReportes) * 100).toFixed(1);
-          return `${colaborador.nombre}: ${porcentaje}%`;
+          return `${colaborador.nombreCompleto || colaborador.nombre}: ${porcentaje}%`;
         })
         .join(', ');
 
@@ -791,7 +773,7 @@ const Dashboard: React.FC = () => {
                                       {colaborador.nombre.charAt(0).toUpperCase()}
                                     </div>
                                     <div className="collaborator-details">
-                                      <span className="collaborator-name">{colaborador.nombre}</span>
+                                      <span className="collaborator-name">{colaborador.nombreCompleto || colaborador.nombre}</span>
                                       {colaborador.poliza && (
                                         <span className="collaborator-poliza">{colaborador.poliza}</span>
                                       )}
@@ -878,19 +860,6 @@ const Dashboard: React.FC = () => {
       );
     }
 
-    // Vista de SubirReporte con el mismo layout que inicio
-    if (activeSection === 'subirReporte') {
-      return (
-        <SubirReporteSection
-          dispositivos={dispositivosSubidos}
-          isLoading={isLoading}
-          onDeviceAdded={handleDeviceAdded}
-          onLoadingStart={handleSubirReporteLoadingStart}
-          onLoadingEnd={handleSubirReporteLoadingEnd}
-        />
-      );
-    }
-
     // Renderizar otras secciones del dashboard según el menú seleccionado
     const menuItem = menuItems.find(item => item.section === activeSection);
     if (menuItem && menuItem.component) {
@@ -930,7 +899,14 @@ const Dashboard: React.FC = () => {
     // Cargar datos del usuario desde localStorage
     const userData = localStorage.getItem("nombre");
     if (userData) {
-      setNombreUsuario(userData);
+      try {
+        // Intentar parsear como JSON primero
+        const userObject = JSON.parse(userData);
+        setNombreUsuario(userObject.nombre || userData);
+      } catch (error) {
+        // Si falla el parse, usar como string simple
+        setNombreUsuario(userData);
+      }
     }
 
     // La configuración inicial de sección se maneja en otro useEffect basado en rol
@@ -942,20 +918,11 @@ const Dashboard: React.FC = () => {
     document.addEventListener('keydown', handleKeyNavigation);
     window.addEventListener('resize', checkMobile);
 
-    // Listener para navegación automática a SubirReporte desde Mis Dispositivos
-    const handleNavigateToSubirReporte = (event: CustomEvent) => {
-      console.log('🔄 Navegando automáticamente a SubirReporte:', event.detail);
-      setActiveSection('subirReporte');
-    };
-
-    window.addEventListener('navigateToSubirReporte', handleNavigateToSubirReporte as EventListener);
-
     // Limpieza de eventos y temporizadores al desmontar
     return () => {
       document.removeEventListener('click', handleClickOutside);
       document.removeEventListener('keydown', handleKeyNavigation);
       window.removeEventListener('resize', checkMobile);
-      window.removeEventListener('navigateToSubirReporte', handleNavigateToSubirReporte as EventListener);
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
       }
@@ -968,124 +935,94 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Nota: Actualmente todos los roles usan el dashboard completo con sidebar */}
-      {false ? (
-        <div className="simplified-content">
-          <div className="simplified-header">
-            <img
-              src={logoRwnet}
-              alt="RWNET Logo"
-              className="simplified-logo"
-            />
-            <div className="simplified-user-info">
-              <span>Bienvenido, {nombreUsuario}</span>
-              <button className="simplified-logout-btn" onClick={handleLogout}>
-                <i className="bi bi-box-arrow-right"></i> Cerrar sesión
-              </button>
-            </div>
-          </div>
-          <div className="simplified-main">
-            <SubirReporteSection
-              dispositivos={dispositivosSubidos}
-              isLoading={isLoading}
-              onDeviceAdded={handleDeviceAdded}
-              onLoadingStart={handleSubirReporteLoadingStart}
-              onLoadingEnd={handleSubirReporteLoadingEnd}
-            />
-          </div>
+      {/* Fondo semitransparente para móvil */}
+      {isSidebarExpanded && isMobile && (
+        <div className="sidebar-backdrop" onClick={closeSidebar}></div>
+      )}
+
+      {/* Sidebar */}
+      <div
+        ref={sidebarRef}
+        className={`sidebar ${isSidebarExpanded ? 'expanded' : ''}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Logo */}
+        <div className="sidebar-logo-container">
+          <img
+            src={logoRwnet}
+            alt="RWNET Logo"
+            className="logo"
+            onClick={handleLogoClick}
+          />
         </div>
-      ) : (
-        <>
-          {/* Fondo semitransparente para móvil */}
-          {isSidebarExpanded && isMobile && (
-            <div className="sidebar-backdrop" onClick={closeSidebar}></div>
-          )}
 
-          {/* Sidebar */}
-          <div
-            ref={sidebarRef}
-            className={`sidebar ${isSidebarExpanded ? 'expanded' : ''}`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+        {/* Menu Navigation */}
+        <div className="sidebar-menu">
+          {availableMenuItems.map((item) => (
+            <a
+              key={item.section}
+              href="#"
+              className={`sidebar-link ${activeSection === item.section ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveSectionHandler(item.section);
+              }}
+            >
+              <i className={`bi bi-${item.icon} me-2`}></i>
+              <span className="sidebar-link-text">{item.text}</span>
+            </a>
+          ))}
+        </div>
+
+        {/* User Footer */}
+        <div className="sidebar-footer">
+          <button
+            className="sidebar-footer-btn"
+            aria-expanded={isUserDropdownOpen}
+            onClick={toggleUserDropdown}
           >
-            {/* Logo */}
-            <div className="sidebar-logo-container">
-              <img
-                src={logoRwnet}
-                alt="RWNET Logo"
-                className="logo"
-                onClick={handleLogoClick}
-              />
+            <div className="user-avatar">
+              <span>{getUserInitials(nombreUsuario)}</span>
             </div>
+            <span className="user-name">{nombreUsuario}</span>
+            <i className={`bi bi-chevron-down arrow ${isUserDropdownOpen ? 'rotated' : ''}`}></i>
+          </button>
 
-            {/* Menu Navigation */}
-            <div className="sidebar-menu">
-              {availableMenuItems.map((item) => (
-                <a
-                  key={item.section}
-                  href="#"
-                  className={`sidebar-link ${activeSection === item.section ? 'active' : ''}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveSectionHandler(item.section);
-                  }}
-                >
-                  <i className={`bi bi-${item.icon} me-2`}></i>
-                  <span className="sidebar-link-text">{item.text}</span>
-                </a>
-              ))}
-            </div>
-
-            {/* User Footer */}
-            <div className="sidebar-footer">
-              <button
-                className="sidebar-footer-btn"
-                aria-expanded={isUserDropdownOpen}
-                onClick={toggleUserDropdown}
-              >
-                <div className="user-avatar">
-                  <span>{getUserInitials(nombreUsuario)}</span>
-                </div>
-                <span className="user-name">{nombreUsuario}</span>
-                <i className={`bi bi-chevron-down arrow ${isUserDropdownOpen ? 'rotated' : ''}`}></i>
-              </button>
-
-              {/* User Dropdown */}
-              <div className={`sidebar-footer-dropdown ${isUserDropdownOpen ? 'show' : ''}`}>
-                <div className="d-flex align-items-center mb-2">
-                  <div className="user-avatar me-2">
-                    <span>{getUserInitials(nombreUsuario)}</span>
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div className="user-name">{nombreUsuario}</div>
-                    <div className="user-email">{userEmail}</div>
-                  </div>
-                </div>
-                <div className="dropdown-divider"></div>
-                <div className="dropdown-item" onClick={goToConfig}>
-                  <i className="bi bi-gear me-2"></i>Configuración
-                </div>
-                <div className="dropdown-item" onClick={handleLogout}>
-                  <i className="bi bi-box-arrow-right me-2"></i>Cerrar sesión
-                </div>
+          {/* User Dropdown */}
+          <div className={`sidebar-footer-dropdown ${isUserDropdownOpen ? 'show' : ''}`}>
+            <div className="d-flex align-items-center mb-2">
+              <div className="user-avatar me-2">
+                <span>{getUserInitials(nombreUsuario)}</span>
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div className="user-name">{nombreUsuario}</div>
+                <div className="user-email">{userEmail}</div>
               </div>
             </div>
-          </div>
-
-          {/* Main Content */}
-          <div className={`content ${isSidebarExpanded ? 'expanded' : ''}`}>
-            <div className={`section-content ${sectionTransition}`}>
-              {renderContent()}
+            <div className="dropdown-divider"></div>
+            <div className="dropdown-item" onClick={goToConfig}>
+              <i className="bi bi-gear me-2"></i>Configuración
+            </div>
+            <div className="dropdown-item" onClick={handleLogout}>
+              <i className="bi bi-box-arrow-right me-2"></i>Cerrar sesión
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Botón hamburguesa para móvil */}
-          {isMobile && !isSidebarExpanded && (
-            <button className="mobile-menu-btn" onClick={openSidebar}>
-              <i className="bi bi-list"></i>
-            </button>
-          )}
-        </>
+      {/* Main Content */}
+      <div className={`content ${isSidebarExpanded ? 'expanded' : ''}`}>
+        <div className={`section-content ${sectionTransition}`}>
+          {renderContent()}
+        </div>
+      </div>
+
+      {/* Botón hamburguesa para móvil */}
+      {isMobile && !isSidebarExpanded && (
+        <button className="mobile-menu-btn" onClick={openSidebar}>
+          <i className="bi bi-list"></i>
+        </button>
       )}
     </div>
   );

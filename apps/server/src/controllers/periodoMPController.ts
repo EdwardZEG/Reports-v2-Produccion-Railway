@@ -16,7 +16,7 @@ export const createPeriodoMP = async (
 ) => {
   try {
     const {
-      nombre,
+      especialidad,
       coordinador,
       fechaInicio,
       fechaFin,
@@ -24,19 +24,22 @@ export const createPeriodoMP = async (
       dispositivos = []
     } = req.body;
 
-    if (!nombre || !coordinador || !fechaInicio || !fechaFin) {
-      return next(new AppError('nombre, coordinador, fechaInicio y fechaFin son requeridos', 400));
+    if (!especialidad || !coordinador || !fechaInicio || !fechaFin) {
+      return next(new AppError('especialidad, coordinador, fechaInicio y fechaFin son requeridos', 400));
     }
 
-    // 🔒 VALIDACIÓN DE PÓLIZA PARA COORDINADORES
+    //VALIDACIÓN DE PÓLIZA PARA COORDINADORES
     const user = (req as any).user;
-    console.log('👤 Usuario creando período MP:', { rol: user?.rol, polizaId: user?.polizaId });
+    console.log('Usuario creando período MP:', { rol: user?.rol, polizaId: user?.polizaId });
 
     if (user?.rol === 'coordinador' && user?.polizaId) {
       // Validar que el coordinador especificado es el mismo usuario autenticado
       if (coordinador !== user.id) {  // proteger usa 'id'
         return next(new AppError('Solo puedes crear períodos para ti mismo', 403));
       }
+
+      // El período se asocia automáticamente a la póliza del coordinador
+      const polizaId = user.polizaId;
 
       // Validar que todos los colaboradores en dispositivos pertenecen a su póliza
       if (dispositivos.length > 0) {
@@ -47,10 +50,10 @@ export const createPeriodoMP = async (
         if (idsColaboradores.length > 0) {
           const colaboradoresValidos = await Colaborador.find({
             _id: { $in: idsColaboradores },
-            poliza: user.polizaId
+            poliza: polizaId
           }).select('_id nombre');
 
-          console.log('🔒 Validando colaboradores en creación de período:', {
+          console.log('Validando colaboradores en creación de período:', {
             solicitados: idsColaboradores.length,
             válidos: colaboradoresValidos.length
           });
@@ -82,14 +85,17 @@ export const createPeriodoMP = async (
     // Determinar estado activo basado en las fechas
     const estadoActivo = determinarEstadoActivo(inicio, fin);
 
-    console.log('🆕 === CREANDO NUEVO PERÍODO MP ===');
+    console.log('🔄 CREANDO NUEVO PERÍODO MP ===');
+    console.log(`📋 Especialidad: ${especialidad}`);
+    console.log(`🏢 Póliza: ${user?.polizaId || 'N/A'}`);
     console.log(`📅 Fecha inicio: ${inicio.toISOString()}`);
     console.log(`📅 Fecha fin: ${fin.toISOString()}`);
     console.log(`📅 Fecha actual: ${new Date().toISOString()}`);
-    console.log(`🔄 Estado calculado: ${estadoActivo ? 'ACTIVO' : 'INACTIVO'}`);
+    console.log(`✅ Estado calculado: ${estadoActivo ? 'ACTIVO' : 'INACTIVO'}`);
 
     const periodoMP = await PeriodoMP.create({
-      nombre,
+      especialidad: new mongoose.Types.ObjectId(especialidad),
+      poliza: new mongoose.Types.ObjectId(user?.polizaId || user?.poliza),
       coordinador: new mongoose.Types.ObjectId(coordinador),
       fechaInicio: inicio,
       fechaFin: fin,
@@ -141,14 +147,14 @@ export const getPeriodosMP = async (
   next: NextFunction
 ) => {
   try {
-    console.log('🚀 === SOLICITUD getPeriodosMP RECIBIDA ===');
+    console.log('SOLICITUD getPeriodosMP RECIBIDA ===');
 
     // Auto-desactivar períodos vencidos antes de obtener la lista
     await desactivarPeriodosVencidos();
 
-    // 🔒 OBTENER DATOS DEL USUARIO AUTENTICADO
+    // OBTENER DATOS DEL USUARIO AUTENTICADO
     const user = (req as any).user;
-    console.log('👤 Usuario obteniendo períodos MP:', {
+    console.log(' Usuario obteniendo períodos MP:', {
       rol: user?.rol,
       polizaId: user?.polizaId,
       id: user?.id,  // proteger usa 'id'
@@ -160,6 +166,7 @@ export const getPeriodosMP = async (
       page = 1,
       limit = 10,
       coordinador,
+      poliza,
       activo,
       fechaInicio,
       fechaFin
@@ -167,28 +174,55 @@ export const getPeriodosMP = async (
 
     const filter: any = {};
 
-    // 🔒 FILTRADO AUTOMÁTICO POR PÓLIZA PARA COORDINADORES
+    //  FILTRADO AUTOMÁTICO POR PÓLIZA PARA COORDINADORES
     if (user?.rol === 'coordinador' && user?.polizaId) {
-      console.log('🔒 Coordinador detectado - aplicando filtrado por póliza...');
+      console.log('👑 Coordinador detectado - aplicando filtrado por póliza...');
 
-      // Solo mostrar períodos donde el coordinador autenticado es el que los creó
-      const coordinadorObjectId = new mongoose.Types.ObjectId(user.id); // proteger usa 'id'
-      filter.coordinador = coordinadorObjectId;
-      console.log('✅ Filtro aplicado: solo períodos creados por coordinador ObjectId:', coordinadorObjectId);
+      // Mostrar todos los períodos de la póliza del coordinador (no solo los que creó)
+      const polizaObjectId = new mongoose.Types.ObjectId(user.polizaId);
+      filter.poliza = polizaObjectId;
+      console.log('🏢 Filtro aplicado: períodos de póliza ObjectId:', polizaObjectId);
 
-      // DEBUG: Verificar si el id está definido
-      if (!user.id) {
-        console.error('❌ ERROR: user.id es undefined/null en filtrado MP');
-        return next(new AppError('Error de autenticación: ID de usuario no definido', 401));
+      // DEBUG: Verificar si el polizaId está definido
+      if (!user.polizaId) {
+        console.error('❌ ERROR: user.polizaId es undefined/null en filtrado MP');
+        return next(new AppError('Error de autenticación: Póliza de usuario no definida', 401));
       }
     }
 
-    // ✅ FILTRADO POR PARÁMETRO COORDINADOR (solo para no-coordinadores o admins)
+    //  FILTRADO POR PÓLIZA PARA AUXILIARES TÉCNICOS (parámetro poliza)
+    // Solo aplicar filtrado por póliza si es auxiliar técnico
+    if (poliza && user?.tipo === 'colaborador' && user?.rol === 'Auxiliar') {
+      console.log('🔧 Auxiliar técnico detectado - aplicando filtrado por póliza desde parámetro...');
+      const polizaObjectId = new mongoose.Types.ObjectId(poliza as string);
+      filter.poliza = polizaObjectId;
+      console.log('🏢 Filtro aplicado: períodos de póliza ObjectId (auxiliar técnico):', polizaObjectId);
+    }
+
+    //  FILTRADO AUTOMÁTICO PARA COLABORADORES/ENCARGADOS
+    // Si es colaborador sin filtros específicos, filtrar por períodos donde está asignado
+    if (user?.tipo === 'colaborador' && !poliza && !coordinador && user?.rol !== 'Auxiliar') {
+      console.log('👥 Colaborador/Encargado detectado - buscando períodos donde está asignado...');
+      console.log('   Usuario ID:', user.id);
+      console.log('   Usuario rol:', user.rol);
+      console.log('   Usuario tipo:', user.tipo);
+
+      // Buscar períodos donde el usuario está asignado como colaborador en algún dispositivo
+      filter.$or = [
+        { 'dispositivos.colaboradorAsignado': new mongoose.Types.ObjectId(user.id) },
+        { 'dispositivos.colaboradoresElegibles': new mongoose.Types.ObjectId(user.id) },
+        { 'dispositivos.colaboradores': new mongoose.Types.ObjectId(user.id) }
+      ];
+      console.log('🎯 Filtro aplicado: períodos donde el usuario está asignado como colaborador');
+      console.log('📋 Filtro detallado:', JSON.stringify(filter.$or, null, 2));
+    }
+
+    //  FILTRADO POR PARÁMETRO COORDINADOR (solo para admins)
     if (coordinador && user?.rol !== 'coordinador') {
       filter.coordinador = new mongoose.Types.ObjectId(coordinador as string);
-      console.log('🔍 Filtro aplicado por parámetro coordinador (usuario admin):', coordinador);
+      console.log('👤 Filtro aplicado por parámetro coordinador (usuario admin):', coordinador);
     } else if (coordinador && user?.rol === 'coordinador') {
-      console.log('⚠️ INFO: Coordinador ya tiene filtrado automático - parámetro coordinador ignorado');
+      console.log('ℹ️ INFO: Coordinador ya tiene filtrado automático por póliza - parámetro coordinador ignorado');
     }
 
     if (activo !== undefined) {
@@ -208,10 +242,12 @@ export const getPeriodosMP = async (
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
 
     // DEBUG: Mostrar filtro final aplicado
-    console.log('🔍 Filtro final aplicado a PeriodoMP.find:', JSON.stringify(filter, null, 2));
+    console.log(' Filtro final aplicado a PeriodoMP.find:', JSON.stringify(filter, null, 2));
 
     const [periodos, total] = await Promise.all([
       PeriodoMP.find(filter)
+        .populate('especialidad', 'nombre descripcion')
+        .populate('poliza', 'nombre descripcion')
         .populate('coordinador', 'nombre correo')
         .populate('dispositivos.deviceCatalog')
         .populate('dispositivos.colaboradorAsignado', 'nombre apellido_paterno correo')
@@ -228,7 +264,8 @@ export const getPeriodosMP = async (
     console.log('📊 Períodos MP encontrados:', total);
     console.log('📋 Detalles de los períodos:', periodos.map(p => ({
       _id: p._id,
-      nombre: p.nombre,
+      especialidad: (p.especialidad as any)?.nombre || 'Sin especialidad',
+      poliza: (p.poliza as any)?.nombre || 'Sin póliza',
       coordinador: (p.coordinador as any)?.nombre || 'Sin coordinador',
       coordinadorId: p.coordinador
     })));
@@ -265,6 +302,9 @@ export const getPeriodoMPById = async (
       .populate('coordinador', 'nombre correo')
       .populate('dispositivos.deviceCatalog')
       .populate('dispositivos.colaboradorAsignado', 'nombre apellido_paterno correo')
+      .populate('dispositivos.completadoPor', 'nombre apellido_paterno correo')
+      .populate('dispositivos.colaboradores', 'nombre apellido_paterno correo')
+      .populate('dispositivos.colaboradoresElegibles', 'nombre apellido_paterno correo')
       .populate('dispositivos.deviceReport');
 
     if (!periodo) {
@@ -303,9 +343,9 @@ export const assignDevicesToPeriodo = async (
       return next(new AppError('Se requiere un array de colaboradores para asignación múltiple', 400));
     }
 
-    // 🔒 VALIDACIÓN DE PÓLIZA PARA COORDINADORES
+    //  VALIDACIÓN DE PÓLIZA PARA COORDINADORES
     const user = (req as any).user;
-    console.log('👤 Usuario creando período MP:', { rol: user?.rol, polizaId: user?.polizaId });
+    console.log(' Usuario creando período MP:', { rol: user?.rol, polizaId: user?.polizaId });
 
     const periodo = await PeriodoMP.findById(id);
     if (!periodo) {
@@ -317,10 +357,10 @@ export const assignDevicesToPeriodo = async (
       return next(new AppError('No se pueden asignar dispositivos a un período inactivo', 400));
     }
 
-    // 🔒 FILTRAR COLABORADORES POR PÓLIZA SI ES COORDINADOR
+    //  FILTRAR COLABORADORES POR PÓLIZA SI ES COORDINADOR
     let colaboradoresValidados = colaboradores;
     if (assignToAll && user?.rol === 'coordinador' && user?.polizaId && colaboradores) {
-      console.log('🔒 Validando colaboradores por póliza del coordinador...');
+      console.log(' Validando colaboradores por póliza del coordinador...');
 
       const colaboradoresEncontrados = await Colaborador.find({
         _id: { $in: colaboradores },
@@ -329,8 +369,8 @@ export const assignDevicesToPeriodo = async (
 
       colaboradoresValidados = colaboradoresEncontrados.map((c: any) => c._id.toString());
 
-      console.log('✅ Colaboradores validados:', colaboradoresValidados.length, 'de', colaboradores.length, 'solicitados');
-      console.log('📋 Colaboradores finales:', colaboradoresEncontrados.map((c: any) => ({ id: c._id, nombre: c.nombre })));
+      console.log(' Colaboradores validados:', colaboradoresValidados.length, 'de', colaboradores.length, 'solicitados');
+      console.log(' Colaboradores finales:', colaboradoresEncontrados.map((c: any) => ({ id: c._id, nombre: c.nombre })));
 
       if (colaboradoresValidados.length === 0) {
         return next(new AppError('No se encontraron colaboradores válidos para tu póliza', 400));
@@ -343,7 +383,7 @@ export const assignDevicesToPeriodo = async (
     for (const disp of dispositivos) {
       if (disp.assignToAll && colaboradoresValidados) {
         // Crear UNA SOLA asignación múltiple con la lista de colaboradores VALIDADOS POR PÓLIZA
-        console.log('📝 Asignando dispositivo:', disp.deviceCatalogId, 'para TODOS los colaboradores de la póliza (', colaboradoresValidados.length, 'personas)');
+        console.log(' Asignando dispositivo:', disp.deviceCatalogId, 'para TODOS los colaboradores de la póliza (', colaboradoresValidados.length, 'personas)');
         nuevasAsignaciones.push({
           deviceCatalog: disp.deviceCatalogId,
           colaboradorAsignado: null, // Sin colaborador específico asignado
@@ -358,9 +398,9 @@ export const assignDevicesToPeriodo = async (
         });
       } else {
         // Asignación individual normal - TAMBIÉN VALIDAR PÓLIZA
-        console.log('📝 Asignando dispositivo:', disp.deviceCatalogId, 'a colaborador:', disp.colaboradorId);
+        console.log(' Asignando dispositivo:', disp.deviceCatalogId, 'a colaborador:', disp.colaboradorId);
 
-        // 🔒 Para asignaciones individuales también validar póliza si es coordinador
+        //  Para asignaciones individuales también validar póliza si es coordinador
         let colaboradorValidado = disp.colaboradorId;
         if (user?.rol === 'coordinador' && user?.polizaId && disp.colaboradorId) {
           // Validar que el colaborador individual también pertenece a la póliza
@@ -370,7 +410,7 @@ export const assignDevicesToPeriodo = async (
           }).select('_id nombre');
 
           if (!colaboradorIndividual) {
-            console.log('❌ Colaborador individual no válido para la póliza:', disp.colaboradorId);
+            console.log(' Colaborador individual no válido para la póliza:', disp.colaboradorId);
             continue; // Saltar esta asignación
           }
           colaboradorValidado = colaboradorIndividual._id;
@@ -441,8 +481,8 @@ export const completeDeviceInPeriodo = async (
     const { periodoId, deviceCatalogId, colaboradorId } = req.params;
     const { deviceReportId, notas, esColaborativo, colaboradores, tipoParticipacion } = req.body;
 
-    console.log('🎯 === COMPLETANDO DISPOSITIVO ===');
-    console.log('📋 Parámetros recibidos:');
+    console.log('  COMPLETANDO DISPOSITIVO ===');
+    console.log('  Parámetros recibidos:');
     console.log('   periodoId:', periodoId);
     console.log('   deviceCatalogId:', deviceCatalogId);
     console.log('   colaboradorId:', colaboradorId);
@@ -459,20 +499,81 @@ export const completeDeviceInPeriodo = async (
     // Encontrar el dispositivo en la lista
     console.log('🔍 BÚSQUEDA DE DISPOSITIVO EN PERÍODO:');
     console.log('   Dispositivos en período:', periodo.dispositivos.length);
+    console.log('   Buscando deviceCatalogId:', deviceCatalogId);
+    console.log('   Buscando colaboradorId:', colaboradorId);
+
+    // Log de todos los dispositivos para debugging
+    periodo.dispositivos.forEach((disp: any, index: number) => {
+      console.log(`   Dispositivo ${index}:`, {
+        deviceCatalogId: disp.deviceCatalog?.toString(),
+        colaboradorAsignado: disp.colaboradorAsignado?.toString(),
+        asignacionMultiple: disp.asignacionMultiple,
+        colaboradoresElegibles: disp.colaboradoresElegibles?.map((col: any) => col.toString()),
+        estado: disp.estado
+      });
+    });
 
     const dispositivoIndex = periodo.dispositivos.findIndex(
       (disp: any) => {
+        console.log(`🔎 Evaluando dispositivo:`, {
+          deviceCatalogMatch: disp.deviceCatalog.toString() === deviceCatalogId,
+          deviceCatalogActual: disp.deviceCatalog.toString(),
+          deviceCatalogBuscado: deviceCatalogId,
+          asignacionMultiple: disp.asignacionMultiple
+        });
+
         if (disp.deviceCatalog.toString() !== deviceCatalogId) {
+          console.log('   ❌ Device catalog no coincide');
           return false;
         }
 
         // Si es asignación múltiple, verificar que el colaborador esté en la lista de elegibles
+        // O que sea un auxiliar/encargado de la misma póliza (para flexibilidad operativa)
         if (disp.asignacionMultiple && disp.colaboradoresElegibles) {
-          return disp.colaboradoresElegibles.some((colId: any) => colId.toString() === colaboradorId);
+          const colaboradorEnLista = disp.colaboradoresElegibles.some((colId: any) => {
+            const match = colId.toString() === colaboradorId;
+            console.log(`     Comparando colaborador elegible: ${colId.toString()} === ${colaboradorId} = ${match}`);
+            return match;
+          });
+
+          // Verificar si es auxiliar/encargado de la misma póliza que el período
+          const user = (req as any).user;
+          const esMismaPóliza = user?.polizaId && periodo.poliza &&
+            user.polizaId.toString() === periodo.poliza.toString();
+          const esAuxiliarOEncargado = user?.rol === 'Auxiliar' || user?.rol === 'Encargado';
+
+          console.log(`   🔍 Verificaciones adicionales:`);
+          console.log(`     - Colaborador en lista: ${colaboradorEnLista}`);
+          console.log(`     - Es auxiliar/encargado: ${esAuxiliarOEncargado}`);
+          console.log(`     - Misma póliza: ${esMismaPóliza}`);
+          console.log(`     - User polizaId: ${user?.polizaId}`);
+          console.log(`     - Período polizaId: ${periodo.poliza}`);
+
+          const puedeCompletar = colaboradorEnLista || (esAuxiliarOEncargado && esMismaPóliza);
+          console.log(`   Asignación múltiple - colaborador autorizado: ${puedeCompletar}`);
+          return puedeCompletar;
         }
 
         // Si es asignación individual, verificar colaboradorAsignado
-        return disp.colaboradorAsignado && disp.colaboradorAsignado.toString() === colaboradorId;
+        // O que sea un auxiliar/encargado de la misma póliza (para flexibilidad operativa)
+        const colaboradorAsignadoMatch = disp.colaboradorAsignado && disp.colaboradorAsignado.toString() === colaboradorId;
+
+        // Verificar si es auxiliar/encargado de la misma póliza que el período
+        const user = (req as any).user;
+        const esMismaPóliza = user?.polizaId && periodo.poliza &&
+          user.polizaId.toString() === periodo.poliza.toString();
+        const esAuxiliarOEncargado = user?.rol === 'Auxiliar' || user?.rol === 'Encargado';
+
+        console.log(`   🔍 Verificaciones asignación individual:`);
+        console.log(`     - Colaborador asignado coincide: ${colaboradorAsignadoMatch}`);
+        console.log(`     - Es auxiliar/encargado: ${esAuxiliarOEncargado}`);
+        console.log(`     - Misma póliza: ${esMismaPóliza}`);
+        console.log(`     colaboradorAsignado: ${disp.colaboradorAsignado?.toString()}`);
+        console.log(`     colaboradorBuscado: ${colaboradorId}`);
+
+        const puedeCompletar = colaboradorAsignadoMatch || (esAuxiliarOEncargado && esMismaPóliza);
+        console.log(`   Asignación individual - colaborador autorizado: ${puedeCompletar}`);
+        return puedeCompletar;
       }
     );
 
@@ -481,17 +582,44 @@ export const completeDeviceInPeriodo = async (
     }
 
     // Actualizar estado en PeriodoMP
-    console.log('✅ Dispositivo encontrado en posición:', dispositivoIndex);
+    console.log('📋 Dispositivo encontrado en posición:', dispositivoIndex);
     periodo.dispositivos[dispositivoIndex].estado = 'completado';
     periodo.dispositivos[dispositivoIndex].fechaCompletado = new Date();
     periodo.dispositivos[dispositivoIndex].deviceReport = deviceReportId || undefined;
     periodo.dispositivos[dispositivoIndex].completadoPor = colaboradorId as any;
 
-    // Si es trabajo colaborativo, marcarlo
-    if (esColaborativo && colaboradores && colaboradores.length > 0) {
+    // LÓGICA CORREGIDA: Distinguir entre individual y colaborativo
+    if (esColaborativo === true || esColaborativo === 'true') {
+      console.log('🤝 TRABAJO COLABORATIVO detectado');
       periodo.dispositivos[dispositivoIndex].esColaborativo = true;
-      periodo.dispositivos[dispositivoIndex].colaboradores = colaboradores;
-      console.log('👥 Marcando como trabajo colaborativo con:', colaboradores.length, 'colaboradores');
+
+      if (colaboradores && colaboradores.length > 0) {
+        // Crear lista con el responsable PRIMERO, luego los colaboradores seleccionados
+        const mongoose = require('mongoose');
+        const responsableId = new mongoose.Types.ObjectId(colaboradorId);
+        const colaboradoresIds = colaboradores.map((colId: string) => new mongoose.Types.ObjectId(colId));
+
+        // Crear array final: responsable primero, luego colaboradores (excluyendo duplicados)
+        const listaFinal = [responsableId];
+        colaboradoresIds.forEach((id: any) => {
+          if (id.toString() !== responsableId.toString()) {
+            listaFinal.push(id);
+          }
+        });
+
+        periodo.dispositivos[dispositivoIndex].colaboradores = listaFinal as any;
+        console.log('✅ Guardando trabajo colaborativo con responsable PRIMERO:', listaFinal.length, 'colaboradores');
+      } else {
+        // Si es colaborativo pero no hay colaboradores seleccionados, solo el responsable
+        const mongoose = require('mongoose');
+        periodo.dispositivos[dispositivoIndex].colaboradores = [new mongoose.Types.ObjectId(colaboradorId)] as any;
+        console.log('✅ Guardando trabajo colaborativo solo con responsable');
+      }
+    } else {
+      console.log('👤 TRABAJO INDIVIDUAL detectado');
+      periodo.dispositivos[dispositivoIndex].esColaborativo = false;
+      periodo.dispositivos[dispositivoIndex].colaboradores = undefined; // No guardar array para individual
+      console.log('✅ Guardando trabajo individual - solo completadoPor');
     }
 
     if (notas) {
@@ -499,7 +627,7 @@ export const completeDeviceInPeriodo = async (
     }
 
     await periodo.save();
-    console.log('💾 Período guardado exitosamente');
+    console.log(' Período guardado exitosamente');
 
     // Actualizar DeviceReport correspondiente
     if (deviceReportId) {
@@ -521,12 +649,12 @@ export const completeDeviceInPeriodo = async (
       }
 
       await DeviceReport.findByIdAndUpdate(deviceReportId, updateData);
-      console.log('📄 DeviceReport actualizado con datos colaborativos');
+      console.log(' DeviceReport actualizado con datos colaborativos');
     }
 
     // Si es asignación múltiple, marcar todos los dispositivos relacionados como completados
     if (periodo.dispositivos[dispositivoIndex].asignacionMultiple) {
-      console.log('🔄 Procesando asignación múltiple...');
+      console.log(' Procesando asignación múltiple...');
 
       // Buscar todos los dispositivos con el mismo deviceCatalog que estén pendientes
       const dispositivosRelacionados = periodo.dispositivos.filter((disp: any, index: number) =>
@@ -536,7 +664,7 @@ export const completeDeviceInPeriodo = async (
         disp.asignacionMultiple === true
       );
 
-      console.log(`📊 Encontrados ${dispositivosRelacionados.length} dispositivos relacionados para completar`);
+      console.log(` Encontrados ${dispositivosRelacionados.length} dispositivos relacionados para completar`);
 
       // Marcar todos como completados
       for (let i = 0; i < periodo.dispositivos.length; i++) {
@@ -556,12 +684,12 @@ export const completeDeviceInPeriodo = async (
             periodo.dispositivos[i].colaboradores = colaboradores;
           }
 
-          console.log(`✅ Completado dispositivo para colaborador: ${disp.colaboradorAsignado}`);
+          console.log(` Completado dispositivo para colaborador: ${disp.colaboradorAsignado}`);
         }
       }
 
       await periodo.save();
-      console.log('💾 Todos los dispositivos de asignación múltiple completados');
+      console.log(' Todos los dispositivos de asignación múltiple completados');
     }
 
     res.status(200).json({
@@ -590,7 +718,7 @@ export const getDevicesPendingForColaborador = async (
 ) => {
   try {
     const { colaboradorId } = req.params;
-    console.log('🔍 Buscando dispositivos para colaborador:', colaboradorId);
+    console.log(' Buscando dispositivos para colaborador:', colaboradorId);
 
     // Primero, buscar todos los períodos activos para debug
     const todosLosPeriodos = await PeriodoMP.find({ activo: true })
@@ -598,9 +726,9 @@ export const getDevicesPendingForColaborador = async (
       .populate('dispositivos.colaboradorAsignado', 'nombre apellido_paterno correo')
       .select('nombre fechaInicio fechaFin dispositivos');
 
-    console.log('🔍 Total períodos activos:', todosLosPeriodos.length);
+    console.log(' Total períodos activos:', todosLosPeriodos.length);
     todosLosPeriodos.forEach(periodo => {
-      console.log(`📋 Período "${periodo.nombre}" tiene ${periodo.dispositivos.length} dispositivos:`);
+      console.log(` Período ID: ${periodo._id} tiene ${periodo.dispositivos.length} dispositivos:`);
       periodo.dispositivos.forEach((disp: any, index: number) => {
         console.log(`  - Dispositivo ${index + 1}: ${disp.deviceCatalog?.identifier}, Colaborador: ${disp.colaboradorAsignado?._id || 'SIN ASIGNAR'}, Estado: ${disp.estado}`);
       });
@@ -615,12 +743,12 @@ export const getDevicesPendingForColaborador = async (
       .populate('dispositivos.colaboradorAsignado', 'nombre apellido_paterno correo')
       .select('nombre fechaInicio fechaFin dispositivos');
 
-    console.log('📊 Períodos encontrados:', periodos.length);
-    console.log('📊 Primer período:', periodos.length > 0 ? periodos[0] : 'Ninguno');
+    console.log(' Períodos encontrados:', periodos.length);
+    console.log(' Primer período:', periodos.length > 0 ? periodos[0] : 'Ninguno');
 
     // Filtrar solo los dispositivos del colaborador que están pendientes
     const dispositivosPendientes = periodos.flatMap(periodo => {
-      console.log('🔍 Procesando período:', periodo.nombre, 'con', periodo.dispositivos.length, 'dispositivos');
+      console.log(' Procesando período ID:', periodo._id, 'con', periodo.dispositivos.length, 'dispositivos');
 
       const dispositivosFiltrados = periodo.dispositivos
         .filter((disp: any) => {
@@ -638,12 +766,12 @@ export const getDevicesPendingForColaborador = async (
           const esDelColaborador = colaboradorId_BD === colaboradorId;
           const estadoValido = ['pendiente', 'en_progreso'].includes(disp.estado);
 
-          console.log('📱 Dispositivo:', disp.deviceCatalog?.identifier);
-          console.log('   👤 Colaborador buscado:', colaboradorId);
-          console.log('   👤 Colaborador en BD:', colaboradorId_BD);
-          console.log('   🔍 Tipo colaboradorAsignado:', typeof disp.colaboradorAsignado);
-          console.log('   ✅ Colaborador coincide:', esDelColaborador);
-          console.log('   📊 Estado válido:', estadoValido, '(Estado:', disp.estado + ')');
+          console.log(' Dispositivo:', disp.deviceCatalog?.identifier);
+          console.log('    Colaborador buscado:', colaboradorId);
+          console.log('    Colaborador en BD:', colaboradorId_BD);
+          console.log('    Tipo colaboradorAsignado:', typeof disp.colaboradorAsignado);
+          console.log('    Colaborador coincide:', esDelColaborador);
+          console.log('    Estado válido:', estadoValido, '(Estado:', disp.estado + ')');
 
           return esDelColaborador && estadoValido;
         })
@@ -651,18 +779,17 @@ export const getDevicesPendingForColaborador = async (
           ...disp.toObject(),
           periodoMP: {
             _id: periodo._id,
-            nombre: periodo.nombre,
             fechaInicio: periodo.fechaInicio,
             fechaFin: periodo.fechaFin
           }
         }));
 
-      console.log('✅ Dispositivos filtrados para este período:', dispositivosFiltrados.length);
+      console.log(' Dispositivos filtrados para este período:', dispositivosFiltrados.length);
       return dispositivosFiltrados;
     });
 
-    console.log('📋 Total dispositivos pendientes:', dispositivosPendientes.length);
-    console.log('📋 Dispositivos a enviar:', dispositivosPendientes);
+    console.log(' Total dispositivos pendientes:', dispositivosPendientes.length);
+    console.log(' Dispositivos a enviar:', dispositivosPendientes);
 
     res.status(200).json({
       success: true,
@@ -686,7 +813,7 @@ export const getAllDevicesForColaborador = async (
 ) => {
   try {
     const { colaboradorId } = req.params;
-    console.log('🔍 Obteniendo TODOS los dispositivos para colaborador:', colaboradorId);
+    console.log(' Obteniendo TODOS los dispositivos para colaborador:', colaboradorId);
 
     const periodos = await PeriodoMP.find({
       activo: true,
@@ -704,11 +831,11 @@ export const getAllDevicesForColaborador = async (
       .populate('dispositivos.colaboradoresElegibles', 'nombre apellido_paterno correo')
       .select('nombre fechaInicio fechaFin dispositivos');
 
-    console.log('📊 Períodos encontrados:', periodos.length);
+    console.log(' Períodos encontrados:', periodos.length);
 
     // Incluir TODOS los dispositivos del colaborador (sin filtrar por estado)
     const todosLosDispositivos = periodos.flatMap(periodo => {
-      console.log('🔍 Procesando período:', periodo.nombre, 'con', periodo.dispositivos.length, 'dispositivos');
+      console.log(' Procesando período ID:', periodo._id, 'con', periodo.dispositivos.length, 'dispositivos');
 
       const dispositivosDelColaborador = periodo.dispositivos
         .filter((disp: any) => {
@@ -720,10 +847,10 @@ export const getAllDevicesForColaborador = async (
               return colId === colaboradorId;
             });
 
-            console.log('📱 Dispositivo (múltiple):', disp.deviceCatalog?.identifier);
-            console.log('   👥 Es asignación múltiple:', true);
-            console.log('   ✅ Colaborador elegible:', estaEnElegibles);
-            console.log('   📊 Estado:', disp.estado);
+            console.log(' Dispositivo (múltiple):', disp.deviceCatalog?.identifier);
+            console.log('    Es asignación múltiple:', true);
+            console.log('    Colaborador elegible:', estaEnElegibles);
+            console.log('    Estado:', disp.estado);
 
             return estaEnElegibles;
           } else {
@@ -738,9 +865,9 @@ export const getAllDevicesForColaborador = async (
 
             const esDelColaborador = colaboradorId_BD === colaboradorId;
 
-            console.log('📱 Dispositivo (individual):', disp.deviceCatalog?.identifier);
-            console.log('   👤 Colaborador coincide:', esDelColaborador);
-            console.log('   📊 Estado:', disp.estado);
+            console.log(' Dispositivo (individual):', disp.deviceCatalog?.identifier);
+            console.log('    Colaborador coincide:', esDelColaborador);
+            console.log('    Estado:', disp.estado);
 
             return esDelColaborador;
           }
@@ -749,17 +876,16 @@ export const getAllDevicesForColaborador = async (
           ...disp.toObject(),
           periodoMP: {
             _id: periodo._id,
-            nombre: periodo.nombre,
             fechaInicio: periodo.fechaInicio,
             fechaFin: periodo.fechaFin
           }
         }));
 
-      console.log('✅ Dispositivos del colaborador en este período:', dispositivosDelColaborador.length);
+      console.log(' Dispositivos del colaborador en este período:', dispositivosDelColaborador.length);
       return dispositivosDelColaborador;
     });
 
-    console.log('📋 Total dispositivos del colaborador:', todosLosDispositivos.length);
+    console.log(' Total dispositivos del colaborador:', todosLosDispositivos.length);
 
     res.status(200).json({
       success: true,
@@ -876,28 +1002,28 @@ export const searchAssignedDevicesForColaborador = async (
 // Función para eliminar un período MP de forma segura
 export const eliminarPeriodoMP: RequestHandler = async (req, res, next) => {
   try {
-    console.log('🗑️ === ELIMINANDO PERÍODO MP ===');
+    console.log('  ELIMINANDO PERÍODO MP ');
     const { id } = req.params;
-    console.log('📝 ID recibido:', id);
+    console.log(' ID recibido:', id);
 
     if (!id) {
       return next(new AppError('ID del período es requerido', 400));
     }
 
     // Verificar si el período existe
-    console.log('🔍 Buscando período con ID:', id);
+    console.log(' Buscando período con ID:', id);
     const periodo = await PeriodoMP.findById(id);
-    console.log('📅 Período encontrado:', periodo ? 'SÍ' : 'NO');
+    console.log(' Período encontrado:', periodo ? 'SÍ' : 'NO');
     if (!periodo) {
       return next(new AppError('Período MP no encontrado', 404));
     }
 
     // Verificar si hay reportes asociados a este período
-    console.log('📊 Verificando reportes asociados...');
+    console.log(' Verificando reportes asociados...');
     const reportesAsociados = await DeviceReport.countDocuments({
       periodoMP: id
     });
-    console.log('📊 Reportes encontrados:', reportesAsociados);
+    console.log(' Reportes encontrados:', reportesAsociados);
 
     if (reportesAsociados > 0) {
       res.status(409).json({
@@ -917,8 +1043,8 @@ export const eliminarPeriodoMP: RequestHandler = async (req, res, next) => {
     });
 
   } catch (error: any) {
-    console.error('💥 Error eliminando período MP:', error);
-    console.error('💥 Stack:', error.stack);
+    console.error(' Error eliminando período MP:', error);
+    console.error(' Stack:', error.stack);
     return next(new AppError('Error interno del servidor', 500));
   }
 };
@@ -995,7 +1121,7 @@ const desactivarPeriodosVencidos = async () => {
     );
 
     if (periodosVencidos.modifiedCount > 0) {
-      console.log(`🔄 Auto-desactivados ${periodosVencidos.modifiedCount} períodos vencidos`);
+      console.log(` Auto-desactivados ${periodosVencidos.modifiedCount} períodos vencidos`);
     }
 
     return periodosVencidos.modifiedCount;
@@ -1030,7 +1156,6 @@ export const validarFechaActiva: RequestHandler = async (req, res, next) => {
       puedeSubirReporte,
       periodosActivos: periodosActivos.map(periodo => ({
         _id: periodo._id,
-        nombre: periodo.nombre,
         fechaInicio: periodo.fechaInicio,
         fechaFin: periodo.fechaFin,
         coordinador: periodo.coordinador
@@ -1082,12 +1207,12 @@ export const actualizarFechasPeriodoMP: RequestHandler = async (req, res, next) 
     // Determinar el estado activo basado en las nuevas fechas
     const nuevoEstadoActivo = determinarEstadoActivo(inicio, fin);
 
-    console.log('🔄 === ACTUALIZANDO FECHAS Y ESTADO ===');
-    console.log(`📅 Fecha actual: ${new Date().toISOString()}`);
-    console.log(`📅 Nueva fecha inicio: ${inicio.toISOString()}`);
-    console.log(`📅 Nueva fecha fin: ${fin.toISOString()}`);
-    console.log(`🔄 Estado anterior: ${periodo.activo}`);
-    console.log(`🔄 Nuevo estado calculado: ${nuevoEstadoActivo}`);
+    console.log(' === ACTUALIZANDO FECHAS Y ESTADO ===');
+    console.log(` Fecha actual: ${new Date().toISOString()}`);
+    console.log(` Nueva fecha inicio: ${inicio.toISOString()}`);
+    console.log(` Nueva fecha fin: ${fin.toISOString()}`);
+    console.log(` Estado anterior: ${periodo.activo}`);
+    console.log(` Nuevo estado calculado: ${nuevoEstadoActivo}`);
 
     // Actualizar fechas y estado
     const periodoActualizado = await PeriodoMP.findByIdAndUpdate(
@@ -1102,8 +1227,8 @@ export const actualizarFechasPeriodoMP: RequestHandler = async (req, res, next) 
     ).populate('coordinador', 'nombre correo');
 
     const estadoMessage = nuevoEstadoActivo
-      ? '✅ Período activo (fechas válidas para el presente/futuro)'
-      : '⚠️ Período inactivo (fechas en el pasado)';
+      ? ' Período activo (fechas válidas para el presente/futuro)'
+      : ' Período inactivo (fechas en el pasado)';
 
     console.log(estadoMessage);
 
@@ -1131,7 +1256,7 @@ export const eliminarDispositivoAsignado: RequestHandler = async (req, res, next
       return next(new AppError('Se requieren periodoId, deviceCatalogId y colaboradorId', 400));
     }
 
-    console.log('🗑️ Eliminando asignación:', { periodoId, deviceCatalogId, colaboradorId });
+    console.log(' Eliminando asignación:', { periodoId, deviceCatalogId, colaboradorId });
 
     // Buscar el período
     const periodo = await PeriodoMP.findById(periodoId);
@@ -1155,7 +1280,7 @@ export const eliminarDispositivoAsignado: RequestHandler = async (req, res, next
     // Si está completado, también eliminaremos el reporte asociado si existe
     let reporteEliminado = null;
     if (dispositivoEliminado.estado === 'completado') {
-      console.log('⚠️ Eliminando dispositivo completado - se buscará el reporte asociado');
+      console.log(' Eliminando dispositivo completado - se buscará el reporte asociado');
 
       // Buscar y eliminar reporte asociado
       reporteEliminado = await DeviceReport.findOneAndDelete({
@@ -1165,7 +1290,7 @@ export const eliminarDispositivoAsignado: RequestHandler = async (req, res, next
       });
 
       if (reporteEliminado) {
-        console.log('📄 Reporte asociado eliminado:', reporteEliminado._id);
+        console.log(' Reporte asociado eliminado:', reporteEliminado._id);
       }
     }
 
@@ -1175,7 +1300,7 @@ export const eliminarDispositivoAsignado: RequestHandler = async (req, res, next
     // Guardar cambios
     await periodo.save();
 
-    console.log('✅ Dispositivo eliminado exitosamente');
+    console.log(' Dispositivo eliminado exitosamente');
 
     // Repoblar datos para respuesta
     await periodo.populate([
@@ -1207,7 +1332,7 @@ export const eliminarDispositivoAsignacionMultiple: RequestHandler = async (req,
       return next(new AppError('Se requieren periodoId y deviceCatalogId', 400));
     }
 
-    console.log('🗑️ Eliminando asignación múltiple:', { periodoId, deviceCatalogId });
+    console.log(' Eliminando asignación múltiple:', { periodoId, deviceCatalogId });
 
     // Buscar el período
     const periodo = await PeriodoMP.findById(periodoId);
@@ -1231,7 +1356,7 @@ export const eliminarDispositivoAsignacionMultiple: RequestHandler = async (req,
     // Si está completado, también eliminaremos reportes asociados si existen
     let reportesEliminados = [];
     if (dispositivoEliminado.estado === 'completado') {
-      console.log('⚠️ Eliminando dispositivo con asignación múltiple completado - se buscarán reportes asociados');
+      console.log(' Eliminando dispositivo con asignación múltiple completado - se buscarán reportes asociados');
 
       // Para asignaciones múltiples, buscar reportes de múltiples colaboradores
       // Buscar reportes de todos los colaboradores que participaron
@@ -1260,7 +1385,7 @@ export const eliminarDispositivoAsignacionMultiple: RequestHandler = async (req,
       }
 
       if (reportesEliminados.length > 0) {
-        console.log('📄 Reportes asociados eliminados:', reportesEliminados);
+        console.log(' Reportes asociados eliminados:', reportesEliminados);
       }
     }
 
@@ -1270,7 +1395,7 @@ export const eliminarDispositivoAsignacionMultiple: RequestHandler = async (req,
     // Guardar cambios
     await periodo.save();
 
-    console.log('✅ Dispositivo con asignación múltiple eliminado exitosamente');
+    console.log(' Dispositivo con asignación múltiple eliminado exitosamente');
 
     // Repoblar datos para respuesta
     await periodo.populate([
@@ -1296,7 +1421,7 @@ export const actualizarPeriodoMP: RequestHandler = async (req, res, next) => {
     const { id } = req.params;
     const { nombre, fechaInicio, fechaFin, descripcion } = req.body;
 
-    console.log('🔄 Actualizando período MP:', { id, nombre, fechaInicio, fechaFin, descripcion });
+    console.log(' Actualizando período MP:', { id, nombre, fechaInicio, fechaFin, descripcion });
 
     // Validar que el período existe
     const periodo = await PeriodoMP.findById(id);
@@ -1325,7 +1450,7 @@ export const actualizarPeriodoMP: RequestHandler = async (req, res, next) => {
       { new: true, runValidators: true }
     ).populate('coordinador', 'nombre correo');
 
-    console.log('✅ Período MP actualizado exitosamente:', periodoActualizado?.nombre);
+    console.log(' Período MP actualizado exitosamente:', periodoActualizado?._id);
 
     res.status(200).json({
       success: true,
@@ -1345,7 +1470,7 @@ export const editarAsignacionDispositivo: RequestHandler = async (req, res, next
     const { periodoId, deviceId } = req.params;
     const { oldColaboradorId, newColaboradorId, notas } = req.body;
 
-    console.log('🔄 Editando asignación de dispositivo:', {
+    console.log(' Editando asignación de dispositivo:', {
       periodoId,
       deviceId,
       oldColaboradorId,
@@ -1384,7 +1509,7 @@ export const editarAsignacionDispositivo: RequestHandler = async (req, res, next
     // Guardar cambios
     await periodo.save();
 
-    console.log('✅ Asignación de dispositivo actualizada exitosamente');
+    console.log(' Asignación de dispositivo actualizada exitosamente');
 
     res.status(200).json({
       success: true,

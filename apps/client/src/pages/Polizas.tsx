@@ -4,6 +4,7 @@ import axios, { AxiosResponse } from "axios";
 import api from "../api";
 import { toast } from "react-toastify";
 import PreviewPoliza from "../components/PreviewPoliza/PreviewPoliza.tsx"; // Nuevo componente de cards
+import { getRol, getToken, decodeJWT } from "../auth/authService";
 
 // Interfaces mantienen compatibilidad con backend existente
 interface Poliza {
@@ -49,6 +50,36 @@ const Polizas = () => {
     coordinador: "",
   });
 
+  // Estados para búsqueda de coordinadores
+  const [busquedaCoordinador, setBusquedaCoordinador] = useState("");
+  const [coordinadoresFiltrados, setCoordinadoresFiltrados] = useState<Coordinador[]>([]);
+  const [mostrandoSugerencias, setMostrandoSugerencias] = useState(false);
+
+  // Estados para información del usuario logueado
+  const [userRole, setUserRole] = useState<string>("");
+  const [userPolizaId, setUserPolizaId] = useState<string | null>(null);
+  const [isCoordinador, setIsCoordinador] = useState<boolean>(false);
+
+  // useEffect para obtener información del usuario logueado
+  useEffect(() => {
+    const token = getToken();
+    const role = getRol()?.toLowerCase() || "";
+
+    setUserRole(role);
+    setIsCoordinador(role === "coordinador");
+
+    if (token) {
+      try {
+        const decodedToken = decodeJWT(token);
+        if (decodedToken?.polizaId) {
+          setUserPolizaId(decodedToken.polizaId);
+        }
+      } catch (error) {
+        console.error("Error decodificando token:", error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
@@ -57,16 +88,27 @@ const Polizas = () => {
           api.get("/polizas"),
         ]);
         setCoordinadores(resCoordinadores.data);
-        setPolizas(resPolizas.data);
-        setPolizasFiltradas(resPolizas.data); // Inicializar filtradas para búsqueda
+
+        // Filtrar pólizas para coordinadores: solo mostrar su póliza asignada
+        let polizasData = resPolizas.data;
+        if (isCoordinador && userPolizaId) {
+          polizasData = resPolizas.data.filter((poliza: Poliza) => poliza._id === userPolizaId);
+        }
+
+        setPolizas(polizasData);
+        setPolizasFiltradas(polizasData); // Inicializar filtradas para búsqueda
       } catch (err) {
         console.error("Error al obtener datos:", err);
         setError("Error al cargar los datos. Intente nuevamente.");
         toast.error("Error al cargar los datos. Intente nuevamente.");
       }
     };
-    obtenerDatos();
-  }, []);
+
+    // Solo ejecutar si ya tenemos la información del usuario
+    if (userRole) {
+      obtenerDatos();
+    }
+  }, [isCoordinador, userPolizaId, userRole]);
 
   // useEffect para filtrar pólizas cuando cambia el término de búsqueda
   // Sistema de búsqueda avanzada con múltiples criterios
@@ -315,6 +357,58 @@ const Polizas = () => {
     window.dispatchEvent(new CustomEvent('closeExpandedCard'));
   }, [terminoBusqueda]); // Se ejecuta cada vez que cambia el término de búsqueda
 
+  // ===== FUNCIONES PARA BÚSQUEDA DE COORDINADORES =====
+
+  // Función para filtrar coordinadores
+  const filtrarCoordinadores = (termino: string) => {
+    if (!termino.trim()) {
+      setCoordinadoresFiltrados([]);
+      setMostrandoSugerencias(false);
+      return;
+    }
+
+    const terminoNormalizado = normalizarTexto(termino);
+    const coordinadoresCoincidentes = coordinadores.filter(coordinador => {
+      const nombreCompleto = `${coordinador.nombre} ${coordinador.apellido_paterno} ${coordinador.apellido_materno || ''}`;
+      const nombreNormalizado = normalizarTexto(nombreCompleto);
+      return nombreNormalizado.includes(terminoNormalizado) ||
+        nombreNormalizado.startsWith(terminoNormalizado);
+    });
+
+    setCoordinadoresFiltrados(coordinadoresCoincidentes);
+    setMostrandoSugerencias(coordinadoresCoincidentes.length > 0);
+
+    console.log('🔍 Filtro de coordinadores:', {
+      termino: termino,
+      terminoNormalizado: terminoNormalizado,
+      coincidencias: coordinadoresCoincidentes.length,
+      coordinadoresEncontrados: coordinadoresCoincidentes.map(c => formatCoordinador(c))
+    });
+  };
+
+  // Función para manejar la búsqueda
+  const manejarBusquedaCoordinador = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    setBusquedaCoordinador(valor);
+    filtrarCoordinadores(valor);
+  };
+
+  // Función para seleccionar coordinador de las sugerencias
+  const seleccionarCoordinador = (coordinador: Coordinador) => {
+    setFormData({ ...formData, coordinador: coordinador._id });
+    setBusquedaCoordinador(formatCoordinador(coordinador));
+    setMostrandoSugerencias(false);
+    setCoordinadoresFiltrados([]);
+  };
+
+  // Función para limpiar la búsqueda
+  const limpiarBusquedaCoordinador = () => {
+    setBusquedaCoordinador("");
+    setFormData({ ...formData, coordinador: "" });
+    setMostrandoSugerencias(false);
+    setCoordinadoresFiltrados([]);
+  };
+
   // Función para manejar cambios en campos del formulario
   // Gestiona campos de texto y select
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -471,6 +565,9 @@ const Polizas = () => {
 
       // Limpiar formulario y cerrar modal
       setFormData({ nombre: "", ubicacion: "", coordinador: "" });
+      setBusquedaCoordinador("");
+      setMostrandoSugerencias(false);
+      setCoordinadoresFiltrados([]);
       setMostrarModal(false);
       setModoEdicion(false);
       setIdEditando(null);
@@ -493,15 +590,30 @@ const Polizas = () => {
   // Función para manejar edición de póliza
   // Prellenar formulario con datos existentes y abrir modal en modo edición
   const handleEditar = (poliza: Poliza) => {
+    const coordinadorId = typeof poliza.coordinador === "string" ? poliza.coordinador : poliza.coordinador?._id || "";
+
     setFormData({
       nombre: poliza.nombre,
       ubicacion: poliza.ubicacion,
-      coordinador: typeof poliza.coordinador === "string" ? poliza.coordinador : poliza.coordinador?._id || "",
+      coordinador: coordinadorId,
     });
+
+    // Inicializar búsqueda con el coordinador actual
+    if (coordinadorId) {
+      const coordinadorActual = coordinadores.find(c => c._id === coordinadorId);
+      if (coordinadorActual) {
+        setBusquedaCoordinador(formatCoordinador(coordinadorActual));
+      }
+    } else {
+      setBusquedaCoordinador("");
+    }
+
     setIdEditando(poliza._id);
     setModoEdicion(true);
     setMostrarModal(true);
     setErrores({});
+    setMostrandoSugerencias(false);
+    setCoordinadoresFiltrados([]);
   };
 
   // Función para formatear coordinador (utilidad para selects)
@@ -619,23 +731,28 @@ const Polizas = () => {
                 <i className={`bi ${terminoBusqueda ? 'bi-x' : 'bi-search'}`}></i>
               </button>
             </div>
-            {/* Botón para abrir modal de registro/creación */}
-            <button
-              className="btn-registrar-poliza"
-              onClick={() => {
-                // Cerrar cualquier card expandida al abrir modal
-                window.dispatchEvent(new CustomEvent('closeExpandedCard'));
+            {/* Botón para abrir modal de registro/creación - Solo para administradores */}
+            {!isCoordinador && (
+              <button
+                className="btn-registrar-poliza"
+                onClick={() => {
+                  // Cerrar cualquier card expandida al abrir modal
+                  window.dispatchEvent(new CustomEvent('closeExpandedCard'));
 
-                setMostrarModal(true);
-                setModoEdicion(false); // Modo creación
-                setIdEditando(null);
-                // Limpiar formulario para nueva póliza
-                setFormData({ nombre: "", ubicacion: "", coordinador: "" });
-              }}
-            >
-              <i className="bi bi-plus-circle"></i>
-              Registrar
-            </button>
+                  setMostrarModal(true);
+                  setModoEdicion(false); // Modo creación
+                  setIdEditando(null);
+                  // Limpiar formulario para nueva póliza
+                  setFormData({ nombre: "", ubicacion: "", coordinador: "" });
+                  setBusquedaCoordinador("");
+                  setMostrandoSugerencias(false);
+                  setCoordinadoresFiltrados([]);
+                }}
+              >
+                <i className="bi bi-plus-circle"></i>
+                Registrar
+              </button>
+            )}
           </div>
         </div>
 
@@ -664,6 +781,7 @@ const Polizas = () => {
             onEditar={handleEditar} // Callback para edición
             onEliminar={(id: string) => handleEliminar(id)} // Callback para eliminación
             isLoading={false}
+            isCoordinador={isCoordinador} // Pasar información del rol para ocultar botones CRUD
           />
         </div>
       </div>
@@ -723,6 +841,9 @@ const Polizas = () => {
               setModoEdicion(false);
               setIdEditando(null);
               setFormData({ nombre: "", ubicacion: "", coordinador: "" });
+              setBusquedaCoordinador("");
+              setMostrandoSugerencias(false);
+              setCoordinadoresFiltrados([]);
               setErrores({});
             }}>
               ×
@@ -762,21 +883,88 @@ const Polizas = () => {
                   {errores.ubicacion && <span className="mensaje-error-poliza">{errores.ubicacion}</span>}
                 </div>
 
-                {/* Selección de coordinador */}
+                {/* Búsqueda de coordinador */}
                 <div className="form-group">
                   <label>Coordinador (opcional):</label>
-                  <select
-                    name="coordinador"
-                    value={formData.coordinador}
-                    onChange={handleChange}
-                  >
-                    <option value="">Sin asignar</option>
-                    {coordinadores.map((coord) => (
-                      <option key={coord._id} value={coord._id}>
-                        {formatCoordinador(coord)}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="coordinador-search-container" style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder="Escriba para buscar coordinador o deje vacío para 'Sin asignar'"
+                      value={busquedaCoordinador}
+                      onChange={manejarBusquedaCoordinador}
+                      onFocus={() => {
+                        if (busquedaCoordinador.trim()) {
+                          filtrarCoordinadores(busquedaCoordinador);
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '8px 30px 8px 12px',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        fontSize: '14px'
+                      }}
+                    />
+                    {busquedaCoordinador && (
+                      <button
+                        type="button"
+                        onClick={limpiarBusquedaCoordinador}
+                        className="clear-search-btn"
+                        title="Limpiar búsqueda"
+                      >
+                        ×
+                      </button>
+                    )}
+
+                    {/* Sugerencias dropdown */}
+                    {mostrandoSugerencias && coordinadoresFiltrados.length > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        backgroundColor: 'white',
+                        border: '1px solid #ccc',
+                        borderTop: 'none',
+                        borderRadius: '0 0 4px 4px',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        zIndex: 1000,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}>
+                        {coordinadoresFiltrados.slice(0, 5).map((coordinador) => (
+                          <div
+                            key={coordinador._id}
+                            onClick={() => seleccionarCoordinador(coordinador)}
+                            style={{
+                              padding: '8px 12px',
+                              cursor: 'pointer',
+                              borderBottom: '1px solid #eee',
+                              transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#f5f5f5';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'white';
+                            }}
+                          >
+                            {formatCoordinador(coordinador)}
+                          </div>
+                        ))}
+                        {coordinadoresFiltrados.length > 5 && (
+                          <div style={{
+                            padding: '8px 12px',
+                            color: '#666',
+                            fontSize: '12px',
+                            fontStyle: 'italic'
+                          }}>
+                            ... y {coordinadoresFiltrados.length - 5} más
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

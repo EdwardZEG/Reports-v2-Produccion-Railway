@@ -45,6 +45,31 @@ export const logout = async () => {
   window.location.href = '/login';
 };
 
+// Función para decodificar JWT
+export const decodeJWT = (token: string) => {
+  try {
+    // Dividir el token en sus tres partes
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    // Decodificar la parte del payload (segunda parte)
+    const payload = parts[1];
+    // Añadir padding si es necesario
+    const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+
+    // Decodificar desde base64
+    const decodedPayload = atob(paddedPayload);
+
+    // Parsear el JSON
+    return JSON.parse(decodedPayload);
+  } catch (error) {
+    console.error('Error decodificando JWT:', error);
+    return null;
+  }
+};
+
 // Funciones auxiliares para manejo de autenticación
 export const getToken = () => localStorage.getItem('token');
 export const getRol = () => localStorage.getItem('rol');

@@ -2,7 +2,7 @@ import "../styles/Encargados.css";
 import { useState, useEffect } from "react";
 import { CiEdit, CiTrash } from "react-icons/ci";
 import CrearColaboradorModal from "../components/FormUser/crearUsuario";
-import { getRol, getPolizaId } from "../auth/authService";
+import { getRol, getToken, decodeJWT } from "../auth/authService";
 import { toast } from "react-toastify";
 import {
   useEncargadosData,
@@ -23,7 +23,6 @@ const Encargados = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [encargadoEditando, setEncargadoEditando] = useState<Encargado | null>(null);
-  const [errores, setErrores] = useState<string[]>([]);
 
   // Estados para búsqueda inteligente - exacto como coordinadores
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
@@ -43,6 +42,9 @@ const Encargados = () => {
 
   // Estado para prevenir clicks múltiples en switches
   const [switchesEnProceso, setSwitchesEnProceso] = useState<Set<string>>(new Set());
+
+  // Estados para información del usuario logueado
+  const [userPolizaId, setUserPolizaId] = useState<string | null>(null);
 
   // ===== FUNCIONES PARA BÚSQUEDA INTELIGENTE - EXACTO COMO COORDINADORES =====
   // Sistema de búsqueda avanzada con normalización de texto, coincidencias difusas
@@ -131,6 +133,22 @@ const Encargados = () => {
    * 3. Búsqueda difusa con tolerancia a errores
    * 4. Búsqueda parcial flexible
    */
+
+  // useEffect para obtener información del usuario logueado
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      try {
+        const decodedToken = decodeJWT(token);
+        if (decodedToken?.polizaId) {
+          setUserPolizaId(decodedToken.polizaId);
+        }
+      } catch (error) {
+        console.error("Error decodificando token:", error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!terminoBusqueda.trim()) {
       setEncargadosFiltrados(encargados);
@@ -366,12 +384,10 @@ const Encargados = () => {
       // Encontrar el encargado actual
       const encargado = encargados.find(e => e._id === id);
       if (encargado) {
-        // Si el colaborador pasa a inactivo, quitar la póliza asignada
+        // Actualizar solo el estado, manteniendo todos los demás datos
         const datosActualizados = {
           ...encargado,
-          estado: nuevoEstado,
-          // Quitar póliza si el estado es inactivo, igual que coordinadores
-          poliza: nuevoEstado === "Inactivo" ? null : encargado.poliza
+          estado: nuevoEstado
         };
 
         // El hook ahora maneja la actualización optimista internamente
@@ -428,69 +444,14 @@ const Encargados = () => {
     calcularPaginaParaEncargado("", []);
   }
 
-  const validarEncargado = (encargado: Encargado): string[] => {
-    const errores: string[] = [];
-    if (!encargado.nombre.trim()) errores.push("Nombre es obligatorio.");
-    if (!encargado.apellido_paterno.trim()) errores.push("Apellido paterno es obligatorio.");
-    if (!encargado.correo.trim()) errores.push("Correo es obligatorio.");
-    const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!correoRegex.test(encargado.correo)) errores.push("Correo inválido.");
-    return errores;
-  };
-
-  const guardarCambios = async () => {
-    if (!encargadoEditando) return;
-    const erroresValidacion = validarEncargado(encargadoEditando);
-    if (erroresValidacion.length > 0) {
-      setErrores(erroresValidacion);
-      return;
-    }
-
-    try {
-      const resultado = await actualizarEncargado(encargadoEditando);
-      if (resultado.success && resultado.encargados) {
-        // Ir a la página donde está el colaborador editado
-        const paginaEncargado = calcularPaginaParaEncargado(encargadoEditando._id, resultado.encargados);
-        setPaginaActual(paginaEncargado);
-
-        cerrarModal();
-      }
-    } catch (err) {
-      toast.error("Error al guardar cambios");
-      console.error(err);
-    }
-  };
-
   const handleDeleteColaborador = (encargado: any) => {
     setEncargadoAEliminar(encargado);
     setShowModalEliminar(true);
   };
 
   const abrirModal = (encargado: Encargado) => {
-    setErrores([]);
     setEncargadoEditando({ ...encargado });
     setModalOpen(true);
-  };
-
-  const cerrarModal = () => {
-    setModalOpen(false);
-    setEncargadoEditando(null);
-    setErrores([]);
-  };
-
-  const handleCheckboxChange = (espId: string) => {
-    if (!encargadoEditando) return;
-    const current = Array.isArray(encargadoEditando.especialidad)
-      ? [...encargadoEditando.especialidad]
-      : [];
-    const idx = current.findIndex(es => es._id === espId);
-    if (idx >= 0) {
-      current.splice(idx, 1);
-    } else {
-      const especialidadObj = especialidades.find(es => es._id === espId);
-      if (especialidadObj) current.push(especialidadObj);
-    }
-    setEncargadoEditando({ ...encargadoEditando, especialidad: current });
   };
 
   return (
@@ -614,12 +575,28 @@ const Encargados = () => {
                       const tienePoliza = polizaText !== 'Sin póliza' && polizaText !== 'No asignada';
 
                       return (
-                        <>
-                          <i className={`bi bi-shield-check ${tienePoliza ? 'poliza-asignada' : 'poliza-no-asignada'}`}></i>
-                          <span className={tienePoliza ? 'poliza-asignada' : 'poliza-no-asignada'}>
-                            {polizaText}
-                          </span>
-                        </>
+                        <div className="poliza-info-container">
+                          <div className="poliza-principal">
+                            <i className={`bi bi-shield-check ${tienePoliza ? 'poliza-asignada' : 'poliza-no-asignada'}`}></i>
+                            <span className={tienePoliza ? 'poliza-asignada' : 'poliza-no-asignada'}>
+                              {polizaText}
+                            </span>
+                          </div>
+
+                          {/* Mostrar especialidades del colaborador debajo de la póliza */}
+                          {encargado.especialidad && encargado.especialidad.length > 0 && (
+                            <div className="colaborador-especialidades">
+                              <div className="especialidades-chips-tabla">
+                                {encargado.especialidad.map((esp: any) => (
+                                  <span key={esp._id} className="especialidad-chip-tabla">
+                                    <i className="bi bi-cpu"></i>
+                                    {esp.nombre}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       );
                     })()}
                   </div>
@@ -711,136 +688,20 @@ const Encargados = () => {
         </div>
       )}
 
-      {/* Modal para crear colaborador */}
+      {/* Modal para crear y editar colaborador */}
       <CrearColaboradorModal
-        isOpen={modalOpen && !encargadoEditando}
-        onClose={() => setModalOpen(false)}
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEncargadoEditando(null);
+        }}
         onSuccess={handleColaboradorCreado} // Nueva función con navegación automática
         polizas={polizas}
         especialidades={especialidades}
         rolUsuario={getRol() || undefined}
-        polizaUsuarioId={getPolizaId() || undefined}
+        polizaUsuarioId={userPolizaId || undefined}
+        colaboradorEditando={encargadoEditando || undefined}
       />
-
-      {/* MODAL PARA EDITAR - manteniendo funcionalidad original */}
-      {modalOpen && encargadoEditando && (
-        <div className="modal-overlay" onClick={(e) => {
-          if ((e.target as HTMLDivElement).classList.contains("modal-overlay")) cerrarModal();
-        }}>
-          <div className="modal-main-container">
-            <form className="modal-encargados-container">
-              <h3>Editar Información de Colaborador</h3>
-
-              {errores.length > 0 && (
-                <div className="errores-formulario">
-                  {errores.map((err, i) => <p key={i} className="error">{err}</p>)}
-                </div>
-              )}
-
-              <div className="form-group">
-                <label>Nombre:</label>
-                <input
-                  value={encargadoEditando.nombre}
-                  onChange={e => setEncargadoEditando({ ...encargadoEditando, nombre: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Apellido Paterno:</label>
-                <input
-                  value={encargadoEditando.apellido_paterno}
-                  onChange={e => setEncargadoEditando({ ...encargadoEditando, apellido_paterno: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Apellido Materno:</label>
-                <input
-                  value={encargadoEditando.apellido_materno || ""}
-                  onChange={e => setEncargadoEditando({ ...encargadoEditando, apellido_materno: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Correo:</label>
-                <input
-                  value={encargadoEditando.correo}
-                  onChange={e => setEncargadoEditando({ ...encargadoEditando, correo: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Teléfono:</label>
-                <input
-                  value={encargadoEditando.telefono || ""}
-                  onChange={e => setEncargadoEditando({ ...encargadoEditando, telefono: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Póliza:</label>
-                <select
-                  value={encargadoEditando.poliza?._id || ""}
-                  onChange={e =>
-                    setEncargadoEditando({
-                      ...encargadoEditando,
-                      poliza: {
-                        _id: e.target.value,
-                        nombre: polizas.find(p => p._id === e.target.value)?.nombre || ""
-                      },
-                      // Limpiar especialidades cuando se cambia la póliza
-                      especialidad: []
-                    })
-                  }>
-                  <option value="">Selecciona una póliza</option>
-                  {polizas.map(poliza => (
-                    <option key={poliza._id} value={poliza._id}>{poliza.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              <fieldset>
-                <legend>Especialidades:</legend>
-                {especialidades.map(es => (
-                  <label key={es._id}>
-                    <input
-                      type="checkbox"
-                      checked={Array.isArray(encargadoEditando.especialidad) &&
-                        encargadoEditando.especialidad.some(e => e._id === es._id)}
-                      onChange={() => handleCheckboxChange(es._id)}
-                    /> {es.nombre}
-                  </label>
-                ))}
-              </fieldset>
-
-              <div className="form-group">
-                <label>Puesto:</label>
-                <select
-                  value={encargadoEditando.rol}
-                  onChange={e => setEncargadoEditando({ ...encargadoEditando, rol: e.target.value })}>
-                  <option value="Encargado">Encargado</option>
-                  <option value="Auxiliar">Auxiliar</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Estado:</label>
-                <select
-                  value={encargadoEditando.estado}
-                  onChange={e => setEncargadoEditando({ ...encargadoEditando, estado: e.target.value })}>
-                  <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
-                </select>
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" className="submit-btn" onClick={guardarCambios}>Guardar</button>
-                <button type="button" className="close-btn" onClick={cerrarModal}>Cancelar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Modal de confirmación para desactivar */}
       {showModalDesactivar && encargadoADesactivar && (
@@ -896,7 +757,7 @@ const Encargados = () => {
               <p><strong>Correo:</strong> {encargadoAEliminar.correo}</p>
               <div className="modal-warning">
                 <i className="bi bi-exclamation-triangle"></i>
-                <span>Al eliminar este colaborador, su información asociada se perderá</span>
+                <span>Al eliminar este colaborador, su información asociada se perderá.</span>
               </div>
             </div>
 

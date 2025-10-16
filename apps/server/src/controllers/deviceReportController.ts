@@ -18,16 +18,23 @@ export const createDeviceReport = async (
       deviceCatalogId,
       colaborador,
       especialidad,
-      WorkEvidence,
-      DeviceEvidence,
-      ViewEvidence,
       manualUploadReason,
       note,
       // Campos para trabajo colaborativo
       esColaborativo,
-      colaboradores,
       tipoParticipacion
     } = req.body;
+
+    // Extraer archivos subidos
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+    // Procesar colaboradores desde FormData
+    const colaboradores: string[] = [];
+    Object.keys(req.body).forEach(key => {
+      if (key.startsWith('colaboradores[')) {
+        colaboradores.push(req.body[key]);
+      }
+    });
 
     if (!deviceCatalogId || !colaborador || !especialidad) {
       return next(new AppError('deviceCatalogId, colaborador y especialidad son requeridos', 400));
@@ -39,15 +46,21 @@ export const createDeviceReport = async (
       return next(new AppError('Dispositivo no encontrado en catálogo', 404));
     }
 
+    // Función para convertir archivo a base64
+    const fileToBase64 = (file: Express.Multer.File): string => {
+      return file.buffer.toString('base64');
+    };
+
     // Preparar datos del reporte
     const reportData: any = {
       deviceCatalog: deviceCatalogId,
       colaborador: new mongoose.Types.ObjectId(colaborador),
       especialidad: new mongoose.Types.ObjectId(especialidad),
       fechaReporte: new Date(),
-      WorkEvidence,
-      DeviceEvidence,
-      ViewEvidence,
+      // Convertir archivos a base64 si existen
+      WorkEvidence: files?.WorkEvidence?.[0] ? fileToBase64(files.WorkEvidence[0]) : undefined,
+      DeviceEvidence: files?.DeviceEvidence?.[0] ? fileToBase64(files.DeviceEvidence[0]) : undefined,
+      ViewEvidence: files?.ViewEvidence?.[0] ? fileToBase64(files.ViewEvidence[0]) : undefined,
       manualUploadReason,
       note,
       estado: 'completado',
@@ -57,16 +70,70 @@ export const createDeviceReport = async (
     };
 
     // Agregar información colaborativa si aplica
-    if (esColaborativo && colaboradores && colaboradores.length > 0) {
+    if (esColaborativo === 'true' && colaboradores && colaboradores.length > 0) {
       reportData.esColaborativo = true;
       reportData.colaboradores = colaboradores.map((colId: string) => new mongoose.Types.ObjectId(colId));
 
-      if (tipoParticipacion && Array.isArray(tipoParticipacion)) {
-        reportData.tipoParticipacion = tipoParticipacion.map((participacion: any) => ({
-          colaborador: new mongoose.Types.ObjectId(participacion.colaborador),
-          rol: participacion.rol,
-          descripcion: participacion.descripcion
-        }));
+      // Procesar tipos de participación desde FormData
+      const tiposParticipacion: any[] = [];
+      Object.keys(req.body).forEach(key => {
+        if (key.startsWith('tipoParticipacion[')) {
+          const match = key.match(/tipoParticipacion\[(\d+)\]\[(\w+)\]/);
+          if (match) {
+            const index = parseInt(match[1]);
+            const field = match[2];
+
+            if (!tiposParticipacion[index]) {
+              tiposParticipacion[index] = {};
+            }
+            tiposParticipacion[index][field] = req.body[key];
+          }
+        }
+      });
+
+      if (tiposParticipacion.length > 0) {
+        // Crear lista de participación incluyendo al usuario principal
+        const participacionCompleta = [];
+
+        // Agregar el usuario principal (quien subió el reporte)
+        participacionCompleta.push({
+          colaborador: new mongoose.Types.ObjectId(colaborador),
+          rol: 'principal'
+        });
+
+        // Agregar los colaboradores seleccionados
+        tiposParticipacion.forEach((participacion: any) => {
+          if (participacion.colaborador !== colaborador) { // Evitar duplicados
+            participacionCompleta.push({
+              colaborador: new mongoose.Types.ObjectId(participacion.colaborador),
+              rol: 'colaborador',
+              tipo: participacion.tipo // Mantenemos el tipo de trabajo para compatibilidad
+            });
+          }
+        });
+
+        reportData.tipoParticipacion = participacionCompleta;
+      } else {
+        // Si no hay tipos específicos pero sí colaboradores, agregar todos como colaboradores
+        const participacionCompleta = [];
+
+        // Usuario principal
+        participacionCompleta.push({
+          colaborador: new mongoose.Types.ObjectId(colaborador),
+          rol: 'principal'
+        });
+
+        // Colaboradores seleccionados
+        colaboradores.forEach((colId: string) => {
+          if (colId !== colaborador) { // Evitar duplicados
+            participacionCompleta.push({
+              colaborador: new mongoose.Types.ObjectId(colId),
+              rol: 'colaborador'
+            });
+          }
+        });
+
+        reportData.tipoParticipacion = participacionCompleta;
       }
 
       console.log('👥 Creando reporte colaborativo con:', colaboradores.length, 'colaboradores');
@@ -205,8 +272,53 @@ export const getDeviceReports = async (
           as: 'especialidadInfo'
         }
       },
+      // Lookup para colaboradores adicionales en trabajos colaborativos
+      {
+        $lookup: {
+          from: 'colaboradors',
+          localField: 'colaboradores',
+          foreignField: '_id',
+          as: 'colaboradoresInfo'
+        }
+      },
+      // Lookup para tipos de participación con datos de colaboradores
+      {
+        $lookup: {
+          from: 'colaboradors',
+          localField: 'tipoParticipacion.colaborador',
+          foreignField: '_id',
+          as: 'tipoParticipacionInfo'
+        }
+      },
       { $unwind: '$colaboradorInfo' },
-      { $unwind: '$especialidadInfo' }
+      { $unwind: '$especialidadInfo' },
+      // Agregar campos procesados para trabajo colaborativo
+      {
+        $addFields: {
+          tipoParticipacion: {
+            $map: {
+              input: '$tipoParticipacion',
+              as: 'participacion',
+              in: {
+                colaborador: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: '$tipoParticipacionInfo',
+                        as: 'colInfo',
+                        cond: { $eq: ['$$colInfo._id', '$$participacion.colaborador'] }
+                      }
+                    },
+                    0
+                  ]
+                },
+                tipo: '$$participacion.tipo',
+                rol: '$$participacion.rol'
+              }
+            }
+          }
+        }
+      }
     );
 
     // Paginación y ordenamiento

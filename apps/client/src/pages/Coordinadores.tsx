@@ -1,4 +1,5 @@
 ﻿import "../styles/coordinadores.css";
+import "../styles/Polizas.css";
 import { useState, useEffect } from "react";
 import { CiEdit, CiTrash } from "react-icons/ci";
 import { toast } from "react-toastify";
@@ -51,6 +52,23 @@ const Coordinadores = () => {
   // Estado para prevenir clicks múltiples en switches
   const [switchesEnProceso, setSwitchesEnProceso] = useState<Set<string>>(new Set());
 
+  // Estados para carrusel de pólizas (igual que especialidades)
+  const [carruselIndex, setCarruselIndex] = useState(0);
+  const POLIZAS_POR_PAGINA = 1; // Mostrar 1 póliza a la vez
+
+  // Estado para rol del usuario
+  const [userRole, setUserRole] = useState<string>('');
+
+  // Estado para rastrear si se ha seleccionado póliza explícitamente
+  const [polizaSeleccionadaExplicitamente, setPolizaSeleccionadaExplicitamente] = useState(false);
+
+  // Estados para sistema de pasos del formulario
+  const [pasoActual, setPasoActual] = useState(1);
+  const TOTAL_PASOS = 3;
+
+  // Estado para mostrar/ocultar contraseña - exacto como login
+  const [showPassword, setShowPassword] = useState(false);
+
   const [nuevoCoordinador, setNuevoCoordinador] = useState<CoordinadorForm>({
     nombre: "",
     apellido_paterno: "",
@@ -61,6 +79,52 @@ const Coordinadores = () => {
     poliza: "",
     estado: "Activo"
   });
+
+  // ===== EFECTO PARA OBTENER ROL DEL USUARIO =====
+  useEffect(() => {
+    const role = localStorage.getItem('rol')?.toLowerCase() || '';
+    const roleAlternative = localStorage.getItem('role')?.toLowerCase() || '';
+    const finalRole = role || roleAlternative;
+
+    setUserRole(finalRole);
+    console.log('👤 Rol del usuario en coordinadores:', {
+      rolOriginal: localStorage.getItem('rol'),
+      roleAlternativo: localStorage.getItem('role'),
+      rolFinal: finalRole,
+      esAdmin: finalRole === 'admin',
+      localStorageKeys: Object.keys(localStorage)
+    });
+  }, []);
+
+  // ===== EFECTO PARA SINCRONIZAR CARRUSEL CON PÓLIZA EN EDICIÓN =====
+  useEffect(() => {
+    // SOLO cuando se abre el modal de edición y se entra al paso 3 por primera vez, posicionar el carrusel
+    if (showModalEdicion && pasoActual === 3 && polizas.length > 0) {
+      let indiceCarrusel = 0;
+      const esAdmin = userRole === 'admin' || userRole === 'administrador' || userRole.includes('admin');
+
+      if (nuevoCoordinador.poliza) {
+        // Buscar la póliza en el array
+        const indicePoliza = polizas.findIndex(poliza => poliza._id === nuevoCoordinador.poliza);
+        if (indicePoliza >= 0) {
+          // Si hay opción "Sin asignar" (admin), sumar 1 al índice
+          indiceCarrusel = esAdmin ? indicePoliza + 1 : indicePoliza;
+        }
+      } else if (esAdmin) {
+        // Sin póliza asignada y es admin = mostrar "Sin asignar" (índice 0)
+        indiceCarrusel = 0;
+      }
+
+      setCarruselIndex(indiceCarrusel);
+      console.log('🎯 Posicionando carrusel inicial:', {
+        polizaId: nuevoCoordinador.poliza,
+        userRole: userRole,
+        esAdmin: esAdmin,
+        indiceCalculado: indiceCarrusel,
+        esSinAsignar: !nuevoCoordinador.poliza && esAdmin
+      });
+    }
+  }, [showModalEdicion, pasoActual, polizas.length, userRole]); // Agregado userRole a dependencias
 
   // ===== FUNCIONES PARA BÚSQUEDA INTELIGENTE - EXACTO COMO ESPECIALIDADES =====
 
@@ -345,6 +409,337 @@ const Coordinadores = () => {
     }
   };
 
+  // ===== FUNCIONES PARA CARRUSEL DE PÓLIZAS =====
+  const irAnteriorPoliza = () => {
+    const esAdmin = userRole === 'admin' || userRole === 'administrador' || userRole.includes('admin');
+    const totalOpciones = esAdmin ? polizas.length + 1 : polizas.length;
+    setCarruselIndex(prev => prev > 0 ? prev - 1 : Math.max(0, totalOpciones - POLIZAS_POR_PAGINA));
+  };
+
+  const irSiguientePoliza = () => {
+    const esAdmin = userRole === 'admin' || userRole === 'administrador' || userRole.includes('admin');
+    const totalOpciones = esAdmin ? polizas.length + 1 : polizas.length;
+    setCarruselIndex(prev => prev < totalOpciones - POLIZAS_POR_PAGINA ? prev + 1 : 0);
+  };
+
+  const seleccionarPoliza = (polizaId: string) => {
+    console.log('🎯 Seleccionando póliza:', {
+      polizaIdAnterior: nuevoCoordinador.poliza,
+      polizaIdNueva: polizaId,
+      esIgual: nuevoCoordinador.poliza === polizaId,
+      esSinAsignar: polizaId === '',
+      enModoEdicion: !!idEditando
+    });
+
+    setNuevoCoordinador(prev => ({ ...prev, poliza: polizaId }));
+    setPolizaSeleccionadaExplicitamente(true); // Marcar que se hizo una selección explícita
+
+    // Limpiar error de póliza si existe
+    setErroresCampo(prev => {
+      const { poliza: omit, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  // ===== FUNCIONES PARA SISTEMA DE PASOS =====
+  const siguientePaso = () => {
+    if (pasoActual < TOTAL_PASOS) {
+      const nuevoPaso = pasoActual + 1;
+      setPasoActual(nuevoPaso);
+
+      // Si llega al paso 3 (Asignación) en modo edición, posicionar carrusel en póliza asignada
+      if (nuevoPaso === 3 && showModalEdicion) {
+        let indiceCarrusel = 0;
+        const esAdmin = userRole === 'admin' || userRole === 'administrador' || userRole.includes('admin');
+
+        if (nuevoCoordinador.poliza) {
+          const indicePoliza = polizas.findIndex(poliza => poliza._id === nuevoCoordinador.poliza);
+          if (indicePoliza >= 0) {
+            indiceCarrusel = esAdmin ? indicePoliza + 1 : indicePoliza;
+          }
+        } else if (esAdmin) {
+          // Sin póliza = "Sin asignar" en posición 0
+          indiceCarrusel = 0;
+        }
+
+        setCarruselIndex(indiceCarrusel);
+      }
+    }
+  };
+
+  const pasoAnterior = () => {
+    if (pasoActual > 1) {
+      setPasoActual(prev => prev - 1);
+    }
+  };
+
+  const irAPaso = (paso: number) => {
+    if (paso >= 1 && paso <= TOTAL_PASOS) {
+      setPasoActual(paso);
+
+      // Si va al paso 3 (Asignación) en modo edición, asegurar que el carrusel esté en la póliza correcta
+      if (paso === 3 && showModalEdicion) {
+        let indiceCarrusel = 0;
+        const esAdmin = userRole === 'admin' || userRole === 'administrador' || userRole.includes('admin');
+
+        if (nuevoCoordinador.poliza) {
+          const indicePoliza = polizas.findIndex(poliza => poliza._id === nuevoCoordinador.poliza);
+          if (indicePoliza >= 0) {
+            indiceCarrusel = esAdmin ? indicePoliza + 1 : indicePoliza;
+          }
+        } else if (esAdmin) {
+          // Sin póliza = "Sin asignar" en posición 0
+          indiceCarrusel = 0;
+        }
+
+        setCarruselIndex(indiceCarrusel);
+      }
+    }
+  };
+
+  // Función para mostrar/ocultar contraseña - exacto como login
+  const togglePassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // Función para obtener el contenido del paso actual
+  const renderPasoActual = () => {
+    switch (pasoActual) {
+      case 1:
+        return (
+          <>
+            <div className="form-group">
+              <label>Nombre:</label>
+              <input
+                type="text"
+                name="nombre"
+                value={nuevoCoordinador.nombre}
+                onChange={handleInputChange}
+                className={erroresCampo.nombre ? "input-error" : ""}
+                placeholder="Ingrese el nombre"
+              />
+              {erroresCampo.nombre && <span className="mensaje-error-poliza">{erroresCampo.nombre}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Apellido Paterno:</label>
+              <input
+                type="text"
+                name="apellido_paterno"
+                value={nuevoCoordinador.apellido_paterno}
+                onChange={handleInputChange}
+                className={erroresCampo.apellido_paterno ? "input-error" : ""}
+                placeholder="Ingrese el apellido paterno"
+              />
+              {erroresCampo.apellido_paterno && <span className="mensaje-error-poliza">{erroresCampo.apellido_paterno}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Apellido Materno:</label>
+              <input
+                type="text"
+                name="apellido_materno"
+                value={nuevoCoordinador.apellido_materno}
+                onChange={handleInputChange}
+                className={erroresCampo.apellido_materno ? "input-error" : ""}
+                placeholder="Ingrese el apellido materno"
+              />
+              {erroresCampo.apellido_materno && <span className="mensaje-error-poliza">{erroresCampo.apellido_materno}</span>}
+            </div>
+          </>
+        );
+
+      case 2:
+        return (
+          <>
+            <div className="form-group">
+              <label>Correo:</label>
+              <input
+                type="email"
+                name="correo"
+                value={nuevoCoordinador.correo}
+                onChange={handleInputChange}
+                className={erroresCampo.correo ? "input-error" : ""}
+                placeholder="Ingrese el correo electrónico"
+              />
+              {erroresCampo.correo && <span className="mensaje-error-poliza">{erroresCampo.correo}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Teléfono:</label>
+              <input
+                type="text"
+                name="telefono"
+                value={nuevoCoordinador.telefono}
+                onChange={handleInputChange}
+                className={erroresCampo.telefono ? "input-error" : ""}
+                placeholder="Ingrese el teléfono"
+              />
+              {erroresCampo.telefono && <span className="mensaje-error-poliza">{erroresCampo.telefono}</span>}
+            </div>
+
+            {showModalRegistro && (
+              <div className="form-group">
+                <label>Contraseña:</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="contraseña"
+                    value={nuevoCoordinador.contraseña}
+                    onChange={handleInputChange}
+                    className={erroresCampo.contraseña ? "input-error" : ""}
+                    placeholder="Ingrese la contraseña"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className={`toggle-password ${showPassword ? 'fas fa-eye-slash active' : 'fas fa-eye'}`}
+                    onClick={togglePassword}
+                    aria-label="Mostrar/ocultar contraseña"
+                  />
+                </div>
+                {erroresCampo.contraseña && <span className="mensaje-error-poliza">{erroresCampo.contraseña}</span>}
+              </div>
+            )}
+
+            {showModalEdicion && (
+              <div className="form-group">
+                <label>Nueva Contraseña (opcional):</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="contraseña"
+                    value={nuevoCoordinador.contraseña}
+                    onChange={handleInputChange}
+                    className={erroresCampo.contraseña ? "input-error" : ""}
+                    placeholder="Ingrese la nueva contraseña"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className={`toggle-password ${showPassword ? 'fas fa-eye-slash active' : 'fas fa-eye'}`}
+                    onClick={togglePassword}
+                    aria-label="Mostrar/ocultar contraseña"
+                  />
+                </div>
+                {erroresCampo.contraseña && <span className="mensaje-error-poliza">{erroresCampo.contraseña}</span>}
+              </div>
+            )}
+          </>
+        );
+
+      case 3:
+        return (
+          <>
+            {/* Carrusel de pólizas */}
+            <div className="form-group">
+              <label>Póliza Asignada:</label>
+              <div className="polizas-carrusel">
+                <div className="carrusel-navegacion">
+                  <button
+                    type="button"
+                    className="pagination-btn prev"
+                    onClick={irAnteriorPoliza}
+                    disabled={carruselIndex === 0}
+                    title="Poliza anterior"
+                  >
+                    <i className="bi bi-chevron-left"></i>
+                  </button>
+
+                  <div className="carrusel-poliza-contenido">
+                    {(() => {
+                      console.log('🔍 Debug Coordinadores - Estado del carrusel:', {
+                        totalPolizas: polizas.length,
+                        carruselIndex: carruselIndex,
+                        POLIZAS_POR_PAGINA: POLIZAS_POR_PAGINA,
+                        polizaSeleccionada: nuevoCoordinador.poliza,
+                        userRole: userRole,
+                        esAdmin: userRole === 'admin',
+                        polizasDisponibles: polizas.map(p => ({ id: p._id, nombre: p.nombre })),
+                        polizasQueSeVan: polizas.slice(carruselIndex, carruselIndex + POLIZAS_POR_PAGINA).map(p => ({ id: p._id, nombre: p.nombre }))
+                      });
+
+                      // Crear array con todas las opciones disponibles
+                      const opcionesDisponibles: Array<{ _id: string; nombre: string; esSinAsignar?: boolean }> = [];
+
+                      // Agregar opción "Sin asignar" solo para admin
+                      const esAdmin = userRole === 'admin' || userRole === 'administrador' || userRole.includes('admin');
+                      if (esAdmin) {
+                        opcionesDisponibles.push({
+                          _id: '',
+                          nombre: 'Sin asignar',
+                          esSinAsignar: true
+                        });
+                        console.log('✅ Agregando opción "Sin asignar" para admin');
+                      } else {
+                        console.log('❌ No es admin, no se agrega "Sin asignar". Rol actual:', userRole);
+                      }
+
+                      // Agregar todas las pólizas
+                      opcionesDisponibles.push(...polizas.map(poliza => ({
+                        _id: poliza._id,
+                        nombre: poliza.nombre,
+                        esSinAsignar: false
+                      })));
+
+                      console.log('📋 Opciones disponibles en carrusel:', opcionesDisponibles.map(op => ({ id: op._id, nombre: op.nombre, esSinAsignar: op.esSinAsignar })));
+
+                      return opcionesDisponibles.slice(carruselIndex, carruselIndex + POLIZAS_POR_PAGINA).map((opcion) => {
+                        // Solo marcar como seleccionada si hay una selección explícita
+                        const estaSeleccionada = polizaSeleccionadaExplicitamente && (
+                          opcion.esSinAsignar
+                            ? nuevoCoordinador.poliza === ''
+                            : nuevoCoordinador.poliza === opcion._id
+                        );
+
+                        return (
+                          <div
+                            key={opcion._id || 'sin-asignar'}
+                            className={`poliza-card ${estaSeleccionada ? 'poliza-selected' : ''} ${opcion.esSinAsignar ? 'sin-asignar' : ''}`}
+                            onClick={() => seleccionarPoliza(opcion._id)}
+                          >
+                            <i className={`bi ${opcion.esSinAsignar ? 'bi-x-circle' : 'bi-shield-check'}`}></i>
+                            <span>{opcion.nombre}</span>
+                            {estaSeleccionada && (
+                              <i className="bi bi-check-circle-fill poliza-check"></i>
+                            )}
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="pagination-btn next"
+                    onClick={irSiguientePoliza}
+                    disabled={carruselIndex + POLIZAS_POR_PAGINA >= ((userRole === 'admin' || userRole === 'administrador' || userRole.includes('admin')) ? polizas.length + 1 : polizas.length)}
+                    title="Poliza siguiente"
+                  >
+                    <i className="bi bi-chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+              {erroresCampo.poliza && <span className="mensaje-error-poliza">{erroresCampo.poliza}</span>}
+            </div>
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // Función para obtener el título del paso actual
+  const getTituloPaso = () => {
+    switch (pasoActual) {
+      case 1: return "Datos Personales";
+      case 2: return "Datos de Contacto";
+      case 3: return "Asignación";
+      default: return "";
+    }
+  };
+
   const actualizarEstadoCoordinador = async (id: string, nuevoEstado: string) => {
     try {
       await actualizarCoordinador(id, { estado: nuevoEstado });
@@ -384,10 +779,18 @@ const Coordinadores = () => {
 
     if (!datos.correo) errores.correo = "Correo requerido.";
 
-    if (idEditando === null && datos.contraseña.length < 8)
-      errores.contraseña = "La contraseña debe tener al menos 8 caracteres.";
+    // Validación de contraseña idéntica a colaboradores
+    if (idEditando === null && !datos.contraseña) {
+      errores.contraseña = "Contraseña es obligatoria.";
+    } else if (datos.contraseña && datos.contraseña.length < 6) {
+      errores.contraseña = "Contraseña debe tener al menos 6 caracteres.";
+    }
 
     if (!datos.telefono.match(/^\d{10}$/)) errores.telefono = "Debe tener 10 dígitos.";
+
+    // Validación de póliza - NO obligatoria para coordinadores (pueden estar sin asignar)
+    // Solo validar si hay una selección explícita y está vacía
+    // if (!datos.poliza) errores.poliza = "Debe seleccionar una póliza."; // Comentado - póliza no obligatoria
 
     setErroresCampo(errores);
     return Object.keys(errores).length === 0;
@@ -409,20 +812,64 @@ const Coordinadores = () => {
 
     if (idEditando) {
       // Actualizar coordinador existente
-      const resultado = await actualizarCoordinador(idEditando, { ...nuevoCoordinador, contraseña: undefined! });
-      if (resultado.success && resultado.coordinadores) {
-        // Ir a la página donde está el coordinador editado
-        const paginaCoordinador = calcularPaginaParaCoordinador(idEditando, resultado.coordinadores);
-        setPaginaActual(paginaCoordinador);
+      let payload: any = { ...nuevoCoordinador };
 
-        setShowModalRegistro(false);
-        setShowModalEdicion(false);
-        setIdEditando(null);
-        resetForm();
+      // ESPECIAL: Si poliza es cadena vacía, probar diferentes enfoques
+      if (payload.poliza === '') {
+        // Estrategia 1: Enviar null
+        payload.poliza = null;
+        console.log('🚀 Probando estrategia 1: null');
+
+        // Si estrategia 1 no funciona, probar:
+        // Estrategia 2: delete payload.poliza; (omitir campo completamente)
+        // Estrategia 3: payload.poliza = undefined;
+        // Estrategia 4: payload.poliza = ""; (mantener cadena vacía)
+      }
+
+      console.log('🔄 Actualizando coordinador:', {
+        id: idEditando,
+        payloadOriginal: { ...nuevoCoordinador },
+        payloadFinal: payload,
+        polizaOriginal: nuevoCoordinador.poliza,
+        polizaFinal: payload.poliza,
+        polizaEsVacia: nuevoCoordinador.poliza === '',
+        polizaEsNull: payload.poliza === null,
+        tieneContraseña: !!nuevoCoordinador.contraseña?.trim()
+      });
+
+      // Solo incluir contraseña si se proporcionó una nueva
+      if (!nuevoCoordinador.contraseña || nuevoCoordinador.contraseña.trim() === "") {
+        const { contraseña, ...payloadSinContraseña } = payload;
+        console.log('📤 Enviando payload SIN contraseña:', payloadSinContraseña);
+        const resultado = await actualizarCoordinador(idEditando, payloadSinContraseña);
+        if (resultado.success && resultado.coordinadores) {
+          // Ir a la página donde está el coordinador editado
+          const paginaCoordinador = calcularPaginaParaCoordinador(idEditando, resultado.coordinadores);
+          setPaginaActual(paginaCoordinador);
+
+          setShowModalRegistro(false);
+          setShowModalEdicion(false);
+          setIdEditando(null);
+          resetForm();
+        }
+      } else {
+        console.log('📤 Enviando payload CON contraseña:', payload);
+        const resultado = await actualizarCoordinador(idEditando, payload);
+        if (resultado.success && resultado.coordinadores) {
+          // Ir a la página donde está el coordinador editado
+          const paginaCoordinador = calcularPaginaParaCoordinador(idEditando, resultado.coordinadores);
+          setPaginaActual(paginaCoordinador);
+
+          setShowModalRegistro(false);
+          setShowModalEdicion(false);
+          setIdEditando(null);
+          resetForm();
+        }
       }
     } else {
-      // Crear nuevo coordinador
-      const resultado = await crearCoordinador(nuevoCoordinador);
+      // Crear nuevo coordinador - SIEMPRE COMO ACTIVO
+      const coordinadorConEstado = { ...nuevoCoordinador, estado: "Activo" };
+      const resultado = await crearCoordinador(coordinadorConEstado);
       if (resultado.success && resultado.coordinadores) {
         // Ir a la ÚLTIMA página donde se encuentra el nuevo coordinador (al final de la lista)
         const totalCoordinadores = resultado.coordinadores.length;
@@ -438,6 +885,32 @@ const Coordinadores = () => {
   };
 
   const abrirModalEdicion = (coordinador: any) => {
+    const polizaId = typeof coordinador.poliza === 'string' ? coordinador.poliza : coordinador.poliza?._id || "";
+    const esAdmin = userRole === 'admin' || userRole === 'administrador' || userRole.includes('admin');
+
+    // Encontrar el índice de la póliza en el array de pólizas para posicionar el carrusel
+    let carruselInicial = 0;
+
+    if (polizaId) {
+      // Tiene póliza asignada
+      const indicePoliza = polizas.findIndex(poliza => poliza._id === polizaId);
+      if (indicePoliza >= 0) {
+        // Si es admin, sumar 1 porque "Sin asignar" está en posición 0
+        carruselInicial = esAdmin ? indicePoliza + 1 : indicePoliza;
+      }
+    } else if (esAdmin) {
+      // No tiene póliza y es admin = mostrar "Sin asignar" (posición 0)
+      carruselInicial = 0;
+    }
+
+    console.log('🔧 Abriendo modal de edición:', {
+      coordinadorId: coordinador._id,
+      polizaId: polizaId,
+      tienePoliza: !!polizaId,
+      esAdmin: esAdmin,
+      carruselInicial: carruselInicial
+    });
+
     setNuevoCoordinador({
       nombre: coordinador.nombre,
       apellido_paterno: coordinador.apellido_paterno,
@@ -445,11 +918,15 @@ const Coordinadores = () => {
       correo: coordinador.correo,
       contraseña: "",
       telefono: coordinador.telefono || "",
-      poliza: typeof coordinador.poliza === 'string' ? coordinador.poliza : coordinador.poliza?._id || "",
+      poliza: polizaId,
       estado: coordinador.estado || "Activo"
     });
     setErroresCampo({});
     setIdEditando(coordinador._id);
+    setCarruselIndex(carruselInicial); // Posicionar carrusel en la póliza asignada
+    setPasoActual(1); // Siempre empezar desde el primer paso
+    setShowPassword(false); // Resetear estado de mostrar contraseña
+    setPolizaSeleccionadaExplicitamente(true); // En edición, siempre hay una selección (incluso "Sin asignar")
     setShowModalEdicion(true);
   };
 
@@ -465,13 +942,7 @@ const Coordinadores = () => {
       estado: "Activo"
     });
     setErroresCampo({});
-  };
-
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLDivElement).classList.contains("modal-overlay")) {
-      setShowModalRegistro(false);
-      setShowModalEdicion(false);
-    }
+    setShowPassword(false);
   };
 
   // Funciones para búsqueda - exacto como especialidades
@@ -486,21 +957,6 @@ const Coordinadores = () => {
   const limpiarBusqueda = () => {
     setTerminoBusqueda("");
   };
-
-  const renderInput = (label: string, name: keyof CoordinadorForm, type = "text") => (
-    <div className="form-group">
-      <label>{label}</label>
-      <input
-        type={type}
-        name={name}
-        value={nuevoCoordinador[name]}
-        onChange={handleInputChange}
-        className={erroresCampo[name] ? "input-error" : ""}
-        required
-      />
-      {erroresCampo[name] && <span className="error-text">{erroresCampo[name]}</span>}
-    </div>
-  );
 
   return (
     <div className="coordinadores-container">
@@ -537,7 +993,12 @@ const Coordinadores = () => {
             {/* Botón para abrir modal de registro */}
             <button
               className="btn-registrar-coordinadores"
-              onClick={() => setShowModalRegistro(true)}
+              onClick={() => {
+                setShowModalRegistro(true);
+                setCarruselIndex(0); // Resetear carrusel al inicio
+                setPasoActual(1); // Empezar desde el primer paso
+                setPolizaSeleccionadaExplicitamente(false); // Resetear selección explícita
+              }}
             >
               <i className="bi bi-plus-circle"></i>
               Registrar
@@ -725,57 +1186,130 @@ const Coordinadores = () => {
         </div>
       )}
 
-      {/* MODAL - manteniendo funcionalidad original */}
+      {/* Modal para creación y edición de coordinadores - ESTILO ESPECIALIDADES */}
       {(showModalRegistro || showModalEdicion) && (
-        <div className="modal-overlay" onClick={handleOverlayClick}>
-          <div className="modal-main-container">
-            <form onSubmit={handleSubmit} className="modal-coordinadores-container">
-              <h3>{showModalRegistro ? "Registrar Coordinador" : "Editar Coordinador"}</h3>
+        <div className="modal-overlay-coordinadores">
+          <div className="modal-content-coordinadores with-steps">
+            <button className="modal-close" onClick={() => {
+              setShowModalRegistro(false);
+              setShowModalEdicion(false);
+              setIdEditando(null);
+              setNuevoCoordinador({
+                nombre: "",
+                apellido_paterno: "",
+                apellido_materno: "",
+                correo: "",
+                contraseña: "",
+                telefono: "",
+                poliza: "",
+                estado: "Activo"
+              });
+              setCarruselIndex(0);
+              setPasoActual(1);
+              setErroresCampo({});
+              setShowPassword(false);
+              setPolizaSeleccionadaExplicitamente(false); // Resetear selección explícita
+            }}>
+              ×
+            </button>
 
-              {renderInput("Nombre:", "nombre")}
-              {renderInput("Apellido Paterno:", "apellido_paterno")}
-              {renderInput("Apellido Materno:", "apellido_materno")}
-              {renderInput("Correo:", "correo", "email")}
-              {showModalRegistro && renderInput("Contraseña:", "contraseña", "password")}
-              {renderInput("Teléfono:", "telefono")}
+            <div className="modal-title" style={{ fontWeight: 'bold' }}>
+              {showModalRegistro ? "Registrar Nuevo Coordinador" : "Editar Coordinador"}
+            </div>
 
-              <div className="form-group">
-                <label>Póliza:</label>
-                <select
-                  name="poliza"
-                  value={nuevoCoordinador.poliza}
-                  onChange={handleInputChange}
-                  className={erroresCampo.poliza ? "input-error" : ""}
-                >
-                  <option value="">Selecciona una póliza</option>
-                  {polizas.map((poliza) => (
-                    <option key={poliza._id} value={poliza._id}>{poliza.nombre}</option>
-                  ))}
-                </select>
-                {erroresCampo.poliza && <span className="error-text">{erroresCampo.poliza}</span>}
+            {/* Título del paso */}
+            <div className="step-title">{getTituloPaso()}</div>
+            <div className="step-info">{pasoActual} de {TOTAL_PASOS}</div>
+
+            {/* Navegación de pasos con flechas a los lados del contenido */}
+            <div className="step-navigation-container">
+              {/* Flecha izquierda */}
+              <button
+                type="button"
+                className="pagination-btn prev"
+                onClick={pasoAnterior}
+                disabled={pasoActual === 1}
+                title="Paso anterior"
+              >
+                <i className="bi bi-chevron-left"></i>
+              </button>
+
+              {/* Contenido del paso actual */}
+              <div className="step-content">
+                <form onSubmit={handleSubmit}>
+                  {renderPasoActual()}
+                </form>
               </div>
 
-              <div className="form-group">
-                <label>Estado:</label>
-                <select
-                  name="estado"
-                  value={nuevoCoordinador.estado}
-                  onChange={handleInputChange}
-                >
-                  <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
-                </select>
-              </div>
+              {/* Flecha derecha */}
+              <button
+                type="button"
+                className="pagination-btn next"
+                onClick={siguientePaso}
+                disabled={pasoActual === TOTAL_PASOS}
+                title="Siguiente paso"
+              >
+                <i className="bi bi-chevron-right"></i>
+              </button>
+            </div>
 
-              <div className="modal-actions">
-                <button type="submit" className="submit-btn">Guardar</button>
-                <button type="button" className="close-btn" onClick={() => {
+            {/* Indicadores de pasos (círculos pequeños) - POSICIÓN FIJA */}
+            <div className="step-indicators-coordinadores">
+              {Array.from({ length: TOTAL_PASOS }, (_, index) => (
+                <button
+                  key={index + 1}
+                  type="button"
+                  className={`step-indicator ${pasoActual === index + 1 ? 'active' : ''}`}
+                  onClick={() => irAPaso(index + 1)}
+                  title={`Ir al paso ${index + 1}`}
+                />
+              ))}
+            </div>
+
+            {/* Botones de acción del modal - POSICIÓN FIJA */}
+            <div className="modal-buttons-coordinadores">
+              <button
+                type="button"
+                className="modal-btn modal-btn-cancelar"
+                onClick={() => {
                   setShowModalRegistro(false);
                   setShowModalEdicion(false);
-                }}>Cancelar</button>
-              </div>
-            </form>
-            {error && <div className="error-message-coordinador">{error}</div>}
+                  setIdEditando(null);
+                  setNuevoCoordinador({
+                    nombre: "",
+                    apellido_paterno: "",
+                    apellido_materno: "",
+                    correo: "",
+                    contraseña: "",
+                    telefono: "",
+                    poliza: "",
+                    estado: "Activo"
+                  });
+                  setCarruselIndex(0);
+                  setErroresCampo({});
+                  setPasoActual(1);
+                  setShowPassword(false);
+                }}
+              >
+                <i className="bi bi-x-circle"></i>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="modal-btn modal-btn-confirmar-poliza"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const form = document.querySelector('form');
+                  if (form) {
+                    const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                    form.dispatchEvent(submitEvent);
+                  }
+                }}
+              >
+                <i className="bi bi-check-circle"></i>
+                {showModalRegistro ? "Registrar" : "Actualizar"}
+              </button>
+            </div>
           </div>
         </div>
       )}

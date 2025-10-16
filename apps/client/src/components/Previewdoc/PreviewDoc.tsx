@@ -26,6 +26,8 @@ interface VistaPreviaProps {
     colaborador?: {      // Información del usuario que hizo el reporte (reportes individuales)
       _id: string;
       nombre: string;
+      apellido_paterno?: string;
+      apellido_materno?: string;
       correo?: string;
       rol?: string;
     };
@@ -60,30 +62,39 @@ const VistaPrevia: React.FC<VistaPreviaProps> = ({ dispositivos, isLoading = fal
   // Función helper para formatear información de colaboradores
   const formatearColaboradores = (dispositivo: any) => {
     // Si es un reporte colaborativo
-    if (dispositivo.esColaborativo && dispositivo.tipoParticipacion && dispositivo.tipoParticipacion.length > 0) {
-      // Ordenar: principal primero, luego colaboradores
-      const colaboradoresOrdenados = [...dispositivo.tipoParticipacion].sort((a, b) => {
-        if (a.rol === 'principal' && b.rol !== 'principal') return -1;
-        if (a.rol !== 'principal' && b.rol === 'principal') return 1;
-        return 0;
-      });
+    if (dispositivo.esColaborativo) {
+      const participantes = [];
 
-      // Crear lista unificada de todos los participantes
-      const todosLosParticipantes = colaboradoresOrdenados.map(c =>
-        `${c.colaborador.nombre} ${c.colaborador.apellido_paterno || ''}`.trim()
-      );
+      // SIEMPRE incluir al colaborador principal (responsable) AL PRINCIPIO
+      if (dispositivo.colaborador && dispositivo.colaborador.nombre) {
+        const responsable = `${dispositivo.colaborador.nombre} ${dispositivo.colaborador.apellido_paterno || ''}`.trim();
+        participantes.push(responsable);
+      }
+
+      // Agregar colaboradores adicionales (excluyendo al responsable si aparece duplicado)
+      if (dispositivo.colaboradores && dispositivo.colaboradores.length > 0) {
+        const responsableId = dispositivo.colaborador?._id;
+
+        dispositivo.colaboradores.forEach((colaborador: any) => {
+          if (colaborador && colaborador.nombre && colaborador._id !== responsableId) {
+            const nombreColaborador = `${colaborador.nombre} ${colaborador.apellido_paterno || ''}`.trim();
+            participantes.push(nombreColaborador);
+          }
+        });
+      }
 
       return {
         esTrabajo: 'colaborativo',
-        participantes: todosLosParticipantes
+        participantes: participantes
       };
     }
 
-    // Si es un reporte individual
+    // Si es un reporte individual (solo colaborador principal)
     if (dispositivo.colaborador) {
+      const nombreCompleto = `${dispositivo.colaborador.nombre} ${dispositivo.colaborador.apellido_paterno || ''}`.trim();
       return {
         esTrabajo: 'individual',
-        participantes: [dispositivo.colaborador.nombre]
+        participantes: [nombreCompleto]
       };
     }
 

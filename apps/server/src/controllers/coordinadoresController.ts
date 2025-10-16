@@ -184,6 +184,15 @@ export const actualizarCoordinador: RequestHandler = async (req, res, next: Next
 
     const update: any = { ...datosActualizados };
 
+    // Hash de la contraseña si se proporciona una nueva
+    if (datosActualizados.contraseña) {
+      const hashedPassword = await bcrypt.hash(
+        datosActualizados.contraseña,
+        10
+      );
+      update.contraseña = hashedPassword;
+    }
+
     if (
       typeof nuevaPolizaId !== "undefined" &&
       nuevaPolizaId !== coordinadorActual.poliza?.toString()
@@ -198,35 +207,37 @@ export const actualizarCoordinador: RequestHandler = async (req, res, next: Next
           nuevaPoliza.coordinador &&
           nuevaPoliza.coordinador.toString() !== id
         ) {
-          res.status(400).json({
-            message: "La póliza ya tiene un coordinador asignado",
-            coordinadorActual: nuevaPoliza.coordinador,
+          // NUEVA LÓGICA: Permitir reasignación automática de coordinadores
+          console.log('⚠️ Póliza ya tiene coordinador, realizando reasignación automática...', {
+            polizaId: nuevaPolizaId,
+            coordinadorAnterior: nuevaPoliza.coordinador.toString(),
+            coordinadorNuevo: id
           });
-          return;
-        }
-        if (datosActualizados.contraseña) {
-          const hashedPassword = await bcrypt.hash(
-            datosActualizados.contraseña,
-            10
-          );
-          update.contraseña = hashedPassword;
+
+          // Limpiar la póliza del coordinador que la tenía previamente
+          await Coordinador.findByIdAndUpdate(nuevaPoliza.coordinador, {
+            $unset: { poliza: "" }
+          });
+
+          console.log('✅ Coordinador anterior desasignado de la póliza');
         }
 
         if (coordinadorActual.poliza) {
+          console.log('🧹 Limpiando póliza anterior del coordinador actual...');
           await Poliza.findByIdAndUpdate(coordinadorActual.poliza, {
             $unset: { coordinador: "" },
           });
         }
+
+        console.log('✅ Asignando nueva póliza al coordinador...');
         await Poliza.findByIdAndUpdate(nuevaPolizaId, { coordinador: id });
 
         update.poliza = nuevaPolizaId;
       }
     }
 
-    if (
-      (typeof nuevaPolizaId === "undefined" || nuevaPolizaId === null) &&
-      coordinadorActual.poliza
-    ) {
+    // Solo quitar póliza si explícitamente se envía null (no cuando es undefined)
+    if (nuevaPolizaId === null && coordinadorActual.poliza) {
       await Poliza.findByIdAndUpdate(coordinadorActual.poliza, {
         $unset: { coordinador: "" },
       });

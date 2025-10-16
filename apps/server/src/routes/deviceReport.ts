@@ -16,7 +16,11 @@ const router = express.Router();
 router.use(proteger);
 
 // CRUD de reportes de dispositivos
-router.post('/', createDeviceReport);
+router.post('/', upload.fields([
+  { name: 'WorkEvidence', maxCount: 1 },
+  { name: 'DeviceEvidence', maxCount: 1 },
+  { name: 'ViewEvidence', maxCount: 1 }
+]), createDeviceReport);
 router.get('/', getDeviceReports);
 
 // Rutas específicas para búsqueda (deben ir antes de /:id)

@@ -743,8 +743,11 @@
   padding: 20px;
   width: 500px;
   max-width: 90%;
+  height: 500px;
   max-height: 70vh;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
@@ -1140,6 +1143,25 @@ input:not(:checked) + .switch-slider {
   pointer-events: all;
 }
 
+/* Clase específica para el modal de registro/edición con pasos */
+.modal-content-coordinadores.with-steps {
+  height: 500px;
+  max-height: 80vh;
+  width: 550px;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Clase específica para el modal de SubirReporte */
+.modal-content-coordinadores.with-steps.subir-reporte {
+  height: 600px;
+  max-height: 85vh;
+  width: 650px;
+  max-width: 90vw;
+}
+
 /* Botón cerrar */
 .modal-close {
   position: absolute;
@@ -1257,12 +1279,31 @@ input:not(:checked) + .switch-slider {
 }
 
 .modal-btn-confirmar {
-  background-color: #E9383B !important;
+  background-color: #4927F5 !important;
   color: white;
 }
 
 .modal-btn-confirmar:hover {
-  background-color: #d32f2f !important;
+  background-color: #3a1fd1 !important;
+}
+
+/* Clase específica para botón Siguiente del modal SubirReporte */
+.modal-btn-subir-reporte {
+  background-color: #4927F5 !important;
+  color: white !important;
+}
+
+.modal-btn-subir-reporte:hover {
+  background-color: #3a1fd1 !important;
+}
+
+.modal-btn-secondary {
+  background-color: #ff6b35 !important;
+  color: white;
+}
+
+.modal-btn-secondary:hover {
+  background-color: #e55a2b !important;
 }
 
 /* Animaciones */
@@ -1412,6 +1453,16 @@ input:not(:checked) + .switch-slider {
   color: #dc2626;
 }
 
+.btn-accion.revertir {
+  color: #f59e0b;
+}
+
+.btn-accion.revertir:hover {
+  background: #fefbf2;
+  border-color: #f59e0b;
+  color: #d97706;
+}
+
 /* Responsive - adaptar para pantallas pequeñas */
 @media (max-width: 1024px) {
   .tabla-header,
@@ -1500,4 +1551,346 @@ input:not(:checked) + .switch-slider {
     margin-top: 1rem;
     margin-bottom: 1rem;
   }
+}
+
+/* ===== ESTILOS PARA NAVEGACIÓN POR PASOS ===== */
+/* Sistema de navegación por pasos para el modal de coordinadores */
+
+/* Contenedor principal de navegación por pasos */
+.step-navigation-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+/* Estilos específicos para las flechas del modal de coordinadores */
+.step-navigation-container .pagination-btn.prev,
+.step-navigation-container .pagination-btn.next {
+  background: transparent !important;
+  color: #666 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  transition: all 0.2s ease !important;
+}
+
+.step-navigation-container .pagination-btn.prev:hover:not(:disabled),
+.step-navigation-container .pagination-btn.next:hover:not(:disabled) {
+  background: #f0f0f0 !important;
+  color: #333 !important;
+  transform: scale(1.05) !important;
+  border-radius: 50% !important;
+}
+
+.step-navigation-container .pagination-btn.prev:disabled,
+.step-navigation-container .pagination-btn.next:disabled {
+  background: transparent !important;
+  color: #ccc !important;
+  opacity: 0.5 !important;
+  transform: none !important;
+  cursor: not-allowed !important;
+}
+
+/* Contenedor de indicadores de pasos (círculos pequeños) */
+.step-indicators {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 15px;
+  padding: 10px 0;
+}
+
+/* Círculo indicador individual - muy pequeño */
+.step-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ddd;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  padding: 0;
+}
+
+/* Círculo activo (paso actual) - NEGRO en lugar de azul */
+.step-indicator.active {
+  background: #000000;
+  transform: scale(1.5);
+}
+
+/* Círculo completado */
+.step-indicator.completed {
+  background: #28a745;
+}
+
+/* Hover en círculos - NEGRO en lugar de azul */
+.step-indicator:hover {
+  transform: scale(1.3);
+  background: #000000;
+}
+
+/* Contenedor del contenido del paso */
+.step-content {
+  margin: 0;
+  min-height: 200px;
+  flex: 1;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: visible;
+}
+
+/* Contenedor de indicadores de pasos - ESTILO NORMAL (no afecta otros modales) */
+.step-indicators {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 15px;
+  padding: 10px 0;
+}
+
+/* Botones del modal - ESTILO NORMAL (no afecta otros modales) */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Contenedor de indicadores de pasos - POSICIÓN FIJA SOLO PARA COORDINADORES */
+.step-indicators-coordinadores {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 0;
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+}
+
+/* Botones del modal de coordinadores - POSICIÓN FIJA SOLO PARA COORDINADORES */
+.modal-buttons-coordinadores {
+  position: absolute;
+  bottom: 20px;
+  left: 28px;
+  right: 28px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 0;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  background: white;
+}
+
+/* Título del paso */
+.step-title {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Información del paso (1 de 3, etc.) */
+.step-info {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 12px;
+  color: #999;
+}
+
+/* ===== BOTÓN TOGGLE PASSWORD SIMPLE ===== */
+/* Solo el botón de mostrar/ocultar contraseña */
+
+.toggle-password {
+    position: absolute !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: none !important;
+    border: none !important;
+    color: #6b7280 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    padding: 4px !important;
+    z-index: 2 !important;
+    outline: none !important;
+}
+
+.toggle-password:hover {
+    color: #4b5563 !important;
+}
+
+.toggle-password.active {
+    color: #000000 !important;
+}
+
+.toggle-password.active:hover {
+    color: #000000 !important;
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA BOTONES DE CARRUSEL EN MODALES ===== */
+/* Forzar botones negros en carruseles de especialidades y pólizas */
+.polizas-carrusel .carrusel-navegacion .pagination-btn.prev,
+.polizas-carrusel .carrusel-navegacion .pagination-btn.next {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.polizas-carrusel .carrusel-navegacion .pagination-btn.prev:hover:not(:disabled),
+.polizas-carrusel .carrusel-navegacion .pagination-btn.next:hover:not(:disabled) {
+    background: #333333 !important;
+    color: #ffffff !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.polizas-carrusel .carrusel-navegacion .pagination-btn.prev:disabled,
+.polizas-carrusel .carrusel-navegacion .pagination-btn.next:disabled {
+    background: #6c757d !important;
+    color: #ffffff !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    opacity: 0.6 !important;
+    box-shadow: none !important;
+}
+
+.polizas-carrusel .carrusel-navegacion .pagination-btn.prev i,
+.polizas-carrusel .carrusel-navegacion .pagination-btn.next i {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+}
+
+/* ===== ESTILOS PARA ESPECIALIDADES EN TARJETAS DE PÓLIZAS ===== */
+/* Nombre de la póliza */
+.poliza-card .poliza-nombre {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+/* Contenedor de especialidades */
+.poliza-card .poliza-especialidades {
+    margin-top: 8px;
+    text-align: left;
+    width: 100%;
+}
+
+/* Label de especialidades */
+.poliza-especialidades .especialidades-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* Contenedor de chips */
+.poliza-especialidades .especialidades-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-start;
+}
+
+/* Chip individual de especialidad */
+.poliza-especialidades .especialidad-chip {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+/* Icono dentro del chip */
+.poliza-especialidades .especialidad-chip i {
+    font-size: 0.65rem;
+    color: #6b7280;
+}
+
+/* Efecto hover en la tarjeta seleccionada */
+.poliza-card.poliza-selected .poliza-especialidades .especialidad-chip {
+    background: #e0e7ff;
+    border-color: #c7d2fe;
+    color: #4c51bf;
+}
+
+.poliza-card.poliza-selected .poliza-especialidades .especialidad-chip i {
+    color: #5a67d8;
+}
+
+/* ===== ESTILOS PARA DISPOSITIVOS NO DISPONIBLES ===== */
+/* Estilos para dispositivos ya asignados en otros períodos activos */
+
+.device-unavailable {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+.device-unavailable:hover {
+    background-color: #f8f9fa !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Texto de "Ya asignado" */
+.device-unavailable .device-status-text {
+    color: #dc3545;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Ícono de candado para dispositivos bloqueados */
+.device-unavailable .bi-lock-fill {
+    color: #dc3545 !important;
+}
+
+/* Estilo para el contador de colaboradores seleccionados en SubirReporte */
+.colaboradores-count {
+    text-align: center;
+    margin-top: 16px;
+    padding: 8px;
+    background: #e7f3ff;
+    border-radius: 6px;
+    color: #333 !important; /* Color negro como el modal */
+    font-size: 12px !important; /* Letra pequeña como los correos */
+    font-weight: 400 !important; /* Normal weight como los correos */
 }

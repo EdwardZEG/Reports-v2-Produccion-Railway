@@ -125,14 +125,19 @@ export const actualizarPoliza: RequestHandler = async (req, res, next) => {
           await Coordinador.findByIdAndUpdate(coordinador, { $unset: { poliza: "" } });
           console.log('✅ Coordinador limpiado automáticamente en actualización');
         } else {
-          console.log('🚫 Coordinador ya asignado a otra póliza:', {
+          // NUEVA LÓGICA: Permitir reasignación automática desde pólizas también
+          console.log('⚠️ Coordinador ya asignado a otra póliza, realizando reasignación automática...', {
             coordinadorId: coordinador,
-            polizaActual: nuevoCoordinador.poliza.toString(),
-            polizaQueSeIntentaActualizar: id.toString()
+            polizaAnterior: nuevoCoordinador.poliza.toString(),
+            polizaNueva: id.toString()
           });
-          return next(
-            new AppError("El coordinador ya está asignado a otra póliza", 400)
-          );
+
+          // Limpiar la póliza anterior
+          await Poliza.findByIdAndUpdate(nuevoCoordinador.poliza, {
+            $unset: { coordinador: "" }
+          });
+
+          console.log('✅ Póliza anterior limpiada automáticamente');
         }
       }
 

@@ -40,7 +40,17 @@ const SubirReporte: React.FC = () => {
   useEffect(() => {
     const nombre = localStorage.getItem("nombre");
     const rol = localStorage.getItem("rol");
-    setNombreUsuario(nombre || "");
+
+    // Manejar nombre que puede ser string o JSON
+    if (nombre) {
+      try {
+        const userObject = JSON.parse(nombre);
+        setNombreUsuario(userObject.nombre || nombre);
+      } catch (error) {
+        setNombreUsuario(nombre);
+      }
+    }
+
     setRolUsuario(rol || "");
 
     // Verificar si hay dispositivo seleccionado en localStorage

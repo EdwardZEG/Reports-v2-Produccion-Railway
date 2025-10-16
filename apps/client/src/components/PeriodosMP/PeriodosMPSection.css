@@ -50,37 +50,27 @@
 .periodo-card {
   background: white;
   border-radius: 12px;
-  padding: 14px;
-  box-shadow: none; 
+  padding: 24px;
+  box-shadow: none; /* Sin sombra */
   border: 1px solid #e0e0e0;
-  transition: none;
-  max-width: 78%; 
-  width: 78%; 
-  margin: 0;
-  height: calc(100vh - 240px); /* Altura ajustada para dejar margen abajo */
-  min-height: 380px; /* Altura mínima más pequeña para caber mejor */
-  max-height: calc(100vh - 200px); /* Máximo ajustado para dejar margen */
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 1380px; /* 15% más ancho horizontalmente (1200px * 1.15) */
+  margin: 0 auto; /* Centrado */
+  min-height: 600px;
   display: flex;
   flex-direction: column;
-  position: relative; 
-  order: 2; 
-  overflow: hidden; /* Sin scroll en el contenedor principal */
-  flex-shrink: 0; 
-  flex-grow: 0; 
+  position: relative;
+  overflow: hidden;
 }
 
 /* Contenedor con flechas laterales */
 .periodo-wrapper {
   display: flex;
   align-items: center;
-  gap: 40px; /* Separación entre flechas y contenedor */
-  height: calc(100vh - 240px); /* Altura dinámica igual al período-card */
-  min-height: 380px; /* Altura mínima igual al período-card */
-  max-height: calc(100vh - 200px); /* Altura máxima igual al período-card */
+  gap: 20px;
   width: 100%;
   justify-content: center;
-  flex-shrink: 0; 
-  flex-grow: 0; 
 }
 
 /* Flechas laterales estáticas */
@@ -1597,8 +1587,8 @@
 /* Pantallas muy grandes (>1400px) */
 @media (min-width: 1400px) {
   .periodo-card {
-    max-width: 70% !important; 
-    width: 70% !important;
+    max-width: 80.5% !important; /* 15% más grande que 70% */
+    width: 80.5% !important;
     height: calc(100vh - 200px) !important; /* Ajustado para margen consistente */
     min-height: 420px !important; /* Altura mínima ajustada */
     max-height: calc(100vh - 160px) !important; /* Máximo con margen */
@@ -1615,8 +1605,8 @@
 /* Pantallas grandes (1200px - 1400px) */
 @media (min-width: 1200px) and (max-width: 1399px) {
   .periodo-card {
-    max-width: 75% !important;
-    width: 75% !important;
+    max-width: 86.25% !important; /* 15% más grande que 75% */
+    width: 86.25% !important;
     height: calc(100vh - 220px) !important; /* Ajustado para margen consistente */
     min-height: 400px !important; /* Altura mínima ajustada */
     max-height: calc(100vh - 180px) !important; /* Máximo con margen */
@@ -1633,8 +1623,8 @@
 /* Pantallas medianas-grandes (1024px - 1199px) */
 @media (min-width: 1024px) and (max-width: 1199px) {
   .periodo-card {
-    max-width: 80% !important;
-    width: 80% !important;
+    max-width: 92% !important; /* 15% más grande que 80% */
+    width: 92% !important;
     height: calc(100vh - 240px) !important; /* Ajustado para margen consistente */
     min-height: 380px !important; /* Altura mínima ajustada */
     max-height: calc(100vh - 200px) !important; /* Máximo con margen */
@@ -1651,8 +1641,8 @@
 /* Pantallas medianas (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
   .periodo-card {
-    max-width: 85% !important;
-    width: 85% !important;
+    max-width: 97.75% !important; /* 15% más grande que 85% */
+    width: 97.75% !important;
     height: calc(100vh - 260px) !important; /* Ajustado para margen consistente */
     min-height: 360px !important; /* Altura mínima ajustada */
     max-height: calc(100vh - 220px) !important; /* Máximo con margen */
@@ -1677,8 +1667,8 @@
 /* Pantallas pequeñas (480px - 767px) */
 @media (min-width: 480px) and (max-width: 767px) {
   .periodo-card {
-    max-width: 90% !important;
-    width: 90% !important;
+    max-width: 100% !important; /* 15% más grande que 90% = 103.5%, limitado a 100% */
+    width: 100% !important;
     height: calc(100vh - 280px) !important; /* Ajustado para margen consistente */
     min-height: 340px !important; /* Altura mínima ajustada */
     max-height: calc(100vh - 240px) !important; /* Máximo con margen */
@@ -1703,8 +1693,8 @@
 /* Pantallas muy pequeñas (móviles <480px) */
 @media (max-width: 479px) {
   .periodo-card {
-    max-width: 95% !important;
-    width: 95% !important;
+    max-width: 100% !important; /* 15% más grande que 95% = 109.25%, limitado a 100% */
+    width: 100% !important;
     height: calc(100vh - 300px) !important; /* Ajustado para margen consistente */
     min-height: 320px !important; /* Altura mínima ajustada */
     max-height: calc(100vh - 260px) !important; /* Máximo con margen */
@@ -1749,4 +1739,464 @@
     padding: 6px !important;
     font-size: 12px !important;
   }
+}
+
+/* ===== ESTILOS DEL CARRUSEL ===== */
+.periodos-carousel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.carousel-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  gap: 15px;
+  overflow: hidden;
+}
+
+.carousel-arrow {
+  background: linear-gradient(135deg, #4927F5 0%, #3B1EC7 100%);
+  border: none;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(73, 39, 245, 0.2);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.carousel-arrow:hover:not(.disabled) {
+  background: linear-gradient(135deg, #3B1EC7 0%, #2D1596 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(73, 39, 245, 0.3);
+}
+
+.carousel-arrow.disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.carousel-arrow.disabled:hover {
+  transform: none;
+  background: #e5e7eb;
+}
+
+.carousel-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px; /* Ancho mayor para contenedor */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Contenedor para la transición cruzada */
+.carousel-content.sliding-left,
+.carousel-content.sliding-right {
+  position: relative;
+}
+
+/* Animaciones de desplazamiento suaves y naturales */
+@keyframes slideInLeft {
+  0% {
+    transform: translateX(100%);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutLeft {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0.8;
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0.8;
+  }
+}
+
+/* Clases para aplicar las animaciones de desplazamiento */
+.periodo-wrapper.slide-in-left {
+  animation: slideInLeft 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.periodo-wrapper.slide-out-left {
+  animation: slideOutLeft 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.periodo-wrapper.slide-in-right {
+  animation: slideInRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.periodo-wrapper.slide-out-right {
+  animation: slideOutRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #d1d5db;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.indicator.active {
+  background: #4927F5;
+  width: 24px;
+  border-radius: 4px;
+}
+
+.indicator:hover:not(.active) {
+  background: #9ca3af;
+}
+
+.no-periodos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+/* Responsive para el carrusel */
+@media (max-width: 768px) {
+  .carousel-container {
+    gap: 10px;
+  }
+  
+  .carousel-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .carousel-content {
+    max-width: 90%;
+  }
+  
+  .indicator {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .indicator.active {
+    width: 20px;
+  }
+}
+
+/* ===== ESTADO VACÍO PARA PERÍODOS MP ===== */
+/* Estado vacío con diseño similar al de PreviewDoc */
+.periodosmp-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #A0A0A0;
+  font-style: italic;
+  gap: 0.75rem;
+  margin: 20px 0;
+}
+
+.periodosmp-empty-state i {
+  font-size: 2.5rem;
+  color: #000000; /* Color negro como en inicio */
+  margin-bottom: 0.5rem;
+}
+
+.periodosmp-empty-state i.loading-spin {
+  animation: spin 1s linear infinite;
+  color: #27ae60; /* Verde para loading */
+}
+
+.periodosmp-empty-state p {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap; /* Texto en una sola línea horizontal */
+  line-height: 1.4;
+}
+
+/* Animación de spin para el loading */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== ESTILOS PARA SCROLLBAR PERSONALIZADO ===== */
+/* Scrollbar personalizado para la tabla de dispositivos seleccionados */
+.dispositivos-seleccionados-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dispositivos-seleccionados-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.dispositivos-seleccionados-container::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+  border: 1px solid #f1f1f1;
+}
+
+.dispositivos-seleccionados-container::-webkit-scrollbar-thumb:hover {
+  background: #000;
+}
+
+/* Para Firefox */
+.dispositivos-seleccionados-container {
+  scrollbar-width: thin;
+  scrollbar-color: #333 #f1f1f1;
+  /* Asegurar que el scroll funcione correctamente */
+  scroll-behavior: smooth !important;
+  overflow-y: scroll !important;
+  padding-bottom: 8px !important; /* Padding inferior para asegurar visibilidad del último elemento */
+}
+
+/* Asegurar que el último elemento de la lista sea visible */
+.dispositivos-seleccionados-container > div:last-child {
+  margin-bottom: 4px !important; /* MISMO margen que los demás elementos */
+  padding-bottom: 40px !important; /* Padding extra como estaba funcionando antes */
+  border-bottom: none !important; /* Sin borde en el último elemento */
+}
+
+/* TABLA DE TAMAÑO FIJO CON SCROLL INTERNO - PROBLEMA ARREGLADO */
+.dispositivos-seleccionados-container {
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar mejorado para mejor usabilidad */
+.dispositivos-seleccionados-container::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.dispositivos-seleccionados-container::-webkit-scrollbar-track {
+  background: #f1f1f1 !important;
+  border-radius: 4px !important;
+}
+
+.dispositivos-seleccionados-container::-webkit-scrollbar-thumb {
+  background: #333 !important;
+  border-radius: 4px !important;
+  border: 1px solid #f1f1f1 !important;
+}
+
+.dispositivos-seleccionados-container::-webkit-scrollbar-thumb:hover {
+  background: #000 !important;
+}
+
+/* Para Firefox */
+.dispositivos-seleccionados-container {
+  scrollbar-width: thin !important;
+  scrollbar-color: #333 #f1f1f1 !important;
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA MODAL DE ASIGNAR DISPOSITIVOS ===== */
+/* SOLO para el modal de asignar dispositivos - NO afecta otros modales */
+.modal-content-asignar-dispositivos {
+  /* Estilos base heredados de modal-content-coordinadores */
+  background: white;
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+  position: relative;
+  pointer-events: all;
+  
+  /* Estilos específicos para este modal */
+  width: 72vw !important; /* Reducido 15% */
+  max-width: 595px !important; /* Reducido 15% */
+  height: 75vh !important;
+  max-height: 75vh !important;
+  min-height: 400px !important;
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ajustes para pantallas pequeñas - SOLO modal asignar dispositivos */
+@media (max-width: 768px) {
+  .modal-content-asignar-dispositivos {
+    width: 85vw !important; /* Más espacio en móviles */
+    height: 80vh !important;
+    max-height: 80vh !important;
+  }
+  
+  .dispositivos-seleccionados-container {
+    min-height: 160px !important;
+  }
+}
+
+/* Ajustes para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .polizas-carrusel .carrusel-navegacion {
+    gap: 10px !important;
+  }
+  
+  .polizas-carrusel .carrusel-poliza-contenido {
+    max-width: 250px !important;
+  }
+}
+
+/* ===== ESTILOS PARA CARDS DE DISPOSITIVOS COMPACTAS ===== */
+/* Solo modificar altura y diseño interno, MANTENER ancho y centrado original */
+.polizas-carrusel .poliza-card {
+  display: flex !important;
+  flex-direction: row !important; /* Ícono al lado del texto */
+  height: auto !important;
+  min-height: 50px !important; /* Altura reducida */
+  max-height: 60px !important;
+  padding: 10px 15px !important;
+  gap: 10px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  /* NO forzar width - dejar que use el tamaño del contenedor padre */
+}
+
+/* Asegurar que el ícono no se encoja y tenga tamaño consistente */
+.polizas-carrusel .poliza-card > i:first-child {
+  flex-shrink: 0 !important;
+  font-size: 18px !important;
+  margin-bottom: 0 !important; /* Remover margen inferior si existe */
+}
+
+/* Estilo del texto en las cards */
+.polizas-carrusel .poliza-card > span {
+  flex: 1 !important;
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  text-align: center !important; /* Centrar el texto */
+  margin-top: 0 !important; /* Remover margen superior si existe */
+  margin-left: 0 !important; /* Remover margen izquierdo si existe */
+}
+
+/* Posición del check mark */
+.polizas-carrusel .poliza-card .poliza-check {
+  position: absolute !important;
+  right: 10px !important;
+  font-size: 16px !important;
+  margin: 0 !important;
+}
+
+/* ===== ESTILOS PARA CARRUSEL COMPACTO ===== */
+/* Hacer el carrusel lo más compacto posible PERO mantener el diseño original */
+.polizas-carrusel {
+  padding: 8px !important;
+  margin: 0 !important;
+  min-height: 74px !important;
+  max-height: 84px !important;
+  overflow: visible !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important; /* Centrar todo el contenido */
+}
+
+/* Navegación del carrusel - MANTENER DISEÑO ORIGINAL CON CENTRO */
+.polizas-carrusel .carrusel-navegacion {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important; /* CENTRO como originalmente */
+  gap: 20px !important; /* Gap mayor para dar más espacio a la card */
+  height: 58px !important;
+  padding: 2px 0 !important;
+  margin: 0 !important;
+}
+
+/* Contenido del carrusel - ANCHO REDUCIDO 10% Y MEJOR CENTRADO */
+.polizas-carrusel .carrusel-poliza-contenido {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  max-width: 360px !important; /* ANCHO REDUCIDO 10% (400px * 0.9) */
+  min-width: 270px !important; /* ANCHO MÍNIMO REDUCIDO 10% (300px * 0.9) */
+  min-height: 54px !important;
+  max-height: 54px !important;
+  overflow: visible !important;
+  margin: 0 auto !important; /* Centrar horizontalmente */
+  padding: 2px 0 !important;
+}
+
+/* Botones de navegación compactos */
+.polizas-carrusel .pagination-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  font-size: 14px !important;
+}
+
+/* Label del form-group más compacto */
+.modal-content-coordinadores .form-group label {
+  margin-bottom: 5px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
 }

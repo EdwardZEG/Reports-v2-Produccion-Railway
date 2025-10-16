@@ -146,6 +146,16 @@ export const useCoordinadores = () => {
    * @returns Objeto con success, coordinadorId y coordinadores actualizados para navegación
    */
   const actualizarCoordinador = async (_id: string, datos: Partial<NuevoCoordinador>) => {
+    console.log('🔄 Hook actualizarCoordinador - Iniciando:', {
+      coordinadorId: _id,
+      datosRecibidos: datos,
+      polizaValue: datos.poliza,
+      polizaType: typeof datos.poliza,
+      polizaIsNull: datos.poliza === null,
+      polizaIsEmpty: datos.poliza === '',
+      polizaIsUndefined: datos.poliza === undefined
+    });
+
     // Actualización optimista: actualizar UI inmediatamente
     const coordinadoresOptimistas = coordinadores.map(coor =>
       coor._id === _id ? { ...coor, ...datos } : coor
@@ -153,7 +163,17 @@ export const useCoordinadores = () => {
     setCoordinadores(coordinadoresOptimistas);
 
     try {
-      await api.put(`/coordinadores/${_id}`, datos);
+      console.log('📤 Hook actualizarCoordinador - Enviando al API:', {
+        url: `/coordinadores/${_id}`,
+        datos: datos
+      });
+
+      const response = await api.put(`/coordinadores/${_id}`, datos);
+
+      console.log('📥 Hook actualizarCoordinador - Respuesta del API:', {
+        status: response.status,
+        data: response.data
+      });
 
       // REFETCH COMPLETO: Obtener datos actualizados del servidor para sincronización en tiempo real
       await fetchData();
