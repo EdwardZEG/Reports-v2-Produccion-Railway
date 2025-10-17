@@ -54,11 +54,20 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
     const [isAnimating, setIsAnimating] = useState(false); // Estado para controlar animación
 
     // Estados para trabajo colaborativo
-    const [isCollaborativeWork, setIsCollaborativeWork] = useState(false);
+    const [isCollaborativeWork, setIsCollaborativeWork] = useState<boolean | null>(null);
     const [selectedColaboradores, setSelectedColaboradores] = useState<string[]>([]);
     const [tipoParticipacion, setTipoParticipacion] = useState<any[]>([]);
     const [showCollaborativeSelector, setShowCollaborativeSelector] = useState(false);
     const [showCollaboratorsList, setShowCollaboratorsList] = useState(false);
+
+    // Estado para mostrar validaciones (solo después de intentar submit)
+    const [showValidationErrors, setShowValidationErrors] = useState(false);
+
+    // Estados para el proceso de subida
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'uploading' | 'completed' | 'error'>('idle');
+    const [reportId, setReportId] = useState<string | null>(null);
+
 
     // Hook para cargar colaboradores
     const { encargados, fetchEncargados } = useEncargadosData();
@@ -85,6 +94,13 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
             try {
                 const token = localStorage.getItem('token');
                 if (token) {
+                    // Verificar si el token ha expirado
+                    const { isTokenExpired } = await import('../../utils/tokenUtils');
+                    if (isTokenExpired(token)) {
+                        console.log('🔴 SubirReporteModal: Token expirado, no cargando usuario');
+                        return;
+                    }
+
                     const decodedToken: any = jwtDecode(token);
                     console.log('🔍 Token decodificado:', decodedToken);
 
@@ -104,7 +120,14 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
                     }
                 }
             } catch (error) {
-                console.error('Error cargando datos del usuario:', error);
+                // Suprimir logs si el token ha expirado
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const { isTokenExpired } = await import('../../utils/tokenUtils');
+                    if (!isTokenExpired(token)) {
+                        console.error('Error cargando datos del usuario:', error);
+                    }
+                }
             }
         };
 
@@ -128,10 +151,6 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
     const [showCamera, setShowCamera] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    // Estados para autocompletado
-    const [suggestions, setSuggestions] = useState<any[]>([]);
-    const [focusedField, setFocusedField] = useState<string | null>(null);
 
     const TOTAL_PASOS = 4;
 
@@ -237,6 +256,13 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
         setEvidencias(prev => {
             const updated = [...prev];
             updated[evidenciaActual] = file;
+
+            // Si ahora TODAS las evidencias están completas y el tipo de trabajo está seleccionado, resetear validaciones
+            const todasCompletas = updated.every(evidencia => evidencia !== null);
+            if (todasCompletas && isCollaborativeWork !== null) {
+                setShowValidationErrors(false);
+            }
+
             return updated;
         });
     };
@@ -255,12 +281,16 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
         setEspecialidadSeleccionada('');
         setEvidenciaActual(0);
         setEvidencias([null, null, null]);
-        setIsCollaborativeWork(false);
+        setIsCollaborativeWork(null); // Sin selección por defecto
         setSelectedColaboradores([]);
         setTipoParticipacion([]);
         setShowCollaborativeSelector(false);
         setShowCollaboratorsList(false);
         setIsAnimating(false);
+        setShowValidationErrors(false); // Resetear validaciones
+        setIsSubmitting(false); // Resetear estado de subida
+        setSubmitStatus('idle');
+        setReportId(null);
     };
 
     // Función personalizada para cerrar el modal
@@ -312,36 +342,6 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
         setShowCamera(false);
     };
 
-    // Funciones de autocompletado
-    const buscarDispositivos = async (query: string, field: string) => {
-        if (query.length < 2) {
-            setSuggestions([]);
-            return;
-        }
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(
-                `${getBaseApiUrl()}/device-catalog/search?q=${encodeURIComponent(query)}&field=${field}&limit=10`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            if (response.ok) {
-                const result = await response.json();
-                setSuggestions(result.data || []);
-            }
-        } catch (error) {
-            setSuggestions([]);
-        }
-    };
-
-    const handleSuggestionClick = (dispositivo: any) => {
-        if (!focusedField) return;
-        const value = dispositivo[focusedField];
-        if (!value) return;
-        setDeviceData(prev => ({ ...prev, [focusedField]: value }));
-        setSuggestions([]);
-        setFocusedField(null);
-    };
-
     // Función para trabajo colaborativo
     const handleCollaborativeSelectionChange = (
         isCollaborative: boolean,
@@ -355,7 +355,38 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
 
     // Función para enviar reporte
     const handleSubmit = async () => {
+        console.log('🔥 handleSubmit ejecutado!');
+        console.log('isCollaborativeWork:', isCollaborativeWork);
+        console.log('evidencias:', evidencias);
+        console.log('showValidationErrors antes:', showValidationErrors);
+
         try {
+            // Activar el estado de validación para mostrar errores
+            setShowValidationErrors(true);
+            console.log('showValidationErrors después:', true);
+
+            // Validar que se haya seleccionado tipo de trabajo
+            if (isCollaborativeWork === null) {
+                toast.error('Debes seleccionar el tipo de trabajo (Individual o Colaborativo)');
+                setPasoActual(3); // Ir al paso de Tipo de Trabajo
+                return;
+            }
+
+            // Validar que estén TODAS las evidencias fotográficas (las 3)
+            const todasLasEvidencias = evidencias.every(evidencia => evidencia !== null);
+            if (!todasLasEvidencias) {
+                const evidenciasFaltantes = evidencias.filter(evidencia => evidencia === null).length;
+                toast.error(`Debes agregar todas las evidencias fotográficas. Faltan ${evidenciasFaltantes} foto(s)`);
+                setPasoActual(4); // Ir al paso de Evidencias Fotográficas
+                return;
+            }
+
+            // Iniciar proceso de subida
+            setIsSubmitting(true);
+            setSubmitStatus('uploading');
+
+            toast.info('Subiendo reporte...');
+
             const token = localStorage.getItem('token');
             if (!token) {
                 toast.error('No hay token de autenticación');
@@ -427,6 +458,8 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
                 });
             }
 
+
+
             const reportResponse = await fetch(`${getBaseApiUrl()}/device-reports`, {
                 method: 'POST',
                 headers: {
@@ -441,9 +474,10 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
             }
 
             const reportResp = await reportResponse.json();
-            toast.success('¡Reporte subido exitosamente!');
+            const newReportId = reportResp.data._id;
+            setReportId(newReportId);
 
-            // Completar dispositivo en período MP
+            // Completar dispositivo en período MP (solo después de que la subida esté al 100%)
             if (dispositivoInfo) {
                 try {
                     const url = `${getBaseApiUrl()}/periodos-mp/${dispositivoInfo.periodoId}/complete-device/${dispositivoInfo.deviceId}/${dispositivoInfo.colaboradorId}`;
@@ -466,21 +500,135 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
                 }
             }
 
-            onSuccess();
-            handleClose(); // Usar handleClose para resetear el modal
+            // Esperar un momento para que el usuario vea el 100%, luego marcar como completado
+            setTimeout(() => {
+                setSubmitStatus('completed');
+                toast.success('¡Reporte completado exitosamente!');
+            }, 500);
+
+            // Esperar 3 segundos para que el usuario vea el estado completado, luego cerrar
+            setTimeout(() => {
+                setSubmitStatus('idle');
+                setIsSubmitting(false);
+                setReportId(null);
+                onSuccess();
+                handleClose(); // Usar handleClose para resetear el modal
+            }, 3000);
+
         } catch (error) {
-            toast.error('Error al procesar el reporte');
+            setSubmitStatus('error');
+            setIsSubmitting(false);
+            toast.error('Error al subir el reporte');
+        }
+    };
+
+    // Función para verificar si un paso está completo
+    const isPasoCompleto = (paso: number) => {
+        let result;
+        switch (paso) {
+            case 3: // Tipo de Trabajo
+                result = isCollaborativeWork !== null;
+                console.log(`🔍 isPasoCompleto(${paso}): isCollaborativeWork=${isCollaborativeWork}, result=${result}`);
+                return result;
+            case 4: // Evidencias Fotográficas - TODAS las 3 evidencias son obligatorias
+                result = evidencias.every(evidencia => evidencia !== null);
+                console.log(`🔍 isPasoCompleto(${paso}): evidencias=${evidencias.map(e => e ? 'file' : 'null')}, result=${result}`);
+                return result;
+            default:
+                return true;
         }
     };
 
     const getTituloPaso = () => {
-        switch (pasoActual) {
-            case 1: return 'Información del Dispositivo';
-            case 2: return 'Notas y Observaciones';
-            case 3: return 'Tipo de Trabajo';
-            case 4: return 'Evidencias Fotográficas';
-            default: return '';
+        const baseTitle = (() => {
+            switch (pasoActual) {
+                case 1: return 'Información del Dispositivo';
+                case 2: return 'Notas y Observaciones';
+                case 3: return 'Tipo de Trabajo';
+                case 4: return 'Evidencias Fotográficas';
+                default: return '';
+            }
+        })();
+
+        // Agregar indicador si el paso es obligatorio y no está completo
+        const shouldShowRequired = showValidationErrors && (pasoActual === 3 || pasoActual === 4) && !isPasoCompleto(pasoActual);
+        console.log(`📝 getTituloPaso: pasoActual=${pasoActual}, showValidationErrors=${showValidationErrors}, shouldShowRequired=${shouldShowRequired}`);
+
+        if (shouldShowRequired) {
+            return `${baseTitle} *`;
         }
+
+        return baseTitle;
+    };
+
+    // Función para renderizar el estado de subida
+    const renderSubmitStatus = () => {
+        const statusMessages: Record<string, any> = {
+            uploading: {
+                icon: 'bi-arrow-repeat', // Círculo de flechas (carga)
+                title: 'Subiendo Reporte',
+                message: 'Subiendo evidencias y datos del reporte...',
+                spinning: true
+            },
+            completed: {
+                icon: 'bi-check-circle-fill',
+                title: '¡Completado!',
+                message: 'Reporte subido y procesado exitosamente',
+                spinning: false
+            },
+            error: {
+                icon: 'bi-x-circle-fill',
+                title: 'Error al subir reporte',
+                message: 'No se pudo subir el reporte. Verifica tu conexión e inténtalo de nuevo.',
+                spinning: false
+            }
+        };
+
+        const status = statusMessages[submitStatus];
+        if (!status || submitStatus === 'idle') return null;
+
+        return (
+            <div className="submit-status-container">
+                <div className="submit-status-content">
+                    <div
+                        className={`submit-status-icon ${status.spinning ? 'spinning' : ''} ${submitStatus === 'completed' ? 'completed' : ''}`}
+                    >
+                        <i className={`bi ${status.icon}`}></i>
+                    </div>
+                    <h3>{status.title}</h3>
+                    <p>{status.message}</p>
+
+                    {reportId && (
+                        <small>ID: {reportId}</small>
+                    )}
+                    {submitStatus === 'error' && (
+                        <div style={{ marginTop: '20px' }}>
+                            <button
+                                type="button"
+                                className="modal-btn modal-btn-confirmar-poliza"
+                                onClick={() => {
+                                    setSubmitStatus('idle');
+                                    setIsSubmitting(false);
+                                    setReportId(null);
+                                }}
+                                style={{ marginRight: '10px' }}
+                            >
+                                <i className="bi bi-arrow-clockwise"></i>
+                                Reintentar
+                            </button>
+                            <button
+                                type="button"
+                                className="modal-btn modal-btn-cancelar"
+                                onClick={handleClose}
+                            >
+                                <i className="bi bi-x-circle"></i>
+                                Cerrar
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
     };
 
     const renderPasoActual = () => {
@@ -492,95 +640,57 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
                         <div className="form-grid">
                             {/* Tipo */}
                             <div className="form-group">
-                                <label>Tipo *</label>
+                                <label>Tipo</label>
                                 <div className="autocomplete-wrapper">
                                     <input
                                         type="text"
                                         value={deviceData.type}
-                                        onChange={(e) => setDeviceData(prev => ({ ...prev, type: e.target.value }))}
-                                        onFocus={() => {
-                                            setFocusedField('type');
-                                            buscarDispositivos(deviceData.type, 'type');
-                                        }}
-                                        onBlur={() => setTimeout(() => setSuggestions([]), 200)}
+                                        readOnly
+                                        disabled
                                         placeholder="Tipo de dispositivo"
                                         required
                                     />
-                                    {focusedField === 'type' && suggestions.length > 0 && (
-                                        <ul className="autocomplete-list">
-                                            {suggestions.map((s, i) => (
-                                                <li key={i} onMouseDown={() => handleSuggestionClick(s)}>
-                                                    {s.type}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
                                 </div>
                             </div>
 
                             {/* Identificador */}
                             <div className="form-group">
-                                <label>Identificador *</label>
+                                <label>Identificador</label>
                                 <div className="autocomplete-wrapper">
                                     <input
                                         type="text"
                                         value={deviceData.identifier}
-                                        onChange={(e) => setDeviceData(prev => ({ ...prev, identifier: e.target.value }))}
-                                        onFocus={() => {
-                                            setFocusedField('identifier');
-                                            buscarDispositivos(deviceData.identifier, 'identifier');
-                                        }}
-                                        onBlur={() => setTimeout(() => setSuggestions([]), 200)}
+                                        readOnly
+                                        disabled
                                         placeholder="Identificador único"
                                         required
                                     />
-                                    {focusedField === 'identifier' && suggestions.length > 0 && (
-                                        <ul className="autocomplete-list">
-                                            {suggestions.map((s, i) => (
-                                                <li key={i} onMouseDown={() => handleSuggestionClick(s)}>
-                                                    {s.identifier}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
                                 </div>
                             </div>
 
                             {/* Ubicación */}
                             <div className="form-group">
-                                <label>Ubicación *</label>
+                                <label>Ubicación</label>
                                 <div className="autocomplete-wrapper">
                                     <input
                                         type="text"
                                         value={deviceData.ubication}
-                                        onChange={(e) => setDeviceData(prev => ({ ...prev, ubication: e.target.value }))}
-                                        onFocus={() => {
-                                            setFocusedField('ubication');
-                                            buscarDispositivos(deviceData.ubication, 'ubication');
-                                        }}
-                                        onBlur={() => setTimeout(() => setSuggestions([]), 200)}
+                                        readOnly
+                                        disabled
                                         placeholder="Ubicación"
                                         required
                                     />
-                                    {focusedField === 'ubication' && suggestions.length > 0 && (
-                                        <ul className="autocomplete-list">
-                                            {suggestions.map((s, i) => (
-                                                <li key={i} onMouseDown={() => handleSuggestionClick(s)}>
-                                                    {s.ubication}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
                                 </div>
                             </div>
 
                             {/* Edificio */}
                             <div className="form-group">
-                                <label>Edificio *</label>
+                                <label>Edificio</label>
                                 <input
                                     type="text"
                                     value={deviceData.building}
-                                    onChange={(e) => setDeviceData(prev => ({ ...prev, building: e.target.value }))}
+                                    readOnly
+                                    disabled
                                     placeholder="Edificio"
                                     required
                                 />
@@ -588,11 +698,12 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
 
                             {/* Nivel */}
                             <div className="form-group">
-                                <label>Nivel *</label>
+                                <label>Nivel</label>
                                 <input
                                     type="text"
                                     value={deviceData.level}
-                                    onChange={(e) => setDeviceData(prev => ({ ...prev, level: e.target.value }))}
+                                    readOnly
+                                    disabled
                                     placeholder="Nivel o piso"
                                     required
                                 />
@@ -600,19 +711,15 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
 
                             {/* Especialidad */}
                             <div className="form-group">
-                                <label>Especialidad *</label>
-                                <select
-                                    value={especialidadSeleccionada}
-                                    onChange={(e) => setEspecialidadSeleccionada(e.target.value)}
+                                <label>Especialidad</label>
+                                <input
+                                    type="text"
+                                    value={especialidades.find(esp => esp._id === especialidadSeleccionada)?.nombre || 'No seleccionada'}
+                                    readOnly
+                                    disabled
+                                    placeholder="Especialidad"
                                     required
-                                >
-                                    <option value="">Seleccionar especialidad</option>
-                                    {especialidades.map(esp => (
-                                        <option key={esp._id} value={esp._id}>
-                                            {esp.nombre}
-                                        </option>
-                                    ))}
-                                </select>
+                                />
                             </div>
                         </div>
                     </div>
@@ -646,8 +753,14 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
                                             <input
                                                 type="radio"
                                                 name="workType"
-                                                checked={!isCollaborativeWork}
-                                                onChange={() => setIsCollaborativeWork(false)}
+                                                checked={isCollaborativeWork === false}
+                                                onChange={() => {
+                                                    setIsCollaborativeWork(false);
+                                                    // Si ambos pasos están completos (TODAS las evidencias), resetear validaciones
+                                                    if (evidencias.every(evidencia => evidencia !== null)) {
+                                                        setShowValidationErrors(false);
+                                                    }
+                                                }}
                                             />
                                             <span className="work-option-content">
                                                 <i className="bi bi-person"></i>
@@ -659,8 +772,14 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
                                             <input
                                                 type="radio"
                                                 name="workType"
-                                                checked={isCollaborativeWork}
-                                                onChange={() => setIsCollaborativeWork(true)}
+                                                checked={isCollaborativeWork === true}
+                                                onChange={() => {
+                                                    setIsCollaborativeWork(true);
+                                                    // Si ambos pasos están completos (TODAS las evidencias), resetear validaciones
+                                                    if (evidencias.every(evidencia => evidencia !== null)) {
+                                                        setShowValidationErrors(false);
+                                                    }
+                                                }}
                                             />
                                             <span className="work-option-content">
                                                 <i className="bi bi-people"></i>
@@ -679,7 +798,7 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
                                             className="btn-back-selection"
                                             onClick={() => {
                                                 setShowCollaboratorsList(false);
-                                                setIsCollaborativeWork(false);
+                                                setIsCollaborativeWork(null); // Regresar a sin selección
                                                 setSelectedColaboradores([]);
                                             }}
                                         >
@@ -820,7 +939,12 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
             {/* Modal principal de subir reporte */}
             <div className="modal-overlay-coordinadores">
                 <div className="modal-content-coordinadores with-steps subir-reporte">
-                    <button className="modal-close" onClick={handleClose}>
+                    <button
+                        className="modal-close"
+                        onClick={handleClose}
+                        disabled={isSubmitting}
+                        style={{ opacity: isSubmitting ? 0.5 : 1 }}
+                    >
                         ×
                     </button>
 
@@ -828,72 +952,90 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
                         Subir Reporte - {dispositivoInfo?.deviceIdentifier}
                     </div>
 
-                    {/* Título del paso */}
-                    <div className="step-title">{getTituloPaso()}</div>
-                    <div className="step-info">{pasoActual} de {TOTAL_PASOS}</div>
+                    {/* Mostrar estado de subida o contenido normal */}
+                    {isSubmitting ? (
+                        renderSubmitStatus()
+                    ) : (
+                        <>
+                            {/* Título del paso */}
+                            <div className={`step-title ${showValidationErrors && (pasoActual === 3 || pasoActual === 4) && !isPasoCompleto(pasoActual) ? 'required' : ''}`}>
+                                {getTituloPaso()}
+                            </div>
+                            <div className="step-info">{pasoActual} de {TOTAL_PASOS}</div>
 
-                    {/* Contenido del paso actual */}
-                    <div className="step-content">
-                        {renderPasoActual()}
-                    </div>
+                            {/* Contenido del paso actual */}
+                            <div className="step-content">
+                                {renderPasoActual()}
+                            </div>
+                        </>
+                    )}
 
-                    {/* Indicadores de pasos (círculos pequeños) - POSICIÓN FIJA */}
-                    <div className="step-indicators-coordinadores">
-                        {Array.from({ length: TOTAL_PASOS }, (_, index) => (
-                            <button
-                                key={index + 1}
-                                type="button"
-                                className={`step-indicator ${pasoActual === index + 1 ? 'active' : ''}`}
-                                onClick={() => irAPaso(index + 1)}
-                                title={`Ir al paso ${index + 1}`}
-                            />
-                        ))}
-                    </div>
+                    {/* Indicadores de pasos y botones solo cuando NO se está subiendo */}
+                    {!isSubmitting && (
+                        <>
+                            {/* Indicadores de pasos (círculos pequeños) - POSICIÓN FIJA */}
+                            <div className="step-indicators-coordinadores">
+                                {Array.from({ length: TOTAL_PASOS }, (_, index) => {
+                                    const stepNumber = index + 1;
+                                    const isActive = pasoActual === stepNumber;
+                                    const isIncomplete = showValidationErrors && (stepNumber === 3 || stepNumber === 4) && !isPasoCompleto(stepNumber);
+                                    return (
+                                        <button
+                                            key={stepNumber}
+                                            type="button"
+                                            className={`step-indicator ${isActive ? 'active' : ''} ${isIncomplete ? 'incomplete' : ''}`}
+                                            onClick={() => irAPaso(stepNumber)}
+                                            title={`Ir al paso ${stepNumber}${isIncomplete ? ' (Obligatorio)' : ''}`}
+                                        />
+                                    );
+                                })}
+                            </div>
 
-                    {/* Botones de acción del modal - POSICIÓN FIJA */}
-                    <div className="modal-buttons-coordinadores">
-                        <button
-                            type="button"
-                            className="modal-btn modal-btn-cancelar"
-                            onClick={handleClose}
-                        >
-                            <i className="bi bi-x-circle"></i>
-                            Cancelar
-                        </button>
+                            {/* Botones de acción del modal - POSICIÓN FIJA */}
+                            <div className="modal-buttons-coordinadores">
+                                <button
+                                    type="button"
+                                    className="modal-btn modal-btn-cancelar"
+                                    onClick={handleClose}
+                                >
+                                    <i className="bi bi-x-circle"></i>
+                                    Cancelar
+                                </button>
 
-                        {/* Botón Anterior (visible desde paso 2) */}
-                        {pasoActual > 1 && (
-                            <button
-                                type="button"
-                                className="modal-btn modal-btn-secondary"
-                                onClick={pasoAnterior}
-                            >
-                                <i className="bi bi-arrow-left"></i>
-                                Anterior
-                            </button>
-                        )}
+                                {/* Botón Anterior (visible desde paso 2) */}
+                                {pasoActual > 1 && (
+                                    <button
+                                        type="button"
+                                        className="modal-btn modal-btn-secondary"
+                                        onClick={pasoAnterior}
+                                    >
+                                        <i className="bi bi-arrow-left"></i>
+                                        Anterior
+                                    </button>
+                                )}
 
-                        {pasoActual === TOTAL_PASOS ? (
-                            <button
-                                type="button"
-                                className="modal-btn modal-btn-confirmar-poliza"
-                                onClick={handleSubmit}
-                                disabled={evidencias.filter(e => e !== null).length < 3}
-                            >
-                                <i className="bi bi-check-circle"></i>
-                                Subir Reporte
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                className="modal-btn modal-btn-confirmar modal-btn-subir-reporte"
-                                onClick={siguientePaso}
-                            >
-                                <i className="bi bi-arrow-right"></i>
-                                Siguiente
-                            </button>
-                        )}
-                    </div>
+                                {pasoActual === TOTAL_PASOS ? (
+                                    <button
+                                        type="button"
+                                        className="modal-btn modal-btn-confirmar-poliza"
+                                        onClick={handleSubmit}
+                                    >
+                                        <i className="bi bi-check-circle"></i>
+                                        Subir Reporte
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="modal-btn modal-btn-confirmar modal-btn-subir-reporte"
+                                        onClick={siguientePaso}
+                                    >
+                                        <i className="bi bi-arrow-right"></i>
+                                        Siguiente
+                                    </button>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 

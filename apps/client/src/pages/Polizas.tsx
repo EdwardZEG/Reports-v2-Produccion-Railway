@@ -83,6 +83,20 @@ const Polizas = () => {
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
+        // Verificar si el token ha expirado antes de hacer la llamada API
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('🔴 Polizas: No hay token, no cargando datos');
+          return;
+        }
+
+        // Importar dinámicamente para evitar problemas de circular imports
+        const { isTokenExpired } = await import('../utils/tokenUtils');
+        if (isTokenExpired(token)) {
+          console.log('🔴 Polizas: Token expirado, no cargando datos');
+          return;
+        }
+
         const [resCoordinadores, resPolizas] = await Promise.all([
           api.get("/coordinadores"),
           api.get("/polizas"),
@@ -98,9 +112,16 @@ const Polizas = () => {
         setPolizas(polizasData);
         setPolizasFiltradas(polizasData); // Inicializar filtradas para búsqueda
       } catch (err) {
-        console.error("Error al obtener datos:", err);
-        setError("Error al cargar los datos. Intente nuevamente.");
-        toast.error("Error al cargar los datos. Intente nuevamente.");
+        // Suprimir toast si el token ha expirado
+        const token = localStorage.getItem('token');
+        if (token) {
+          const { isTokenExpired } = await import('../utils/tokenUtils');
+          if (!isTokenExpired(token)) {
+            console.error("Error al obtener datos:", err);
+            setError("Error al cargar los datos. Intente nuevamente.");
+            toast.error("Error al cargar los datos. Intente nuevamente.");
+          }
+        }
       }
     };
 

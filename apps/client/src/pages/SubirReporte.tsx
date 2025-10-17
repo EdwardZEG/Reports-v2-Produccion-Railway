@@ -460,11 +460,18 @@ const SubirReporte: React.FC = () => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        toast.error("Token no encontrado");
+        console.log('🔴 SubirReporte: No hay token, no cargando especialidades');
         return;
       }
 
       try {
+        // Verificar si el token ha expirado
+        const { isTokenExpired } = await import('../utils/tokenUtils');
+        if (isTokenExpired(token)) {
+          console.log('🔴 SubirReporte: Token expirado, no cargando especialidades');
+          return;
+        }
+
         const decoded: any = jwtDecode(token);
         const colaboradorId = decoded.userId;
 
@@ -484,8 +491,15 @@ const SubirReporte: React.FC = () => {
 
         setEspecialidades(data);
       } catch (error) {
-        console.error("Error al obtener especialidades:", error);
-        toast.error("No se pudieron cargar las especialidades");
+        // Suprimir toast si el token ha expirado
+        const token = localStorage.getItem('token');
+        if (token) {
+          const { isTokenExpired } = await import('../utils/tokenUtils');
+          if (!isTokenExpired(token)) {
+            console.error("Error al obtener especialidades:", error);
+            toast.error("No se pudieron cargar las especialidades");
+          }
+        }
       }
     };
 

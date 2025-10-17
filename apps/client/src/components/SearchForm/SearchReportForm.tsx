@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { getToken } from "../../auth/authService";
 import { useData } from "../../context/DataContext";
 import { getBaseApiUrl } from "../../utils/apiUrl";
+import { jwtDecode } from "jwt-decode";
 
 // Interface para dispositivos encontrados en la búsqueda
 interface Device {
@@ -31,6 +32,7 @@ interface SearchReportFormProps {
   onSearch: (devices: Device[]) => void;           // Callback cuando se encuentran dispositivos
   onReporteGenerado: (nombre: string, url: string) => void; // Callback cuando se genera reporte
   hasResults?: boolean;                            // Indica si hay resultados para mostrar modal
+  disableWordGeneration?: boolean;                 // Deshabilitar generación de reportes Word
   onLoadingStart?: () => void;                     // Callback cuando inicia carga
   onLoadingEnd?: () => void;                       // Callback cuando termina carga
   onProgressUpdate?: (progress: number, message: string, timeRemaining?: number) => void; // Callback para actualizar progreso
@@ -46,6 +48,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
   onSearch,
   onReporteGenerado,
   hasResults = false,
+  disableWordGeneration = false,
   onLoadingStart,
   onLoadingEnd,
   onProgressUpdate,
@@ -59,6 +62,12 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
 
   // Estados para datos de la aplicación - Usando contexto optimizado
   const { colaboradores, loadColaboradoresIfNeeded } = useData(); // Lista completa de colaboradores desde contexto
+
+  // Estados para filtrado por rol del usuario
+  const [colaboradoresFiltrados, setColaboradoresFiltrados] = useState<any[]>([]);
+  const [userRole, setUserRole] = useState<string>("");
+  const [userPolizaId, setUserPolizaId] = useState<string | null>(null);
+
   const [especialidadesFiltradas, setEspecialidadesFiltradas] = useState< // Especialidades disponibles para la póliza seleccionada
     { _id: string; nombre: string }[]
   >([]);
@@ -70,6 +79,43 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
       loadColaboradoresIfNeeded();
     }
   }, [colaboradores.length, loadColaboradoresIfNeeded]);
+
+  // useEffect para obtener información del usuario logueado (copiado de Polizas.tsx)
+  useEffect(() => {
+    const token = getToken();
+    const role = localStorage.getItem('rol')?.toLowerCase() || "";
+
+    setUserRole(role);
+
+    if (token) {
+      try {
+        const decodedToken: any = jwtDecode(token);
+        if (decodedToken?.polizaId) {
+          setUserPolizaId(decodedToken.polizaId);
+        }
+      } catch (error) {
+        console.error("Error decodificando token:", error);
+      }
+    }
+  }, []);
+
+  // useEffect para filtrar colaboradores según el rol (copiado de Polizas.tsx)
+  useEffect(() => {
+    let colaboradoresData = colaboradores;
+
+    // Filtrar colaboradores para coordinadores y colaboradores: solo mostrar colaboradores de su póliza
+    const isCoordinadorOColaborador = userRole === 'coordinador' || userRole === 'encargado' || userRole === 'auxiliar';
+    if (isCoordinadorOColaborador && userPolizaId) {
+      colaboradoresData = colaboradores.filter((colaborador: any) => {
+        const colaboradorPolizaId = typeof colaborador.poliza === 'string'
+          ? colaborador.poliza
+          : colaborador.poliza?._id;
+        return colaboradorPolizaId === userPolizaId;
+      });
+    }
+
+    setColaboradoresFiltrados(colaboradoresData);
+  }, [colaboradores, userRole, userPolizaId]);
 
   // Cambio: Efecto para filtrar especialidades dinámicamente según póliza seleccionada
   useEffect(() => {
@@ -83,10 +129,10 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
     const especialidadesMap = new Map<string, string>();
 
     // Cambio: Filtrar colaboradores por póliza y extraer sus especialidades únicas
-    colaboradores
+    colaboradoresFiltrados
       .filter((c) => c.poliza?._id === poliza)
       .forEach((c) => {
-        c.especialidad.forEach((e) => {
+        c.especialidad.forEach((e: any) => {
           if (!especialidadesSet.has(e._id)) {
             especialidadesSet.add(e._id);
             especialidadesMap.set(e._id, e.nombre);
@@ -102,7 +148,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
 
     setEspecialidadesFiltradas(listaEspecialidades);
     setEspecialidad(""); // Resetear especialidad seleccionada
-  }, [poliza, colaboradores]);
+  }, [poliza, colaboradoresFiltrados]);
 
   /**
    * Función auxiliar para generar reporte usando Server-Sent Events
@@ -111,7 +157,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
   const generarReporteConProgreso = async (devices: Device[], especialidad: string, poliza: string, fechaInicio: string, fechaFinal: string) => {
     return new Promise<{ nombre: string; url: string }>((resolve, reject) => {
       // Crear nombre descriptivo del archivo antes de enviarlo al backend
-      const colaboradorConPoliza = colaboradores.find(c => c.poliza?._id === poliza);
+      const colaboradorConPoliza = colaboradoresFiltrados.find(c => c.poliza?._id === poliza);
       const polizaSeleccionada = colaboradorConPoliza?.poliza?.nombre || "SinPoliza";
       const especialidadObj = especialidadesFiltradas.find(e => e._id === especialidad);
       const especialidadSeleccionada = especialidadObj?.nombre || "SinEspecialidad";
@@ -254,27 +300,41 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
       });
       const devices = res.data;
 
-      // 4. Notificar al componente padre sobre los dispositivos encontrados
-      onSearch(devices);
-
-      // 5. Terminar el estado de loading inmediatamente después de obtener dispositivos
-      setIsLoading(false);
-      onLoadingEnd?.(); // Notificar al componente padre
-
       if (devices.length === 0) {
+        setIsLoading(false);
+        onLoadingEnd?.(); // Notificar al componente padre
         toast.info("Nada que mostrar en este período");
         return;
       }
 
-      // 6. Generar reporte en segundo plano (sin afectar el loading state)
-      try {
-        const { nombre, url } = await generarReporteConProgreso(devices, especialidad, poliza, fechaInicio, fechaFinal);
-        // 7. Notificar al componente padre sobre el reporte generado
-        onReporteGenerado(nombre, url);
-      } catch (reportError) {
-        console.error("Error generando reporte:", reportError);
-        toast.error("Error generando reporte, pero los datos se mostraron correctamente");
-        onReporteGenerado("", ""); // Resetear estado del reporte
+      // 4. NUEVA LÓGICA: Para sincronizar vista previa con Word
+      if (!disableWordGeneration) {
+        try {
+          // Generar Word primero
+          const { nombre, url } = await generarReporteConProgreso(devices, especialidad, poliza, fechaInicio, fechaFinal);
+
+          // Solo después de que el Word esté listo, mostrar dispositivos y reporte
+          onSearch(devices);
+          onReporteGenerado(nombre, url);
+
+          // Terminar loading
+          setIsLoading(false);
+          onLoadingEnd?.();
+        } catch (reportError) {
+          console.error("Error generando reporte:", reportError);
+          // Si falla el Word, aún mostrar los datos
+          onSearch(devices);
+          onReporteGenerado("", "");
+          setIsLoading(false);
+          onLoadingEnd?.();
+          toast.error("Error generando reporte, pero los datos se mostraron correctamente");
+        }
+      } else {
+        // Para colaboradores, mostrar datos inmediatamente sin Word
+        onSearch(devices);
+        onReporteGenerado("", "");
+        setIsLoading(false);
+        onLoadingEnd?.();
       }
     } catch (err: any) {
       // Cambio: Manejo robusto de errores con logging detallado y reseteo de estado
@@ -302,8 +362,8 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
             <option value="">Seleccione una póliza</option>
             {/* Generar opciones únicas de pólizas desde colaboradores */}
             {(() => {
-              // Filtrar colaboradores que tienen póliza
-              const colaboradoresConPoliza = colaboradores.filter((c) => c.poliza && c.poliza._id && c.poliza.nombre);
+              // Usar colaboradores ya filtrados por rol
+              const colaboradoresConPoliza = colaboradoresFiltrados.filter((c) => c.poliza && c.poliza._id && c.poliza.nombre);
 
               // Crear un Map para evitar duplicados
               const polizasMap = new Map();

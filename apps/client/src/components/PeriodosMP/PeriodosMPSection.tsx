@@ -148,12 +148,21 @@ const PeriodosMPSection: React.FC = () => {
     deviceIdentifier: string;
     tipo: 'asignacion' | 'reporte';
   } | null>(null);
+  // Estado para modal de confirmación forzada
+  const [showModalConfirmacionForzada, setShowModalConfirmacionForzada] = useState(false);
+  const [reportCountForDeletion, setReportCountForDeletion] = useState(0);
 
   // Estado para deshabilitar botones de delete específicos durante eliminación
   const [dispositivosEliminandose, setDispositivosEliminandose] = useState<Set<string>>(new Set());
 
   // Estado específico para el modal de eliminación
   const [eliminandoDispositivo, setEliminandoDispositivo] = useState(false);
+  const [eliminandoPeriodo, setEliminandoPeriodo] = useState(false);
+  const [eliminandoPeriodoForzado, setEliminandoPeriodoForzado] = useState(false);
+
+  // Estados para optimización de refresh
+  const [refreshTimeoutId, setRefreshTimeoutId] = useState<number | null>(null);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   // Estado para el carrusel
   const [currentPeriodoIndex, setCurrentPeriodoIndex] = useState(0);
@@ -189,6 +198,16 @@ const PeriodosMPSection: React.FC = () => {
     fetchColaboradores();
     fetchDispositivos();
     fetchEspecialidades();
+
+    // Cleanup function para limpiar timeouts y abort controllers
+    return () => {
+      if (refreshTimeoutId) {
+        clearTimeout(refreshTimeoutId);
+      }
+      if (abortController) {
+        abortController.abort();
+      }
+    };
   }, [currentUserId]); // Dependencia para recargar cuando cambie el usuario
 
   // Verificar si el usuario es colaborador (encargado o auxiliar)
@@ -279,6 +298,17 @@ const PeriodosMPSection: React.FC = () => {
       }
 
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('🔴 fetchPeriodos: No hay token, no cargando datos');
+        return;
+      }
+
+      // Verificar si el token ha expirado
+      const { isTokenExpired } = await import('../../utils/tokenUtils');
+      if (isTokenExpired(token)) {
+        console.log('🔴 fetchPeriodos: Token expirado, no cargando datos');
+        return;
+      }
       // Agregar timestamp para evitar cache si es refresh forzado
       const cacheParam = forceRefresh ? `&_t=${Date.now()}` : '';
 
@@ -349,7 +379,14 @@ const PeriodosMPSection: React.FC = () => {
         setAllPeriodos(data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching períodos:', error);
+      // Suprimir logs si el token ha expirado
+      const token = localStorage.getItem('token');
+      if (token) {
+        const { isTokenExpired } = await import('../../utils/tokenUtils');
+        if (!isTokenExpired(token)) {
+          console.error('Error fetching períodos:', error);
+        }
+      }
     } finally {
       if (forceRefresh) {
         setIsRefreshing(false);
@@ -357,15 +394,30 @@ const PeriodosMPSection: React.FC = () => {
     }
   };
 
-  // Función para refresh completo de TODA la sección de Períodos MP
+  // Función para refresh completo de TODA la sección de Períodos MP (optimizada)
   const refreshFullSection = async (delay = 300) => {
+    // Cancelar refresh pendiente si existe
+    if (refreshTimeoutId) {
+      clearTimeout(refreshTimeoutId);
+      setRefreshTimeoutId(null);
+    }
+
+    // Cancelar requests HTTP pendientes
+    if (abortController) {
+      abortController.abort();
+    }
+
+    // Crear nuevo AbortController
+    const newAbortController = new AbortController();
+    setAbortController(newAbortController);
+
     // Limpiar estados antes de actualizar
     clearStatesOnPeriodChange();
 
     // Mostrar indicador de actualización
     setIsRefreshing(true);
 
-    setTimeout(async () => {
+    const timeoutId = setTimeout(async () => {
       try {
         console.log('🔄 Actualizando TODA la sección de Períodos MP...');
 
@@ -381,23 +433,47 @@ const PeriodosMPSection: React.FC = () => {
 
         // Pequeña demora adicional para mostrar el indicador visual
         setTimeout(() => {
-          setIsRefreshing(false);
+          if (!newAbortController.signal.aborted) {
+            setIsRefreshing(false);
+          }
         }, 200);
       } catch (error) {
-        console.error('❌ Error actualizando sección completa:', error);
-        setIsRefreshing(false);
+        if (!newAbortController.signal.aborted) {
+          console.error('❌ Error actualizando sección completa:', error);
+          setIsRefreshing(false);
+        }
+      } finally {
+        setRefreshTimeoutId(null);
+        setAbortController(null);
       }
     }, delay);
+
+    setRefreshTimeoutId(timeoutId);
   };
 
-  // Función para refresh total como si fuera refresh del navegador (solo para eliminaciones de períodos)
+  // Función para refresh total como si fuera refresh del navegador (optimizada)
   const refreshLikeBrowser = async (delay = 500) => {
+    // Cancelar refresh pendiente si existe
+    if (refreshTimeoutId) {
+      clearTimeout(refreshTimeoutId);
+      setRefreshTimeoutId(null);
+    }
+
+    // Cancelar requests HTTP pendientes
+    if (abortController) {
+      abortController.abort();
+    }
+
+    // Crear nuevo AbortController
+    const newAbortController = new AbortController();
+    setAbortController(newAbortController);
+
     console.log('🔄 Reiniciando completamente la sección de Períodos MP...');
 
     // Mostrar indicador de actualización
     setIsRefreshing(true);
 
-    setTimeout(async () => {
+    const timeoutId = setTimeout(async () => {
       try {
         // 1. Resetear TODOS los estados a sus valores iniciales
         setCurrentPeriodoIndex(0);
@@ -426,24 +502,35 @@ const PeriodosMPSection: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 200));
 
         // 3. Recargar TODOS los datos desde cero como en el useEffect inicial
-        await Promise.all([
-          fetchPeriodos(true),
-          fetchColaboradores(),
-          fetchDispositivos(),
-          fetchEspecialidades()
-        ]);
+        if (!newAbortController.signal.aborted) {
+          await Promise.all([
+            fetchPeriodos(true),
+            fetchColaboradores(),
+            fetchDispositivos(),
+            fetchEspecialidades()
+          ]);
 
-        console.log('✅ Sección completamente reiniciada - como refresh de navegador');
+          console.log('✅ Sección completamente reiniciada - como refresh de navegador');
 
-        // 4. Finalizar indicador
-        setTimeout(() => {
-          setIsRefreshing(false);
-        }, 300);
+          // 4. Finalizar indicador
+          setTimeout(() => {
+            if (!newAbortController.signal.aborted) {
+              setIsRefreshing(false);
+            }
+          }, 300);
+        }
       } catch (error) {
-        console.error('❌ Error reiniciando sección completa:', error);
-        setIsRefreshing(false);
+        if (!newAbortController.signal.aborted) {
+          console.error('❌ Error reiniciando sección completa:', error);
+          setIsRefreshing(false);
+        }
+      } finally {
+        setRefreshTimeoutId(null);
+        setAbortController(null);
       }
     }, delay);
+
+    setRefreshTimeoutId(timeoutId);
   };
 
   // Función para limpiar estados cuando se cambia de período
@@ -551,6 +638,18 @@ const PeriodosMPSection: React.FC = () => {
   const fetchColaboradores = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('🔴 fetchColaboradores: No hay token, no cargando datos');
+        return;
+      }
+
+      // Verificar si el token ha expirado
+      const { isTokenExpired } = await import('../../utils/tokenUtils');
+      if (isTokenExpired(token)) {
+        console.log('🔴 fetchColaboradores: Token expirado, no cargando datos');
+        return;
+      }
+
       const response = await fetch(`${getBaseApiUrl()}/colaboradores`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : '',
@@ -593,13 +692,32 @@ const PeriodosMPSection: React.FC = () => {
         console.error('❌ Error en respuesta:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('❌ Error fetching colaboradores:', error);
+      // Suprimir logs si el token ha expirado
+      const token = localStorage.getItem('token');
+      if (token) {
+        const { isTokenExpired } = await import('../../utils/tokenUtils');
+        if (!isTokenExpired(token)) {
+          console.error('❌ Error fetching colaboradores:', error);
+        }
+      }
     }
   };
 
   const fetchDispositivos = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('🔴 fetchDispositivos: No hay token, no cargando datos');
+        return;
+      }
+
+      // Verificar si el token ha expirado
+      const { isTokenExpired } = await import('../../utils/tokenUtils');
+      if (isTokenExpired(token)) {
+        console.log('🔴 fetchDispositivos: Token expirado, no cargando datos');
+        return;
+      }
+
       const response = await fetch(`${getBaseApiUrl()}/all-catalog-devices`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : '',
@@ -611,13 +729,32 @@ const PeriodosMPSection: React.FC = () => {
         setDispositivos(data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching dispositivos:', error);
+      // Suprimir logs si el token ha expirado
+      const token = localStorage.getItem('token');
+      if (token) {
+        const { isTokenExpired } = await import('../../utils/tokenUtils');
+        if (!isTokenExpired(token)) {
+          console.error('Error fetching dispositivos:', error);
+        }
+      }
     }
   };
 
   const fetchEspecialidades = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('🔴 fetchEspecialidades: No hay token, no cargando datos');
+        return;
+      }
+
+      // Verificar si el token ha expirado
+      const { isTokenExpired } = await import('../../utils/tokenUtils');
+      if (isTokenExpired(token)) {
+        console.log('🔴 fetchEspecialidades: Token expirado, no cargando datos');
+        return;
+      }
+
       console.log('🔍 Cargando especialidades...');
       const response = await fetch(`${getBaseApiUrl()}/especialidades`, {
         headers: {
@@ -643,7 +780,14 @@ const PeriodosMPSection: React.FC = () => {
         console.error('❌ Error en respuesta de especialidades:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('❌ Error fetching especialidades:', error);
+      // Suprimir logs si el token ha expirado
+      const token = localStorage.getItem('token');
+      if (token) {
+        const { isTokenExpired } = await import('../../utils/tokenUtils');
+        if (!isTokenExpired(token)) {
+          console.error('❌ Error fetching especialidades:', error);
+        }
+      }
     }
   };
 
@@ -1122,8 +1266,57 @@ const PeriodosMPSection: React.FC = () => {
   };
 
   const cancelarEliminacionPeriodo = () => {
+    // No permitir cerrar el modal si hay una eliminación en proceso
+    if (eliminandoPeriodo) {
+      return;
+    }
     setPeriodoAEliminar(null);
     setShowModalEliminarPeriodo(false);
+  };
+
+  // Funciones para modal de confirmación forzada
+  const cancelarEliminacionForzada = () => {
+    // No permitir cerrar si hay eliminación en proceso
+    if (eliminandoPeriodoForzado) {
+      return;
+    }
+    setShowModalConfirmacionForzada(false);
+    setReportCountForDeletion(0);
+    // También cerrar el modal de eliminación principal
+    cancelarEliminacionPeriodo();
+  };
+
+  const confirmarEliminacionForzada = async () => {
+    if (!periodoAEliminar) return;
+
+    try {
+      setLoading(true);
+      setEliminandoPeriodoForzado(true);
+      const token = localStorage.getItem('token');
+      const forceResponse = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoAEliminar._id}?force=true`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: token ? `Bearer ${token}` : '',
+        },
+      });
+
+      if (forceResponse.ok) {
+        toast.success(`Período "${periodoAEliminar.nombre}" eliminado exitosamente (forzado)`);
+        refreshLikeBrowser();
+      } else {
+        const forceData = await forceResponse.json();
+        toast.error(forceData.message || 'Error al forzar eliminación del período');
+      }
+    } catch (error) {
+      console.error('Error al forzar eliminación:', error);
+      toast.error('Error al forzar eliminación del período');
+    } finally {
+      setLoading(false);
+      setEliminandoPeriodoForzado(false);
+      setShowModalConfirmacionForzada(false);
+      setReportCountForDeletion(0);
+      cancelarEliminacionPeriodo();
+    }
   };
 
   const confirmarEliminacionPeriodo = async () => {
@@ -1131,6 +1324,7 @@ const PeriodosMPSection: React.FC = () => {
 
     try {
       setLoading(true);
+      setEliminandoPeriodo(true);
       const token = localStorage.getItem('token');
       const response = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoAEliminar._id}`, {
         method: 'DELETE',
@@ -1143,27 +1337,10 @@ const PeriodosMPSection: React.FC = () => {
 
       if (!response.ok) {
         if (data.reportCount > 0) {
-          // Si hay reportes, preguntar si quiere forzar la eliminación
-          const confirmacionForzada = window.confirm(
-            `No se puede eliminar el período porque tiene ${data.reportCount} reporte(s) asociado(s).\n\n¿Deseas forzar la eliminación? ESTO ELIMINARÁ TODOS LOS REPORTES ASOCIADOS DE FORMA PERMANENTE.`
-          );
-
-          if (confirmacionForzada) {
-            const forceResponse = await fetch(`${getBaseApiUrl()}/periodos-mp/${periodoAEliminar._id}?force=true`, {
-              method: 'DELETE',
-              headers: {
-                Authorization: token ? `Bearer ${token}` : '',
-              },
-            });
-
-            if (forceResponse.ok) {
-              toast.success(`Período "${periodoAEliminar.nombre}" eliminado exitosamente (forzado)`);
-              refreshLikeBrowser();
-            } else {
-              const forceData = await forceResponse.json();
-              toast.error(forceData.message || 'Error al forzar eliminación del período');
-            }
-          }
+          // Si hay reportes, mostrar modal de confirmación forzada
+          setReportCountForDeletion(data.reportCount);
+          setShowModalConfirmacionForzada(true);
+          return; // Salir aquí para que el modal maneje la confirmación
         } else {
           toast.error(data.message || 'Error al eliminar período');
         }
@@ -1176,6 +1353,7 @@ const PeriodosMPSection: React.FC = () => {
       toast.error('Error al eliminar período');
     } finally {
       setLoading(false);
+      setEliminandoPeriodo(false);
       cancelarEliminacionPeriodo();
     }
   };
@@ -2848,7 +3026,7 @@ const PeriodosMPSection: React.FC = () => {
       {showModalEliminarPeriodo && periodoAEliminar && (
         <div className="modal-overlay-coordinadores">
           <div className="modal-content-coordinadores">
-            <button className="modal-close" onClick={cancelarEliminacionPeriodo}>
+            <button className="modal-close" onClick={cancelarEliminacionPeriodo} disabled={eliminandoPeriodo}>
               ×
             </button>
 
@@ -2867,13 +3045,13 @@ const PeriodosMPSection: React.FC = () => {
             </div>
 
             <div className="modal-buttons">
-              <button className="modal-btn modal-btn-cancelar" onClick={cancelarEliminacionPeriodo}>
+              <button className="modal-btn modal-btn-cancelar" onClick={cancelarEliminacionPeriodo} disabled={eliminandoPeriodo}>
                 <i className="bi bi-x-circle"></i>
-                Cancelar
+                {eliminandoPeriodo ? 'Procesando...' : 'Cancelar'}
               </button>
-              <button className="modal-btn modal-btn-confirmar" onClick={confirmarEliminacionPeriodo}>
+              <button className="modal-btn modal-btn-confirmar" onClick={confirmarEliminacionPeriodo} disabled={eliminandoPeriodo}>
                 <i className="bi bi-check-circle"></i>
-                Confirmar
+                {eliminandoPeriodo ? 'Eliminando...' : 'Confirmar'}
               </button>
             </div>
           </div>
@@ -2914,6 +3092,47 @@ const PeriodosMPSection: React.FC = () => {
               <button className="modal-btn modal-btn-confirmar" onClick={confirmarEliminacionDispositivo} disabled={eliminandoDispositivo}>
                 <i className="bi bi-check-circle"></i>
                 {eliminandoDispositivo ? 'Eliminando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación forzada para eliminar período con reportes */}
+      {showModalConfirmacionForzada && periodoAEliminar && (
+        <div className="modal-overlay-coordinadores">
+          <div className="modal-content-coordinadores">
+            <button className="modal-close" onClick={cancelarEliminacionForzada} disabled={eliminandoPeriodoForzado}>
+              ×
+            </button>
+
+            <div className="modal-title">
+              ⚠️ <strong>Eliminación Forzada</strong>
+            </div>
+
+            <div className="modal-user-info">
+              <p><strong>Período:</strong> {periodoAEliminar.nombre}</p>
+              <p><strong>Reportes asociados:</strong> {reportCountForDeletion}</p>
+              <div className="modal-warning">
+                <i className="bi bi-exclamation-triangle-fill" style={{ color: '#dc3545' }}></i>
+                <span>
+                  No se puede eliminar el período porque tiene <strong>{reportCountForDeletion} reporte(s) asociado(s)</strong>.
+                  <br /><br />
+                  ¿Deseas <strong>forzar la eliminación</strong>?
+                  <br />
+                  <strong style={{ color: '#dc3545' }}>ESTO ELIMINARÁ TODOS LOS REPORTES ASOCIADOS DE FORMA PERMANENTE.</strong>
+                </span>
+              </div>
+            </div>
+
+            <div className="modal-buttons">
+              <button className="modal-btn modal-btn-cancelar" onClick={cancelarEliminacionForzada} disabled={eliminandoPeriodoForzado}>
+                <i className="bi bi-x-circle"></i>
+                {eliminandoPeriodoForzado ? 'Procesando...' : 'Cancelar'}
+              </button>
+              <button className="modal-btn modal-btn-confirmar" onClick={confirmarEliminacionForzada} disabled={eliminandoPeriodoForzado} style={{ backgroundColor: '#dc3545' }}>
+                <i className="bi bi-exclamation-triangle"></i>
+                {eliminandoPeriodoForzado ? 'Eliminando...' : 'Forzar Eliminación'}
               </button>
             </div>
           </div>

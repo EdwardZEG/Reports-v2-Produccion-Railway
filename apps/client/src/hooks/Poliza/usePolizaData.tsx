@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../api"; 
+import api from "../../api";
 import { toast } from "react-toastify";
 
 export interface Coordinador {
@@ -56,15 +56,36 @@ export default function usePolizaData(): UsePolizaData {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Verificar si el token ha expirado antes de hacer la llamada API
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    console.log('🔴 usePolizaData: No hay token, no cargando datos');
+                    return;
+                }
+
+                // Importar dinámicamente para evitar problemas de circular imports
+                const { isTokenExpired } = await import('../../utils/tokenUtils');
+                if (isTokenExpired(token)) {
+                    console.log('🔴 usePolizaData: Token expirado, no cargando datos');
+                    return;
+                }
+
                 const [resPolizas, resCoordinadores] = await Promise.all([
-                     api.get("/polizas"),
+                    api.get("/polizas"),
                     api.get("/coordinadores"),
                 ]);
                 setPolizas(resPolizas.data);
                 setCoordinadores(resCoordinadores.data);
             } catch (error) {
-                console.error("Error al obtener datos:", error);
-                toast.error("Error al cargar los datos. Intente nuevamente.");
+                // Suprimir toast si el token ha expirado
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const { isTokenExpired } = await import('../../utils/tokenUtils');
+                    if (!isTokenExpired(token)) {
+                        console.error("Error al obtener datos:", error);
+                        toast.error("Error al cargar los datos. Intente nuevamente.");
+                    }
+                }
             }
         };
         fetchData();

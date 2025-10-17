@@ -4,7 +4,7 @@ import Poliza from "../models/Poliza";
 import Coordinador from "../models/Coordinador";
 import Especialidad from "../models/Especialidad";
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { AppError } from "../errors/customErrors";
 
 interface ColaboradorBody {
@@ -35,10 +35,19 @@ export const loginColaborador: RequestHandler = async (req, res, next) => {
       return next(new AppError('Contraseña incorrecta', 400));
     }
 
+    // Generar token JWT con expiración configurable
+    const tokenExpiration = process.env.JWT_EXPIRES_IN || '7d';
+    console.log(`🔐 Generando token con expiración: ${tokenExpiration}`);
+
+    // @ts-ignore - Temporal fix para problema de tipos de JWT
     const token = jwt.sign(
-      { userId: user._id, rol: user.rol },
+      {
+        userId: user._id,
+        rol: user.rol,
+        polizaId: user.poliza?._id // Agregar polizaId al token para filtrado
+      },
       process.env.JWT_SECRET || 'secret',
-      { expiresIn: '1d' }
+      { expiresIn: tokenExpiration }
     );
 
     res.json({
@@ -281,9 +290,9 @@ export const obtenerColaboradores: RequestHandler = async (req, res, next) => {
     const user = (req as any).user;
     const filtro: any = {};
 
-    // Solo filtrar por póliza si es coordinador Y se especifica explícitamente
+    // Filtrar por póliza si es coordinador O colaborador (encargado/auxiliar) Y se especifica explícitamente
     // Para estadísticas, los administradores deben ver todos los colaboradores
-    if (user.rol === "coordinador" && user.polizaId && req.query.filtrarPoliza !== 'false') {
+    if ((user.rol === "coordinador" || user.rol === "encargado" || user.rol === "auxiliar") && user.polizaId && req.query.filtrarPoliza !== 'false') {
       filtro.poliza = user.polizaId;
     }
 

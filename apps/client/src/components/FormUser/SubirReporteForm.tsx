@@ -215,6 +215,18 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
         const fetchEspecialidades = async () => {
             try {
                 const token = localStorage.getItem("token");
+                if (!token) {
+                    console.log('🔴 SubirReporteForm: No hay token, no cargando especialidades');
+                    return;
+                }
+
+                // Verificar si el token ha expirado
+                const { isTokenExpired } = await import('../../utils/tokenUtils');
+                if (isTokenExpired(token)) {
+                    console.log('🔴 SubirReporteForm: Token expirado, no cargando especialidades');
+                    return;
+                }
+
                 const response = await fetch(`${getBaseApiUrl()}/especialidades`, {
                     headers: {
                         Authorization: token ? `Bearer ${token}` : "",
@@ -223,7 +235,14 @@ const SubirReporteForm: React.FC<SubirReporteFormProps> = ({
                 const data = await response.json();
                 setEspecialidades(data);
             } catch (error) {
-                console.error("Error al cargar especialidades:", error);
+                // Suprimir logs si el token ha expirado
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const { isTokenExpired } = await import('../../utils/tokenUtils');
+                    if (!isTokenExpired(token)) {
+                        console.error("Error al cargar especialidades:", error);
+                    }
+                }
             }
         };
         fetchEspecialidades();

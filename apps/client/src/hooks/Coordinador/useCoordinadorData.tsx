@@ -66,6 +66,20 @@ export const useCoordinadores = () => {
    */
   const fetchData = async (search = "") => {
     try {
+      // Verificar si el token ha expirado antes de hacer la llamada API
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('🔴 useCoordinadorData: No hay token, no cargando datos');
+        return;
+      }
+
+      // Importar dinámicamente para evitar problemas de circular imports
+      const { isTokenExpired } = await import('../../utils/tokenUtils');
+      if (isTokenExpired(token)) {
+        console.log('🔴 useCoordinadorData: Token expirado, no cargando datos');
+        return;
+      }
+
       const query = search ? `?search=${encodeURIComponent(search)}` : "";
       const [resCoordinadores, resPolizas] = await Promise.all([
         api.get(`/coordinadores${query}`),
@@ -74,8 +88,15 @@ export const useCoordinadores = () => {
       setCoordinadores(resCoordinadores.data);
       setPolizas(resPolizas.data);
     } catch (error) {
-      toast.error("Error al cargar los datos. Intente nuevamente.");
-      setError("Error al cargar los datos. Intente nuevamente.");
+      // Suprimir toast si el token ha expirado
+      const token = localStorage.getItem('token');
+      if (token) {
+        const { isTokenExpired } = await import('../../utils/tokenUtils');
+        if (!isTokenExpired(token)) {
+          toast.error("Error al cargar los datos. Intente nuevamente.");
+          setError("Error al cargar los datos. Intente nuevamente.");
+        }
+      }
     }
   };
 

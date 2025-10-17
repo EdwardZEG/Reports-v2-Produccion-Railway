@@ -15,7 +15,6 @@ import Polizas from './Polizas';
 import Coordinadores from './Coordinadores';
 import Encargados from './Encargados';
 import PeriodosMPSection from '../components/PeriodosMP/PeriodosMPSection';
-import HistorialReportesSection from '../components/HistorialReportes/HistorialReportesSection';
 
 // Importar logo y contexto DVD
 import logoRwnet from '../assets/logo_rwnet.png';
@@ -140,7 +139,7 @@ const Dashboard: React.FC = () => {
       component: Encargados,
       roles: ['administrador', 'coordinador']
     },
-    // ORDEN PARA COLABORADORES: 1. Períodos MP, 2. Mi Historial
+    // SECCIONES PARA COLABORADORES: 1. Períodos MP, 2. Mi Historial (usando InicioSection sin descarga)
     {
       section: 'periodos',
       icon: 'calendar-range',
@@ -149,10 +148,9 @@ const Dashboard: React.FC = () => {
       roles: ['coordinador', 'encargado', 'auxiliar']
     },
     {
-      section: 'historialReportes',
+      section: 'historialColaborador',
       icon: 'clock-history',
       text: 'Mi Historial',
-      component: HistorialReportesSection,
       roles: ['encargado', 'auxiliar']
     }
   ];
@@ -533,6 +531,31 @@ const Dashboard: React.FC = () => {
           hasSearched={hasSearched}
           onSearch={handleSearch}
           onReporteGenerado={handleReporteGenerado}
+          onLoadingStart={handleLoadingStart}
+          onLoadingEnd={handleLoadingEnd}
+          onProgressUpdate={handleProgressUpdate}
+          onPreviewExpanded={setIsPreviewExpanded}
+          onReportDownloaded={setIsReportDownloaded}
+          showMejorasModal={showMejorasModal}
+          onShowMejorasModal={() => setShowMejorasModal(true)}
+          onCloseMejorasModal={() => setShowMejorasModal(false)}
+        />
+      );
+    }
+
+    // Vista de historial para colaboradores (sin funciones de descarga de Word)
+    if (activeSection === 'historialColaborador') {
+      return (
+        <InicioSection
+          dispositivos={dispositivos}
+          reporte={{ nombre: '', url: '' }} // Reporte vacío para evitar botones de descarga
+          isLoading={isLoading}
+          isPreviewExpanded={isPreviewExpanded}
+          isReportDownloaded={true} // Siempre true para deshabilitar descarga
+          hasSearched={hasSearched}
+          disableWordGeneration={true} // Deshabilitar generación de Word para colaboradores
+          onSearch={handleSearch}
+          onReporteGenerado={() => { }} // Función vacía - no genera reportes
           onLoadingStart={handleLoadingStart}
           onLoadingEnd={handleLoadingEnd}
           onProgressUpdate={handleProgressUpdate}

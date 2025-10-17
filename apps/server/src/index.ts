@@ -22,14 +22,23 @@ import migrationRoutes from './routes/migration';
 import DeviceCatalog from './models/DeviceCatalog';
 import DeviceReport from './models/DeviceReport';
 
-// Solo cargar dotenv en desarrollo (Railway maneja variables automáticamente)
-if (process.env.NODE_ENV !== 'production') {
-  try {
-    const dotenv = require('dotenv');
-    dotenv.config();
-  } catch (error) {
-    console.log('⚠️ dotenv no disponible, usando variables de entorno del sistema');
+// Cargar dotenv (forzar carga para debugging)
+try {
+  const dotenv = require('dotenv');
+  const envPath = path.join(__dirname, '../.env');
+  const result = dotenv.config({ path: envPath });
+
+  console.log('🔧 NODE_ENV:', process.env.NODE_ENV || 'undefined');
+  console.log('🔧 Ruta .env:', envPath);
+  console.log('🔧 Resultado dotenv:', result.error ? 'ERROR' : 'SUCCESS');
+  console.log('🔧 JWT_EXPIRES_IN cargado:', process.env.JWT_EXPIRES_IN || 'undefined');
+  console.log('🔧 JWT_SECRET cargado:', process.env.JWT_SECRET ? 'SÍ' : 'NO');
+
+  if (result.error) {
+    console.log('❌ Error cargando .env:', result.error);
   }
+} catch (error) {
+  console.log('⚠️ dotenv no disponible, error:', error);
 }
 
 const app = express();

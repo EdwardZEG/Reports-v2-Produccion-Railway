@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import api from '../api';
 import { toast } from 'react-toastify';
+import { isTokenExpired } from '../utils/tokenUtils';
 
 /**
  * Interface que define la estructura de un colaborador
@@ -51,6 +52,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
      * Solo carga datos si no han sido cargados previamente o están vacíos
      */
     const loadColaboradores = async () => {
+        // Verificar si el token existe y es válido antes de hacer la petición
+        const token = localStorage.getItem('token');
+        if (!token || isTokenExpired(token)) {
+            console.log('🔴 DataContext: Token expirado o no existe, saltando carga de colaboradores');
+            return;
+        }
+
         if (colaboradoresLoaded && colaboradores.length > 0) {
             return; // Cache hit - ya están cargados, no recargar
         }
@@ -60,9 +68,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const response = await api.get("/colaboradores/");
             setColaboradores(response.data);
             setColaboradoresLoaded(true);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error cargando colaboradores:', error);
-            toast.error("Error al obtener colaboradores");
+            // No mostrar toast si es error de token expirado (lo maneja App.tsx)
+            if (error.response?.status !== 401 || error.response?.data?.code !== 'TOKEN_EXPIRED') {
+                toast.error("Error al obtener colaboradores");
+            }
         } finally {
             setIsColaboradoresLoading(false);
         }
@@ -80,13 +91,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     /**
      * Efecto que carga colaboradores automáticamente al inicializar el contexto
-     * Solo se ejecuta si existe un token de autenticación válido
+     * Solo se ejecuta si existe un token de autenticación válido Y no está expirado
      * Garantiza que los datos estén disponibles desde el primer render
      */
     useEffect(() => {
         const token = localStorage.getItem('token');
-        if (token) {
+        if (token && !isTokenExpired(token)) {
+            console.log('🟢 DataContext: Token válido, cargando colaboradores');
             loadColaboradores();
+        } else if (token && isTokenExpired(token)) {
+            console.log('🔴 DataContext: Token expirado, no cargando colaboradores');
         }
     }, []);
 

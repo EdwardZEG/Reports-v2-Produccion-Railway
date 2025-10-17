@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isTokenExpired } from '../utils/tokenUtils';
 
 /**
  * Hook personalizado para manejo de autenticación
@@ -12,16 +13,30 @@ export const useAuth = () => {
   useEffect(() => {
     /**
      * Verificar el estado de autenticación inicial
-     * Solo valida la existencia de un token activo, no credenciales recordadas
+     * Valida la existencia Y validez del token
      */
     const checkInitialAuth = () => {
       const token = localStorage.getItem('token');
 
-      // Solo considerar autenticado si hay un token válido
-      // Las credenciales recordadas NO significan autenticación automática
-      const authStatus = !!token;
+      if (token) {
+        // Verificar si el token está expirado
+        if (isTokenExpired(token)) {
+          console.log('🔴 Token expirado detectado en useAuth - limpiando localStorage');
+          // Token expirado, limpiar todo y marcar como no autenticado
+          localStorage.removeItem('token');
+          localStorage.removeItem('rol');
+          localStorage.removeItem('nombre');
+          setIsAuthenticated(false);
+        } else {
+          // Token válido
+          console.log('🟢 Token válido detectado en useAuth');
+          setIsAuthenticated(true);
+        }
+      } else {
+        // No hay token
+        setIsAuthenticated(false);
+      }
 
-      setIsAuthenticated(authStatus);
       setIsLoading(false);
     };
 

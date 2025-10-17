@@ -76,17 +76,35 @@ const SearchColaboradorForm: React.FC<SearchColaboradorFormProps> = ({
 
     // Inicializar datos del colaborador desde el token
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const decoded: any = jwtDecode(token);
-                setColaboradorId(decoded.userId);
-                fetchColaboradorData(decoded.userId);
-            } catch (error) {
-                console.error('Error decodificando token:', error);
-                toast.error('Error de autenticación');
+        const initializeColaboradorData = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    // Verificar si el token ha expirado
+                    const { isTokenExpired } = await import('../../utils/tokenUtils');
+                    if (isTokenExpired(token)) {
+                        console.log('🔴 SearchColaboradorForm: Token expirado, no cargando datos');
+                        return;
+                    }
+
+                    const decoded: any = jwtDecode(token);
+                    setColaboradorId(decoded.userId);
+                    fetchColaboradorData(decoded.userId);
+                } catch (error) {
+                    // Suprimir toast si el token ha expirado
+                    const token = localStorage.getItem('token');
+                    if (token) {
+                        const { isTokenExpired } = await import('../../utils/tokenUtils');
+                        if (!isTokenExpired(token)) {
+                            console.error('Error decodificando token:', error);
+                            toast.error('Error de autenticación');
+                        }
+                    }
+                }
             }
-        }
+        };
+
+        initializeColaboradorData();
     }, []);
 
     const fetchColaboradorData = async (id: string) => {
@@ -94,8 +112,15 @@ const SearchColaboradorForm: React.FC<SearchColaboradorFormProps> = ({
             const response = await api.get(`/colaboradores/${id}`);
             setColaboradorData(response.data);
         } catch (error) {
-            console.error('Error cargando datos del colaborador:', error);
-            toast.error('Error al cargar datos del colaborador');
+            // Suprimir toast si el token ha expirado
+            const token = localStorage.getItem('token');
+            if (token) {
+                const { isTokenExpired } = await import('../../utils/tokenUtils');
+                if (!isTokenExpired(token)) {
+                    console.error('Error cargando datos del colaborador:', error);
+                    toast.error('Error al cargar datos del colaborador');
+                }
+            }
         }
     };
 

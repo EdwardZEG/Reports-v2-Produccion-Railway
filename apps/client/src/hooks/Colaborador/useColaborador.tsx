@@ -37,6 +37,20 @@ export const useEncargadosData = () => {
 
   const fetchEncargados = async () => {
     try {
+      // Verificar si el token ha expirado antes de hacer la llamada API
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('🔴 useColaborador: No hay token, no cargando datos');
+        return;
+      }
+
+      // Importar dinámicamente para evitar problemas de circular imports
+      const { isTokenExpired } = await import('../../utils/tokenUtils');
+      if (isTokenExpired(token)) {
+        console.log('🔴 useColaborador: Token expirado, no cargando datos');
+        return;
+      }
+
       const [resEncargados, resPolizas, resEspecialidades] = await Promise.all([
         api.get("/colaboradores"),
         api.get("/polizas"),
@@ -46,14 +60,35 @@ export const useEncargadosData = () => {
       setPolizas(resPolizas.data);
       setEspecialidades(resEspecialidades.data);
     } catch (err) {
-      toast.error("Error al cargar datos");
-      console.error("Error al cargar datos", err);
+      // Suprimir toast si el token ha expirado
+      const token = localStorage.getItem('token');
+      if (token) {
+        const { isTokenExpired } = await import('../../utils/tokenUtils');
+        if (!isTokenExpired(token)) {
+          toast.error("Error al cargar datos");
+          console.error("Error al cargar datos", err);
+        }
+      }
     }
   };
 
   // 🤝 Nueva función específica para trabajo colaborativo
   const fetchEncargadosParaColaborativo = async () => {
     try {
+      // Verificar si el token ha expirado antes de hacer la llamada API
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('🔴 useColaborador (colaborativo): No hay token, no cargando datos');
+        return;
+      }
+
+      // Importar dinámicamente para evitar problemas de circular imports
+      const { isTokenExpired } = await import('../../utils/tokenUtils');
+      if (isTokenExpired(token)) {
+        console.log('🔴 useColaborador (colaborativo): Token expirado, no cargando datos');
+        return;
+      }
+
       console.log('🤝 Obteniendo colaboradores para trabajo colaborativo...');
       const [resEncargados, resPolizas, resEspecialidades] = await Promise.all([
         api.get("/colaboradores/para-colaborativo"), // 🔒 Endpoint con filtrado estricto por póliza
@@ -65,8 +100,15 @@ export const useEncargadosData = () => {
       setPolizas(resPolizas.data);
       setEspecialidades(resEspecialidades.data);
     } catch (err) {
-      toast.error("Error al cargar colaboradores para trabajo colaborativo");
-      console.error("Error al cargar colaboradores para trabajo colaborativo", err);
+      // Suprimir toast si el token ha expirado
+      const token = localStorage.getItem('token');
+      if (token) {
+        const { isTokenExpired } = await import('../../utils/tokenUtils');
+        if (!isTokenExpired(token)) {
+          toast.error("Error al cargar colaboradores para trabajo colaborativo");
+          console.error("Error al cargar colaboradores para trabajo colaborativo", err);
+        }
+      }
     }
   };
 

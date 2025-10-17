@@ -52,8 +52,25 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     };
 
     next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Token inválido' });
+  } catch (err: any) {
+    // Manejar diferentes tipos de errores de JWT
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        message: 'Token expirado',
+        code: 'TOKEN_EXPIRED',
+        expiredAt: err.expiredAt
+      });
+    } else if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        message: 'Token inválido',
+        code: 'TOKEN_INVALID'
+      });
+    } else {
+      return res.status(401).json({
+        message: 'Error de autenticación',
+        code: 'AUTH_ERROR'
+      });
+    }
   }
 };
 
@@ -76,7 +93,7 @@ export const proteger = async (req: Request, res: Response, next: NextFunction) 
       polizaId: payload.polizaId
     });
 
-    // 🔒 OBTENER PÓLIZA ACTUALIZADA DESDE BD PARA COORDINADORES
+    // 🔒 OBTENER PÓLIZA ACTUALIZADA DESDE BD PARA COORDINADORES Y COLABORADORES
     let polizaIdActualizada = payload.polizaId;
 
     if (payload.tipo === 'coordinador') {
@@ -88,6 +105,18 @@ export const proteger = async (req: Request, res: Response, next: NextFunction) 
         console.log('🔒 [PROTEGER] Póliza actualizada desde BD:', polizaIdActualizada);
       } else {
         console.log('⚠️ [PROTEGER] Coordinador sin póliza asignada en BD');
+        polizaIdActualizada = null;
+      }
+    } else if (payload.rol === 'encargado' || payload.rol === 'auxiliar') {
+      // Obtener póliza actualizada para colaboradores
+      const Colaborador = require('../models/Colaborador').default;
+      const colaborador = await Colaborador.findById(payload.userId).populate('poliza');
+
+      if (colaborador && colaborador.poliza) {
+        polizaIdActualizada = colaborador.poliza._id.toString();
+        console.log('🔒 [PROTEGER] Póliza colaborador actualizada desde BD:', polizaIdActualizada);
+      } else {
+        console.log('⚠️ [PROTEGER] Colaborador sin póliza asignada en BD');
         polizaIdActualizada = null;
       }
     }
@@ -107,8 +136,25 @@ export const proteger = async (req: Request, res: Response, next: NextFunction) 
     });
 
     next();
-  } catch (err) {
-    res.status(401).json({ message: 'Token inválido' });
+  } catch (err: any) {
+    // Manejar diferentes tipos de errores de JWT
+    if (err.name === 'TokenExpiredError') {
+      res.status(401).json({
+        message: 'Tu sesión ha expirado por seguridad. Por favor, inicia sesión nuevamente.',
+        code: 'TOKEN_EXPIRED',
+        expiredAt: err.expiredAt
+      });
+    } else if (err.name === 'JsonWebTokenError') {
+      res.status(401).json({
+        message: 'Token inválido',
+        code: 'TOKEN_INVALID'
+      });
+    } else {
+      res.status(401).json({
+        message: 'Error de autenticación',
+        code: 'AUTH_ERROR'
+      });
+    }
     return;
   }
 };

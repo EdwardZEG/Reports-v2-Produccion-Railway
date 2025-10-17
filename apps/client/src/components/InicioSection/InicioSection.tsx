@@ -23,6 +23,7 @@ interface InicioSectionProps {
     isPreviewExpanded: boolean;
     isReportDownloaded: boolean;
     hasSearched: boolean; // Nueva prop para controlar visibilidad de contadores
+    disableWordGeneration?: boolean; // Nueva prop para deshabilitar generación de Word
     onSearch: (devices: any[]) => void; // Cambiado a any[]
     onReporteGenerado: (nombre: string, url: string) => void;
     onLoadingStart: () => void;
@@ -46,6 +47,7 @@ const InicioSection: React.FC<InicioSectionProps> = ({
     isPreviewExpanded,
     isReportDownloaded,
     hasSearched,
+    disableWordGeneration = false, // Valor por defecto false
     onSearch,
     onReporteGenerado,
     onLoadingStart,
@@ -80,6 +82,7 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                             onSearch={onSearch}
                             onReporteGenerado={onReporteGenerado}
                             hasResults={dispositivos.length > 0}
+                            disableWordGeneration={disableWordGeneration}
                             onLoadingStart={onLoadingStart}
                             onLoadingEnd={onLoadingEnd}
                             onProgressUpdate={onProgressUpdate}
@@ -183,21 +186,12 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                 {/* Header que muestra estado de carga o vista previa */}
                 <div className="section-header-full">
                     <div className="section-title-full">
-                        {isLoading ? (
-                            <>
-                                <i className="bi bi-arrow-repeat loading-spin"></i>
-                                <h3>Generando Reporte</h3>
-                            </>
-                        ) : (
-                            <>
-                                <i className="bi bi-eye-fill"></i>
-                                <h3>Vista Previa</h3>
-                            </>
-                        )}
+                        <i className="bi bi-eye-fill"></i>
+                        <h3>Vista Previa</h3>
                     </div>
 
-                    {/* Botón de expandir/contraer - solo visible cuando hay resultados */}
-                    {dispositivos.length > 0 && !isLoading && (
+                    {/* Botón de expandir/contraer - solo visible cuando hay vista previa lista */}
+                    {dispositivos.length > 0 && !isLoading && (reporte.nombre || disableWordGeneration) && (
                         <button
                             className="expand-preview-btn"
                             onClick={() => onPreviewExpanded(!isPreviewExpanded)}
@@ -208,24 +202,23 @@ const InicioSection: React.FC<InicioSectionProps> = ({
                     )}
                 </div>
 
-                {/* Contenedor principal que muestra loading o resultados */}
+                {/* Contenedor principal que muestra resultados solo cuando el Word está listo */}
                 <div className="preview-container-full">
-                    {isLoading ? (
-                        <div className="loading-message-simple">
-                            <div className="loading-spinner-simple">
-                                <i className="bi bi-arrow-repeat"></i>
-                            </div>
-                            <div className="loading-text-simple">
-                                <span>Procesando datos...</span>
-                                <small>Este proceso puede tomar unos momentos</small>
-                            </div>
-                        </div>
-                    ) : (
+                    {dispositivos.length > 0 && !isLoading && (reporte.nombre || disableWordGeneration) ? (
                         <PreviewDoc
                             dispositivos={dispositivos}
                             isLoading={isLoading}
                         />
-                    )}
+                    ) : isLoading ? (
+                        <div className="loading-message-simple">
+                            <div className="loading-spinner-simple">
+                                <i className="bi bi-arrow-repeat loading-spin"></i>
+                            </div>
+                            <div className="loading-text-simple">
+                                <span>Generando Reporte...</span>
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
             </div>
 
