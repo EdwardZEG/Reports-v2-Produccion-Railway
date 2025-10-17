@@ -68,6 +68,5 @@ DeviceCatalogSchema.index({ identifier: 1 });
 DeviceCatalogSchema.index({ ubication: 1 });
 DeviceCatalogSchema.index({ type: 1 });
 DeviceCatalogSchema.index({ active: 1 });
-DeviceCatalogSchema.index({ insertOrder: 1 }); // Para orden de inserción
 
 export default model<IDeviceCatalog>('DeviceCatalog', DeviceCatalogSchema);
