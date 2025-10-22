@@ -23,6 +23,10 @@ interface Colaborador {
     _id: string;
     nombre: string;
   };
+  especialidad?: Array<{
+    _id: string;
+    nombre: string;
+  } | string>;
 }
 
 interface DeviceCatalog {
@@ -136,6 +140,9 @@ const PeriodosMPSection: React.FC = () => {
   const [userRole, setUserRole] = useState<string>('');
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentUserPoliza, setCurrentUserPoliza] = useState<string>('');
+  const [currentUserEspecialidades, setCurrentUserEspecialidades] = useState<string[]>([]);
+  const [especialidadesCargadas, setEspecialidadesCargadas] = useState<boolean>(false);
+  const [datosInicialescargados, setDatosInicialesCargados] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   // Estados para modales de confirmación de eliminación
@@ -175,7 +182,12 @@ const PeriodosMPSection: React.FC = () => {
     const role = localStorage.getItem('rol')?.toLowerCase() || '';
 
     setUserRole(role);
-    console.log('🔍 Rol del usuario:', role);
+    console.log('🔍 PeriodosMPSection - Inicialización de rol:', {
+      rolFromLocalStorage: localStorage.getItem('rol'),
+      roleLowercase: role,
+      isColaboradorComputed: role === 'encargado' || role === 'auxiliar',
+      isAdministrador: role === 'administrador' || role === 'admin'
+    });
 
     if (token) {
       try {
@@ -193,11 +205,8 @@ const PeriodosMPSection: React.FC = () => {
       }
     }
 
-    console.log('🚀 Inicializando PeriodosMPSection para coordinador:', coordinadorId);
-    fetchPeriodos();
-    fetchColaboradores();
-    fetchDispositivos();
-    fetchEspecialidades();
+    console.log('🚀 Inicializando PeriodosMPSection');
+    initializeData();
 
     // Cleanup function para limpiar timeouts y abort controllers
     return () => {
@@ -208,7 +217,7 @@ const PeriodosMPSection: React.FC = () => {
         abortController.abort();
       }
     };
-  }, [currentUserId]); // Dependencia para recargar cuando cambie el usuario
+  }, []); // ✅ SIN DEPENDENCIAS para evitar bucle infinito - solo se ejecuta una vez al montar el componente
 
   // Verificar si el usuario es colaborador (encargado o auxiliar)
   const isColaborador = userRole === 'encargado' || userRole === 'auxiliar';
@@ -277,11 +286,23 @@ const PeriodosMPSection: React.FC = () => {
   }, [periodos, currentPeriodoIndex]);
 
   // useEffect adicional para recargar colaboradores cuando currentUserId esté disponible
+  // 🛡️ PROTECCIÓN ANTI-BUCLE: Solo cargar colaboradores para usuarios que realmente lo necesitan
   useEffect(() => {
-    if (currentUserId && isColaborador) {
+    console.log('🔍 useEffect fetchColaboradores - Debug:', {
+      currentUserId,
+      isColaborador,
+      userRole,
+      shouldFetch: currentUserId && isColaborador
+    });
+
+    // Solo fetchear si es realmente un colaborador (encargado/auxiliar) y tiene currentUserId
+    if (currentUserId && isColaborador && (userRole === 'encargado' || userRole === 'auxiliar')) {
+      console.log('✅ Ejecutando fetchColaboradores para colaborador válido');
       fetchColaboradores();
+    } else {
+      console.log('❌ Saltando fetchColaboradores - Usuario no es colaborador válido');
     }
-  }, [currentUserId, isColaborador]);
+  }, [currentUserId, isColaborador, userRole]);
 
   // Cargar períodos cuando cambie la póliza del usuario auxiliar
   useEffect(() => {
@@ -290,6 +311,37 @@ const PeriodosMPSection: React.FC = () => {
       fetchPeriodos();
     }
   }, [currentUserPoliza, esAuxiliarTecnico]);
+
+  // Función para inicializar datos en el orden correcto
+  const initializeData = async () => {
+    try {
+      console.log('🔄 Iniciando carga secuencial de datos...');
+
+      // Primero cargar colaboradores y especialidades en paralelo
+      await Promise.all([
+        fetchColaboradores(),
+        fetchEspecialidades()
+      ]);
+
+      console.log('✅ Colaboradores y especialidades cargados');
+
+      // Luego cargar períodos y dispositivos
+      await Promise.all([
+        fetchPeriodos(),
+        fetchDispositivos()
+      ]);
+
+      console.log('✅ Períodos y dispositivos cargados');
+
+      // Marcar que todos los datos iniciales están cargados
+      setDatosInicialesCargados(true);
+
+      console.log('🎉 Carga inicial completa');
+    } catch (error) {
+      console.error('❌ Error en la carga inicial de datos:', error);
+      setDatosInicialesCargados(true); // Permitir mostrar contenido incluso con errores
+    }
+  };
 
   const fetchPeriodos = async (forceRefresh = false) => {
     try {
@@ -495,6 +547,9 @@ const PeriodosMPSection: React.FC = () => {
         setDeviceOrder({});
         setIsAnimating(false);
         setAnimationClass('');
+        // Resetear estado de especialidades cargadas
+        setCurrentUserEspecialidades([]);
+        setEspecialidadesCargadas(false);
 
         console.log('🧹 Estados reseteados completamente');
 
@@ -576,14 +631,72 @@ const PeriodosMPSection: React.FC = () => {
     let filteredPeriodos = allPeriodos;
 
     if (isColaborador && currentUserId) {
-      filteredPeriodos = allPeriodos.map((periodo: PeriodoMP) => ({
+      console.log('🔍 Filtrando períodos para colaborador:', {
+        currentUserId,
+        userEspecialidades: currentUserEspecialidades,
+        totalPeriodos: allPeriodos.length,
+        especialidadesCargadas,
+        datosInicialescargados
+      });
+
+      // Primero filtrar períodos por especialidad del usuario
+      let periodosDeEspecialidad = allPeriodos;
+
+      // IMPORTANTE: Solo proceder si ya se han cargado tanto las especialidades como los datos iniciales
+      // Esto evita el "flash" de mostrar períodos que luego desaparecen
+      if (!especialidadesCargadas || !datosInicialescargados) {
+        // Si aún no se han cargado completamente los datos, no mostrar períodos
+        console.log('⏳ Esperando que se carguen todos los datos iniciales...', {
+          especialidadesCargadas,
+          datosInicialescargados
+        });
+        periodosDeEspecialidad = []; // Array vacío hasta que se carguen todos los datos
+      } else if (currentUserEspecialidades.length > 0) {
+        // Usuario tiene especialidades: filtrar períodos por especialidad
+        periodosDeEspecialidad = allPeriodos.filter((periodo: PeriodoMP) => {
+          // Obtener ID de especialidad del período
+          const periodoEspecialidadId = typeof periodo.especialidad === 'object'
+            ? periodo.especialidad._id
+            : periodo.especialidad;
+
+          // Verificar que el ID no sea undefined
+          if (!periodoEspecialidadId) {
+            console.log(`⚠️ Período ${periodo.nombre || periodo._id} sin especialidad definida`);
+            return false;
+          }
+
+          // Verificar si el período pertenece a alguna de las especialidades del usuario
+          const perteneceAEspecialidad = currentUserEspecialidades.includes(periodoEspecialidadId);
+
+          if (perteneceAEspecialidad) {
+            console.log(`✅ Período ${periodo.nombre || periodo._id} incluido - especialidad: ${periodoEspecialidadId}`);
+          } else {
+            console.log(`❌ Período ${periodo.nombre || periodo._id} excluido - especialidad: ${periodoEspecialidadId} no está en [${currentUserEspecialidades.join(', ')}]`);
+          }
+
+          return perteneceAEspecialidad;
+        });
+
+        console.log(`🎯 Períodos filtrados por especialidad: ${periodosDeEspecialidad.length} de ${allPeriodos.length}`);
+      } else {
+        // Usuario sin especialidades asignadas: mostrar todos los períodos
+        console.log('⚠️ Usuario sin especialidades asignadas, mostrando todos los períodos');
+        periodosDeEspecialidad = allPeriodos;
+      }
+
+      // Luego filtrar dispositivos por asignación del usuario
+      filteredPeriodos = periodosDeEspecialidad.map((periodo: PeriodoMP) => ({
         ...periodo,
         dispositivos: periodo.dispositivos.filter(dispositivo => {
           // Incluir si es asignación múltiple o si está asignado específicamente a este colaborador
-          return dispositivo.asignacionMultiple ||
+          const incluir = dispositivo.asignacionMultiple ||
             dispositivo.colaboradorAsignado?._id === currentUserId;
+
+          return incluir;
         })
       })).filter((periodo: PeriodoMP) => periodo.dispositivos.length > 0); // Solo mostrar períodos con dispositivos asignados
+
+      console.log(`📱 Períodos finales con dispositivos asignados: ${filteredPeriodos.length}`);
     }
 
     // Ordenar períodos por fecha de creación (del más antiguo al más nuevo en términos de creación)
@@ -597,14 +710,16 @@ const PeriodosMPSection: React.FC = () => {
     console.log('📅 Períodos ordenados por CREACIÓN (del más antiguo al más nuevo):');
     sortedPeriodos.forEach((p, index) => {
       const createdTimestamp = new Date(parseInt(p._id.substring(0, 8), 16) * 1000);
+      const especialidadInfo = typeof p.especialidad === 'object' ? p.especialidad.nombre : p.especialidad;
       console.log(`  ${index}: ${p._id}`);
       console.log(`    - Nombre: ${p.nombre || 'Sin nombre'}`);
+      console.log(`    - Especialidad: ${especialidadInfo}`);
       console.log(`    - Creado: ${createdTimestamp.toLocaleString('es-ES')} (del ObjectId)`);
       console.log(`    - Fecha inicio período: ${new Date(p.fechaInicio).toLocaleDateString('es-ES')}`);
     });
 
     setPeriodos(sortedPeriodos);
-  }, [allPeriodos, isColaborador, currentUserId]);
+  }, [allPeriodos, isColaborador, currentUserId, currentUserEspecialidades, especialidadesCargadas, datosInicialescargados]);
 
   // useEffect para resetear al período más antiguo (índice 0) cuando se cargan períodos
   useEffect(() => {
@@ -650,47 +765,103 @@ const PeriodosMPSection: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`${getBaseApiUrl()}/colaboradores`, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : '',
-        },
+      // 🛡️ PROTECCIÓN ANTI-BUCLE: Usar cache para evitar peticiones repetidas
+      const { apiCache } = await import('../../utils/apiCache');
+      const cacheKey = `colaboradores_${token.slice(-10)}`;
+
+      console.log('🔄 fetchColaboradores: Intentando obtener colaboradores...');
+
+      const data = await apiCache.executeRequest(cacheKey, async () => {
+        const response = await fetch(`${getBaseApiUrl()}/colaboradores`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : '',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        return await response.json();
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('📋 Colaboradores recibidos:', data);
-        console.log('📋 Tipo de data:', typeof data, Array.isArray(data));
+      console.log('📋 Colaboradores recibidos:', data);
+      console.log('📋 Tipo de data:', typeof data, Array.isArray(data));
 
-        // Verificar si data es un array o tiene una propiedad data
-        const colaboradoresArray = Array.isArray(data) ? data : (data.data || data.colaboradores || []);
-        console.log('📋 Array de colaboradores:', colaboradoresArray);
-        console.log('📋 Cantidad de colaboradores:', colaboradoresArray.length);
+      // Verificar si data es un array o tiene una propiedad data
+      const colaboradoresArray = Array.isArray(data) ? data : (data.data || data.colaboradores || []);
+      console.log('📋 Array de colaboradores:', colaboradoresArray);
+      console.log('📋 Cantidad de colaboradores:', colaboradoresArray.length);
 
-        if (colaboradoresArray.length > 0) {
-          console.log('📋 Primer colaborador:', colaboradoresArray[0]);
-        }
-
-        // Buscar el usuario actual para obtener su póliza
-        const currentUser = colaboradoresArray.find((colab: Colaborador) => colab._id === currentUserId);
-        if (currentUser && currentUser.poliza) {
-          setCurrentUserPoliza(currentUser.poliza._id);
-          console.log('📋 Póliza del usuario actual:', currentUser.poliza._id, currentUserPoliza);
-
-          // Filtrar colaboradores por la misma póliza
-          const colaboradoresMismaPoliza = colaboradoresArray.filter((colab: Colaborador) =>
-            colab.poliza && colab.poliza._id === currentUser.poliza._id
-          );
-          setColaboradores(colaboradoresMismaPoliza);
-          console.log('📋 Colaboradores de la misma póliza:', colaboradoresMismaPoliza.length);
-        } else {
-          // Si no se encuentra el usuario o no tiene póliza, mostrar todos
-          setColaboradores(colaboradoresArray);
-        }
-
-        console.log('✅ Colaboradores procesados y guardados en estado');
-      } else {
-        console.error('❌ Error en respuesta:', response.status, response.statusText);
+      if (colaboradoresArray.length > 0) {
+        console.log('📋 Primer colaborador:', colaboradoresArray[0]);
       }
+
+      // Buscar el usuario actual para obtener su póliza y especialidades
+      const currentUser = colaboradoresArray.find((colab: Colaborador) => colab._id === currentUserId);
+      if (currentUser) {
+        // Obtener póliza del usuario
+        if (currentUser.poliza) {
+          setCurrentUserPoliza(currentUser.poliza._id);
+          console.log('📋 Póliza del usuario actual:', currentUser.poliza._id);
+        }
+
+        // Obtener especialidades del usuario (para colaboradores que necesitan filtrado por especialidad)
+        if (currentUser.especialidad && Array.isArray(currentUser.especialidad)) {
+          const especialidadesIds = currentUser.especialidad.map((esp: any) =>
+            typeof esp === 'object' ? esp._id : esp
+          );
+          setCurrentUserEspecialidades(especialidadesIds);
+          setEspecialidadesCargadas(true); // Marcar que las especialidades han sido cargadas
+          console.log('🎯 Especialidades del usuario actual:', especialidadesIds);
+        } else {
+          setCurrentUserEspecialidades([]);
+          setEspecialidadesCargadas(true); // También marcar como cargadas aunque estén vacías
+          console.log('⚠️ Usuario actual sin especialidades asignadas');
+        }
+
+        // Filtrar colaboradores por la misma póliza
+        const colaboradoresMismaPoliza = colaboradoresArray.filter((colab: Colaborador) =>
+          colab.poliza && colab.poliza._id === currentUser.poliza._id
+        );
+        setColaboradores(colaboradoresMismaPoliza);
+        console.log('📋 Colaboradores de la misma póliza:', colaboradoresMismaPoliza.length);
+      } else {
+        // Si no se encuentra el usuario o no tiene póliza, mostrar todos
+        setColaboradores(colaboradoresArray);
+        setCurrentUserEspecialidades([]);
+        setEspecialidadesCargadas(true); // Marcar como cargadas aunque el usuario no se encuentre
+        console.log('⚠️ Usuario actual no encontrado en la lista de colaboradores');
+      }
+
+      setColaboradores(colaboradoresArray);
+
+      // Buscar el usuario actual para obtener su póliza y especialidades
+      const usuarioActual = colaboradoresArray.find((colab: Colaborador) => colab._id === currentUserId);
+      if (usuarioActual) {
+        // Obtener póliza del usuario
+        if (usuarioActual.poliza) {
+          setCurrentUserPoliza(usuarioActual.poliza._id);
+          console.log('📋 Póliza del usuario actual:', usuarioActual.poliza._id);
+        }
+
+        // Obtener especialidades del usuario (para colaboradores que necesitan filtrado por especialidad)
+        if (usuarioActual.especialidad && Array.isArray(usuarioActual.especialidad)) {
+          const especialidadesIds = usuarioActual.especialidad.map((esp: any) => esp._id || esp);
+          setCurrentUserEspecialidades(especialidadesIds);
+          console.log('📋 Especialidades del usuario:', especialidadesIds);
+        } else {
+          setCurrentUserEspecialidades([]);
+        }
+        setEspecialidadesCargadas(true); // Marcar como cargadas
+        console.log('✅ Usuario actual encontrado y procesado');
+      } else {
+        setCurrentUserEspecialidades([]);
+        setEspecialidadesCargadas(true); // Marcar como cargadas aunque el usuario no se encuentre
+        console.log('⚠️ Usuario actual no encontrado en la lista de colaboradores');
+      }
+
+      console.log('✅ Colaboradores procesados y guardados en estado');
     } catch (error) {
       // Suprimir logs si el token ha expirado
       const token = localStorage.getItem('token');
@@ -1883,7 +2054,11 @@ const PeriodosMPSection: React.FC = () => {
   const formatDateForInput = (dateString: string): string => {
     try {
       const date = new Date(dateString);
-      return date.toISOString().split('T')[0];
+      // Usar fecha local en lugar de UTC para evitar desfase de días
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     } catch (error) {
       console.error('Error formatteando fecha:', error);
       return '';

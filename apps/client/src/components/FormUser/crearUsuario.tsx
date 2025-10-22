@@ -37,6 +37,7 @@ interface CrearColaboradorModalProps {
   rolUsuario?: string;
   polizaUsuarioId?: string;
   colaboradorEditando?: Encargado;
+  crearColaborador?: (datos: any) => Promise<{ success: boolean; data?: any; encargados?: any[] }>;
 }
 
 const CrearColaboradorModal: React.FC<CrearColaboradorModalProps> = ({
@@ -47,7 +48,8 @@ const CrearColaboradorModal: React.FC<CrearColaboradorModalProps> = ({
   especialidades,
   rolUsuario,
   polizaUsuarioId,
-  colaboradorEditando
+  colaboradorEditando,
+  crearColaborador
 }) => {
   const [formData, setFormData] = useState({
     nombre: "",
@@ -57,7 +59,7 @@ const CrearColaboradorModal: React.FC<CrearColaboradorModalProps> = ({
     contraseña: "",
     telefono: "",
     estado: "Activo",
-    rol: "Encargado",
+    rol: "Auxiliar",
     poliza: "" as string | null,
     especialidad: [] as string[],
   });
@@ -113,7 +115,7 @@ const CrearColaboradorModal: React.FC<CrearColaboradorModalProps> = ({
         contraseña: "",
         telefono: colaboradorEditando.telefono || "",
         estado: colaboradorEditando.estado || "Activo",
-        rol: colaboradorEditando.rol || "Encargado",
+        rol: colaboradorEditando.rol || "Auxiliar",
         poliza: colaboradorEditando.poliza?._id || "",
         especialidad: Array.isArray(colaboradorEditando.especialidad)
           ? colaboradorEditando.especialidad.map(es => es._id)
@@ -135,7 +137,7 @@ const CrearColaboradorModal: React.FC<CrearColaboradorModalProps> = ({
         contraseña: "",
         telefono: "",
         estado: "Activo",
-        rol: "Encargado",
+        rol: "Auxiliar",
         poliza: defaultPoliza,
         especialidad: [],
       });
@@ -306,7 +308,12 @@ const CrearColaboradorModal: React.FC<CrearColaboradorModalProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+      // Forzar que el rol siempre sea "Auxiliar" para colaboradores
+      rol: "Auxiliar"
+    }));
   };
 
   const validateFields = (): boolean => {
@@ -398,9 +405,17 @@ const CrearColaboradorModal: React.FC<CrearColaboradorModalProps> = ({
         toast.success("Colaborador actualizado.");
         await onSuccess();
       } else {
-        const response = await api.post("/colaboradores", payload);
-        toast.success("Colaborador creado.");
-        await onSuccess(response.data);
+        // Usar la función crearColaborador del hook si está disponible, sino usar API directamente
+        if (crearColaborador) {
+          const resultado = await crearColaborador(payload);
+          if (resultado.success) {
+            await onSuccess(resultado.data);
+          }
+        } else {
+          const response = await api.post("/colaboradores", payload);
+          toast.success("Colaborador creado.");
+          await onSuccess(response.data);
+        }
       }
     } catch (err: any) {
       console.error("Error al guardar colaborador:", err);
@@ -618,20 +633,8 @@ const CrearColaboradorModal: React.FC<CrearColaboradorModalProps> = ({
       case 4: // Especialidades
         return (
           <>
-            <div className="form-group">
-              <label>Rol:</label>
-              <select
-                name="rol"
-                value={formData.rol}
-                onChange={handleChange}
-                disabled={rolUsuario === "coordinador"}
-                className={fieldErrors.rol ? "input-error" : ""}
-              >
-                <option value="Encargado">Encargado</option>
-                <option value="Auxiliar">Auxiliar</option>
-              </select>
-              {fieldErrors.rol && <span className="mensaje-error-poliza">{fieldErrors.rol}</span>}
-            </div>
+            {/* Rol oculto - siempre será "Auxiliar" para colaboradores */}
+            <input type="hidden" name="rol" value="Auxiliar" />
 
             {/* Carrusel de especialidades - Siempre visible */}
             <div className="form-group">

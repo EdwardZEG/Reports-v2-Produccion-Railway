@@ -144,9 +144,22 @@ const SearchColaboradorForm: React.FC<SearchColaboradorFormProps> = ({
 
             // Aplicar filtros según los criterios seleccionados
             if (especialidad) {
-                dispositivos = dispositivos.filter((dispositivo: any) =>
-                    dispositivo.especialidad?._id === especialidad
-                );
+                console.log('🔍 Filtrando por especialidad:', especialidad);
+                console.log('📊 Dispositivos antes del filtro:', dispositivos.map((d: any) => ({
+                    identifier: d.identifier,
+                    especialidadId: d.especialidad?._id,
+                    especialidadNombre: d.especialidad?.nombre
+                })));
+
+                dispositivos = dispositivos.filter((dispositivo: any) => {
+                    const match = dispositivo.especialidad?._id === especialidad;
+                    if (!match) {
+                        console.log(`❌ ${dispositivo.identifier} - Especialidad: ${dispositivo.especialidad?.nombre} (${dispositivo.especialidad?._id}) no coincide con ${especialidad}`);
+                    } else {
+                        console.log(`✅ ${dispositivo.identifier} - Especialidad: ${dispositivo.especialidad?.nombre} (${dispositivo.especialidad?._id}) coincide`);
+                    }
+                    return match;
+                });
                 console.log('📋 Después del filtro de especialidad:', dispositivos.length);
             }
 
@@ -230,15 +243,23 @@ const SearchColaboradorForm: React.FC<SearchColaboradorFormProps> = ({
                     <select
                         className="search-form__input"
                         value={especialidad}
-                        onChange={(e) => setEspecialidad(e.target.value)}
+                        onChange={(e) => {
+                            console.log('🎯 Especialidad seleccionada:', e.target.value);
+                            const espSeleccionada = colaboradorData?.especialidad.find(esp => esp._id === e.target.value);
+                            console.log('🎯 Especialidad encontrada:', espSeleccionada);
+                            setEspecialidad(e.target.value);
+                        }}
                         required
                     >
                         <option value="">Seleccione una especialidad</option>
-                        {colaboradorData?.especialidad.map((esp) => (
-                            <option key={esp._id} value={esp._id}>
-                                {esp.nombre}
-                            </option>
-                        ))}
+                        {colaboradorData?.especialidad.map((esp) => {
+                            console.log('📋 Especialidad disponible:', esp.nombre, esp._id);
+                            return (
+                                <option key={esp._id} value={esp._id}>
+                                    {esp.nombre}
+                                </option>
+                            );
+                        })}
                     </select>
                 </div>
             </div>

@@ -272,6 +272,24 @@ const Especialidades = () => {
     }
   }, [terminoBusqueda, especialidades]); // Dependencias: se ejecuta cuando cambia búsqueda o datos
 
+  // 🔒 useEffect para manejar tecla Escape y prevenir cierre durante subida
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && mostrarModal) {
+        event.preventDefault();
+        manejarCierreModal();
+      }
+    };
+
+    if (mostrarModal) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mostrarModal, subiendoArchivo]); // Dependencias: modal y estado de subida
+
   // Función para obtener nombres de pólizas (reutilizada del componente PreviewEspecialidad)
   // Maneja diferentes formatos de datos de pólizas para compatibilidad
   const getPolizasNombres = (especialidadPoliza: any) => {
@@ -336,6 +354,23 @@ const Especialidades = () => {
     } else {
       setArchivo(null); // Limpiar si no hay archivo
     }
+  };
+
+  // 🔒 Función helper para manejar intentos de cerrar modal durante subida
+  const manejarCierreModal = () => {
+    if (subiendoArchivo) {
+      toast.warning("No se puede cerrar el modal mientras se está subiendo la plantilla");
+      return;
+    }
+    setMostrarModal(false);
+    setModoEdicion(false);
+    setIdEditando(null);
+    setFormData({ nombre: "", descripcion: "", poliza: [] });
+    setArchivo(null);
+    setArchivoActual(null);
+    setSubiendoArchivo(false);
+    setCarruselIndex(0);
+    setErrores({});
   };
 
   // Función principal para manejar envío del formulario
@@ -664,19 +699,22 @@ const Especialidades = () => {
 
       {/* Modal para creación y edición de especialidades */}
       {mostrarModal && (
-        <div className="modal-overlay-coordinadores">
+        <div
+          className="modal-overlay-coordinadores"
+          onClick={(e) => {
+            // Solo cerrar si se hace clic en el overlay (no en el contenido)
+            if (e.target === e.currentTarget) {
+              manejarCierreModal();
+            }
+          }}
+        >
           <div className="modal-content-coordinadores">
-            <button className="modal-close" onClick={() => {
-              setMostrarModal(false);
-              setModoEdicion(false);
-              setIdEditando(null);
-              setFormData({ nombre: "", descripcion: "", poliza: [] });
-              setArchivo(null);
-              setArchivoActual(null);
-              setSubiendoArchivo(false);
-              setCarruselIndex(0);
-              setErrores({});
-            }}>
+            <button
+              className={`modal-close ${subiendoArchivo ? 'disabled' : ''}`}
+              disabled={subiendoArchivo}
+              onClick={manejarCierreModal}
+              title={subiendoArchivo ? "No se puede cerrar mientras se sube la plantilla" : "Cerrar modal"}
+            >
               ×
             </button>
 

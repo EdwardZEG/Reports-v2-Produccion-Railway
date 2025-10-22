@@ -107,9 +107,15 @@ export const crearColaborador: RequestHandler = async (req, res, next) => {
       );
     }
 
-    if (await Colaborador.findOne({ correo: datos.correo })) {
-      return next(new AppError("El correo ya está registrado", 400));
+    // 🔒 VALIDACIÓN CRUZADA: Verificar que el correo no exista en colaboradores NI coordinadores
+    const existeCorreoColaborador = await Colaborador.findOne({ correo: datos.correo });
+    if (existeCorreoColaborador) {
+      return next(new AppError("El correo ya está registrado como colaborador", 400));
+    }
 
+    const existeCorreoCoordinador = await Coordinador.findOne({ correo: datos.correo });
+    if (existeCorreoCoordinador) {
+      return next(new AppError("El correo ya está registrado como coordinador", 400));
     }
 
     if (poliza) {
@@ -163,6 +169,10 @@ export const crearColaborador: RequestHandler = async (req, res, next) => {
         { $addToSet: { colaborador: nuevo._id } }
       );
     }
+
+    // 🚀 INVALIDAR CACHE después de crear colaborador
+    invalidarCacheColaboradores();
+
     res.status(201).json(nuevo);
     return;
   } catch (error: any) {
@@ -191,6 +201,22 @@ export const actualizarColaborador: RequestHandler = async (req, res, next) => {
     const colaboradorActual = await Colaborador.findById(id);
     if (!colaboradorActual) {
       return next(new AppError("Colaborador no encontrado", 404));
+    }
+
+    // 🔒 VALIDACIÓN CRUZADA: Verificar correo duplicado solo si se está cambiando el correo
+    if (datos.correo && datos.correo !== colaboradorActual.correo) {
+      const existeCorreoColaborador = await Colaborador.findOne({
+        correo: datos.correo,
+        _id: { $ne: id } // Excluir el colaborador actual
+      });
+      if (existeCorreoColaborador) {
+        return next(new AppError("El correo ya está registrado como colaborador", 400));
+      }
+
+      const existeCorreoCoordinador = await Coordinador.findOne({ correo: datos.correo });
+      if (existeCorreoCoordinador) {
+        return next(new AppError("El correo ya está registrado como coordinador", 400));
+      }
     }
 
     if (user.rol === "coordinador") {
@@ -276,11 +302,17 @@ export const actualizarColaborador: RequestHandler = async (req, res, next) => {
       }
     }
 
+    // 🚀 INVALIDAR CACHE después de actualizar colaborador
+    invalidarCacheColaboradores();
+
     res.json(colaboradorActualizado);
   } catch (error) {
     next(new AppError("Error al actulizar colaborador", 500));
   }
 };
+
+// 🚀 Importar cache compartido
+import { colaboradoresCache, CACHE_DURATION, invalidarCacheColaboradores } from '../cache/colaboradoresCache';
 
 export const obtenerColaboradores: RequestHandler = async (req, res, next) => {
   try {
@@ -296,10 +328,35 @@ export const obtenerColaboradores: RequestHandler = async (req, res, next) => {
       filtro.poliza = user.polizaId;
     }
 
+    // 🚀 CACHE: Generar clave de cache basada en filtros y usuario
+    const cacheKey = `colaboradores_${user.userId}_${JSON.stringify(filtro)}_${req.query.limit || 100}_${req.query.page || 1}`;
+    const cached = colaboradoresCache.get(cacheKey);
+
+    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+      console.log('⚡ [CACHE HIT] Retornando colaboradores desde cache en:', Date.now() - inicioTiempo, 'ms');
+      return res.json(cached.data);
+    }
+
     const tiempoFiltro = Date.now();
     console.log('⏱️ [RENDIMIENTO] Filtro preparado en:', tiempoFiltro - inicioTiempo, 'ms');
 
     const { limit = 100, page = 1 } = req.query; // Agregar paginación para mejorar rendimiento
+
+    // 🔍 OPTIMIZACIÓN: Quick count para evitar queries pesados en colecciones vacías
+    const quickCount = await Colaborador.countDocuments(filtro);
+    if (quickCount === 0) {
+      console.log('⚡ [OPTIMIZACIÓN] Colección vacía detectada, retornando array vacío rápidamente');
+
+      // Guardar en cache también
+      colaboradoresCache.set(cacheKey, {
+        data: [],
+        timestamp: Date.now()
+      });
+
+      const tiempoTotal = Date.now() - inicioTiempo;
+      console.log('⏱️ [RENDIMIENTO] Tiempo total (fast empty):', tiempoTotal, 'ms');
+      return res.json([]);
+    }
 
     const colaboradores = await Colaborador.find(filtro)
       .select('nombre apellido_paterno apellido_materno correo telefono estado rol poliza coordinador especialidad') // Agregado telefono
@@ -314,6 +371,20 @@ export const obtenerColaboradores: RequestHandler = async (req, res, next) => {
     console.log('⏱️ [RENDIMIENTO] Consulta completada en:', tiempoConsulta - tiempoFiltro, 'ms');
     console.log('⏱️ [RENDIMIENTO] Total colaboradores encontrados:', colaboradores.length);
     console.log('⏱️ [RENDIMIENTO] Tiempo total:', tiempoConsulta - inicioTiempo, 'ms');
+
+    // 🚀 CACHE: Guardar resultado en cache
+    colaboradoresCache.set(cacheKey, {
+      data: colaboradores,
+      timestamp: Date.now()
+    });
+
+    // Limpiar cache viejo para evitar memory leaks
+    if (colaboradoresCache.size > 100) {
+      const oldestKey = colaboradoresCache.keys().next().value;
+      if (oldestKey) {
+        colaboradoresCache.delete(oldestKey);
+      }
+    }
 
     res.json(colaboradores);
   } catch (error) {
@@ -436,6 +507,9 @@ export const eliminarColaborador: RequestHandler = async (req, res, next) => {
       }
     }
     await Colaborador.findByIdAndDelete(id);
+    // 🚀 INVALIDAR CACHE después de eliminar colaborador
+    invalidarCacheColaboradores();
+
     res.json({ message: "Colaborador eliminado exitosamente" });
   } catch (error) {
     next(new AppError("Error al eliminar colaborador", 500));

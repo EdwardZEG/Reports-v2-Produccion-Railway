@@ -5,6 +5,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AppError } from "../errors/customErrors";
 
+// 🚀 Importar la función de invalidación de cache compartido
+import { invalidarCacheColaboradores } from '../cache/colaboradoresCache';
+
 interface CoordinadorBody {
   nombre: string;
   apellido_paterno: string;
@@ -93,9 +96,17 @@ export const crearCoordinadores: RequestHandler = async (req, res, next: NextFun
       );
     }
 
-    const existeCorreo = await Coordinador.findOne({ correo });
-    if (existeCorreo) {
-      return next(new AppError("El correo ya está registrado", 400));
+    // 🔒 VALIDACIÓN CRUZADA: Verificar que el correo no exista en coordinadores NI colaboradores
+    const existeCorreoCoordinador = await Coordinador.findOne({ correo });
+    if (existeCorreoCoordinador) {
+      return next(new AppError("El correo ya está registrado como coordinador", 400));
+    }
+
+    // Importar modelo de Colaborador para validación cruzada
+    const Colaborador = require('../models/Colaborador').default;
+    const existeCorreoColaborador = await Colaborador.findOne({ correo });
+    if (existeCorreoColaborador) {
+      return next(new AppError("El correo ya está registrado como colaborador", 400));
     }
 
     if (poliza) {
@@ -130,6 +141,9 @@ export const crearCoordinadores: RequestHandler = async (req, res, next: NextFun
         coordinador: nuevoCoordinador._id,
       });
     }
+
+    // 🚀 INVALIDAR CACHE después de crear coordinador
+    invalidarCacheColaboradores();
 
     res.status(201).json(nuevoCoordinador);
   } catch (error: any) {
@@ -180,6 +194,23 @@ export const actualizarCoordinador: RequestHandler = async (req, res, next: Next
     if (!coordinadorActual) {
       res.status(404).json({ message: "Coordinador no encontrado" });
       return;
+    }
+
+    // 🔒 VALIDACIÓN CRUZADA: Verificar correo duplicado solo si se está cambiando el correo
+    if (datosActualizados.correo && datosActualizados.correo !== coordinadorActual.correo) {
+      const existeCorreoCoordinador = await Coordinador.findOne({
+        correo: datosActualizados.correo,
+        _id: { $ne: id } // Excluir el coordinador actual
+      });
+      if (existeCorreoCoordinador) {
+        return next(new AppError("El correo ya está registrado como coordinador", 400));
+      }
+
+      const Colaborador = require('../models/Colaborador').default;
+      const existeCorreoColaborador = await Colaborador.findOne({ correo: datosActualizados.correo });
+      if (existeCorreoColaborador) {
+        return next(new AppError("El correo ya está registrado como colaborador", 400));
+      }
     }
 
     const update: any = { ...datosActualizados };
@@ -251,6 +282,9 @@ export const actualizarCoordinador: RequestHandler = async (req, res, next: Next
       }
     ).populate("poliza");
 
+    // 🚀 INVALIDAR CACHE después de actualizar coordinador
+    invalidarCacheColaboradores();
+
     res.json(coordinadorActualizado);
     return;
   } catch (error) {
@@ -275,6 +309,9 @@ export const eliminarCoordinador: RequestHandler = async (req, res, next: NextFu
     }
 
     await Coordinador.findByIdAndDelete(id);
+
+    // 🚀 INVALIDAR CACHE después de eliminar coordinador
+    invalidarCacheColaboradores();
 
     res.json({ message: "Coordinador eliminado correctamente" });
     return;

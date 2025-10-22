@@ -12,155 +12,103 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 const deviceData = [
     {
         "type": "Smoke (Photo)",
-        "ubication": "CTO MONITOREO",
-        "identifier": "N01L01D001",
+        "ubication": "PASILLO ESTE N2",
+        "identifier": "N03L01D001",
         "building": "ED PRINCIPAL",
-        "level": "Z17",
-        "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da", // Póliza A - Solo el ID como string
-        "especialidad": "68db6349aee18cafffd59170" // Especialidad X - Solo el ID como string
-    },
-    {
-        "type": "Smoke (Photo)",
-        "ubication": "BODEGA LOZA 1",
-        "identifier": "N01L01D002",
-        "building": "VILLA COTORR",
-        "level": "Z5",
-        "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da", // Misma póliza A
-        "especialidad": "68db6349aee18cafffd59170" // Especialidad X
-    },
-    {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 016 SALA  PB",
-        "identifier": "N01L01D003",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z123",
-        "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da", // Misma póliza A
-        "especialidad": "68db6349aee18cafffd59170" // Misma especialidad X
-        // EJEMPLO: Si tuvieras otra especialidad, sería algo como:
-        // "especialidad": "otro_id_de_especialidad_diferente"
-    },
-    {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 016 RECEPCION PB",
-        "identifier": "N01L01D004",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z123",
-        "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da",
-        "especialidad": "68db6349aee18cafffd59170"
-    },
-    {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 016 RECAMARA  PB",
-        "identifier": "N01L01D005",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z123",
-        "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da",
-        "especialidad": "68db6349aee18cafffd59170"
-    },
-    {
-        "type": "Smoke (Photo)",
-        "ubication": "FINAL DE BAMBUCO",
-        "identifier": "N01L01D006",
-        "building": "BAMBUCO",
         "level": "Z18",
         "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da",
-        "especialidad": "68db6349aee18cafffd59170"
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     },
     {
-        "type": "Smoke (Photo)",
-        "ubication": "BODEGA PISCINA",
-        "identifier": "N01L01D007",
-        "building": "VILLA COTORR",
-        "level": "Z18",
-        "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da",
-        "especialidad": "68db6349aee18cafffd59170"
+        "type": "Heat (Fixed Temperature)",
+        "ubication": "SALA DE TRANSFORMADORES",
+        "identifier": "N03L01D002",
+        "building": "ED SERVICIOS",
+        "level": "Z08",
+        "active": false,
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     },
     {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 017 SALA  N1",
-        "identifier": "N01L01D008",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z124",
+        "type": "Flame Detector",
+        "ubication": "ÁREA DE TANQUES",
+        "identifier": "N03L01D003",
+        "building": "ED INDUSTRIAL",
+        "level": "Z12",
         "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da",
-        "especialidad": "68db6349aee18cafffd59170"
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     },
     {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 017 RECAMARA N1",
-        "identifier": "N01L01D009",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z124",
+        "type": "Manual Call Point",
+        "ubication": "SALIDA DE EMERGENCIA NORTE",
+        "identifier": "N03L01D004",
+        "building": "ED PRINCIPAL",
+        "level": "Z02",
         "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da",
-        "especialidad": "68db6349aee18cafffd59170"
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     },
     {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 018 RECAMARA  N1",
-        "identifier": "N01L01D010",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z125",
-        "active": true,
-        "poliza": "68e33d9cc600a141ae62a8da",
-        "especialidad": "68db6349aee18cafffd59170"
+        "type": "Beam Detector",
+        "ubication": "BODEGA DE EQUIPOS",
+        "identifier": "N03L01D005",
+        "building": "ED ALMACÉN",
+        "level": "Z10",
+        "active": false,
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     },
     {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 022 RECAMARA N1",
-        "identifier": "N01L01D011",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z126",
+        "type": "Gas Detector",
+        "ubication": "PLANTA DE EMERGENCIA",
+        "identifier": "N03L01D006",
+        "building": "ED SERVICIOS",
+        "level": "Z04",
         "active": true,
-        "poliza": "68de14e03fda2c78f298fbea",
-        "especialidad": "68db6349aee18cafffd59170"
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     },
     {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 022 SALA N1",
-        "identifier": "N01L01D012",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z126",
+        "type": "Smoke (Ionization)",
+        "ubication": "LABORATORIO BIOLÓGICO",
+        "identifier": "N03L01D007",
+        "building": "ED LABORATORIO",
+        "level": "Z14",
         "active": true,
-        "poliza": "68de14e03fda2c78f298fbea",
-        "especialidad": "68db6349aee18cafffd59170"
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     },
     {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 023 RECAMARA N1",
-        "identifier": "N01L01D013",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z127",
+        "type": "Temperature Sensor",
+        "ubication": "CUARTO DE SERVIDORES",
+        "identifier": "N03L01D008",
+        "building": "ED ADMINISTRATIVO",
+        "level": "Z05",
         "active": true,
-        "poliza": "68de14e03fda2c78f298fbea",
-        "especialidad": "68db6349aee18cafffd59170"
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     },
     {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 019 RECAMARA N2",
-        "identifier": "N01L01D014",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z128",
-        "active": true,
-        "poliza": "68de14e03fda2c78f298fbea",
-        "especialidad": "68db6349aee18cafffd59170"
+        "type": "Heat (Rate of Rise)",
+        "ubication": "TALLER ELÉCTRICO",
+        "identifier": "N03L01D009",
+        "building": "ED INDUSTRIAL",
+        "level": "Z09",
+        "active": false,
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     },
     {
-        "type": "Smoke (Photo)",
-        "ubication": "HAB 019 SALA N2",
-        "identifier": "N01L01D015",
-        "building": "VILLA COTORR",
-        "level": "Z5,Z128",
+        "type": "Flame Detector",
+        "ubication": "ZONA DE CARGA DE COMBUSTIBLE",
+        "identifier": "N03L01D010",
+        "building": "ED OPERACIONES",
+        "level": "Z11",
         "active": true,
-        "poliza": "68de14e03fda2c78f298fbea",
-        "especialidad": "68db6349aee18cafffd59170"
+        "poliza": "68f7ce646580cfda285b77bf",
+        "especialidad": "68f7ce756580cfda285b77c5"
     }
 ];
 

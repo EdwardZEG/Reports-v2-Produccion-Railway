@@ -24,20 +24,11 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && error.response?.data?.code === 'TOKEN_EXPIRED') {
       console.log('🔴 Token expirado detectado en API - disparando evento para modal');
 
-      // Disparar evento personalizado para que App.tsx muestre el modal INMEDIATAMENTE
+      // Disparar evento personalizado para que App.tsx muestre el modal Y ejecute limpieza automática
       const tokenExpiredEvent = new CustomEvent('tokenExpired', {
         detail: { source: 'api-interceptor' }
       });
       window.dispatchEvent(tokenExpiredEvent);
-
-      // Limpiar localStorage silenciosamente
-      const token = localStorage.getItem('token');
-      if (token) {
-        console.log('🧹 Limpiando localStorage desde interceptor API');
-        localStorage.removeItem('token');
-        localStorage.removeItem('rol');
-        localStorage.removeItem('nombre');
-      }
     }
 
     return Promise.reject(error);

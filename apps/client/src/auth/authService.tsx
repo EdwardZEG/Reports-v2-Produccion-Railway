@@ -1,4 +1,4 @@
-import { getBaseApiUrl } from '../utils/apiUrl';
+
 
 // Función de inicio de sesión - almacena token y datos del usuario
 export const login = (token: string, user: any) => {
@@ -10,39 +10,11 @@ export const login = (token: string, user: any) => {
 
 // Función de cierre de sesión con limpieza automática de archivos temporales
 export const logout = async () => {
-  try {
-    // Sección: Limpieza de archivos temporales del usuario
-    const token = getToken();
-    if (token) {
-      console.log('Iniciando limpieza de archivos temporales...');
-      const response = await fetch(`${getBaseApiUrl()}/reportes/limpiar-archivos-usuario`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+  console.log('🚪 Logout manual iniciado');
 
-      // Verificación de respuesta de la API de limpieza
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Limpieza exitosa:', result);
-      } else {
-        console.error('Error en limpieza:', response.status, response.statusText);
-      }
-    }
-  } catch (error) {
-    console.error('Error limpiando archivos en logout:', error);
-    // Continuar con logout aunque falle la limpieza
-  }
-
-  // Sección: Limpieza del localStorage y redirección
-  localStorage.removeItem('auth');
-  localStorage.removeItem('token');
-  localStorage.removeItem('nombre');
-  localStorage.removeItem('rol');
-  localStorage.removeItem('polizaId');
-  window.location.href = '/login';
+  // Usar la nueva utilidad de limpieza completa
+  const { cerrarSesionConLimpieza } = await import('../utils/sessionCleanup');
+  await cerrarSesionConLimpieza();
 };
 
 // Función para decodificar JWT

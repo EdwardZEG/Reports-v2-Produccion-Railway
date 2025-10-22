@@ -112,6 +112,91 @@ export const useEncargadosData = () => {
     }
   };
 
+  /**
+   * Crear nuevo colaborador con resaltado temporal
+   * Mantiene el colaborador creado visible y resaltado por 3 segundos
+   * Incluye refetch automático para sincronizar con el servidor
+   * @param datos - Datos del nuevo colaborador
+   * @returns Objeto con success, data y encargados actualizados para navegación
+   */
+  const crearColaborador = async (datos: any) => {
+    console.log('🔄 Hook crearColaborador - Iniciando:', {
+      datosRecibidos: datos,
+      polizaValue: datos.poliza,
+      polizaType: typeof datos.poliza,
+      polizaIsNull: datos.poliza === null,
+      polizaIsEmpty: datos.poliza === '',
+      polizaIsUndefined: datos.poliza === undefined
+    });
+
+    try {
+      console.log('📤 Hook crearColaborador - Enviando al API:', {
+        url: '/colaboradores',
+        datos: datos
+      });
+
+      const response = await api.post('/colaboradores', datos);
+      console.log('✅ Hook crearColaborador - Respuesta exitosa:', response.data);
+
+      // ENFOQUE DIRECTO: Agregar inmediatamente el nuevo colaborador al estado
+      // Para evitar problemas de sincronización cuando la lista está vacía
+      const nuevoColaborador = { ...response.data, resaltado: true };
+
+      console.log('🎯 Estado actual antes de agregar:', encargados.length, 'elementos');
+
+      setEncargados(prev => {
+        console.log('🔄 setEncargados - Estado anterior:', prev.length, 'encargados');
+        // Verificar si el colaborador ya existe (por si el refetch fue exitoso)
+        const existeYa = prev.some(e => e._id === response.data._id);
+        if (existeYa) {
+          console.log('👤 Colaborador ya existe en lista, solo aplicando resaltado');
+          const nuevoEstado = prev.map(e =>
+            e._id === response.data._id ? { ...e, resaltado: true } : { ...e, resaltado: false }
+          );
+          console.log('🔄 setEncargados - Estado nuevo (existía):', nuevoEstado.length, 'encargados');
+          return nuevoEstado;
+        } else {
+          console.log('➕ Agregando nuevo colaborador a lista vacía/incompleta');
+          const nuevoEstado = [...prev.map(e => ({ ...e, resaltado: false })), nuevoColaborador];
+          console.log('🔄 setEncargados - Estado nuevo (agregado):', nuevoEstado.length, 'encargados');
+          return nuevoEstado;
+        }
+      });
+
+      // Hacer refetch en background para sincronizar con servidor
+      // pero no dependemos de él para mostrar el elemento
+      fetchEncargados().catch(error => {
+        console.error('⚠️ Error en refetch background:', error);
+      });
+
+      // Limpiar timer anterior si existe
+      const timerAnterior = timersResaltado.current.get(response.data._id);
+      if (timerAnterior) {
+        clearTimeout(timerAnterior);
+      }
+
+      // Quitar el resaltado después de 3 segundos
+      const nuevoTimer = setTimeout(() => {
+        setEncargados(prev => prev.map(e =>
+          e._id === response.data._id ? { ...e, resaltado: false } : e
+        ));
+        timersResaltado.current.delete(response.data._id);
+      }, 3000);
+
+      timersResaltado.current.set(response.data._id, nuevoTimer);
+
+      toast.success("Colaborador creado exitosamente");
+      return { success: true, data: response.data, encargados: encargados };
+    } catch (error: any) {
+      const mensaje = error.response?.data?.message || "Error al crear el colaborador.";
+      toast.error(mensaje);
+      console.error('❌ Hook crearColaborador - Error:', error);
+      // Refetch en caso de error para mantener sincronización
+      await fetchEncargados();
+      return { success: false };
+    }
+  };
+
   const marcarColaboradorCreado = async (nuevoEncargado: Encargado) => {
     try {
       // REFETCH COMPLETO: Obtener datos más recientes del servidor
@@ -245,6 +330,7 @@ export const useEncargadosData = () => {
     especialidades,
     fetchEncargados,
     fetchEncargadosParaColaborativo, // 🤝 Nueva función para trabajo colaborativo
+    crearColaborador, // Nueva función para crear colaboradores con resaltado
     actualizarEncargado,
     eliminarEncargado,
     marcarColaboradorCreado, // Nueva función para resaltado

@@ -188,14 +188,24 @@ const sendSSEEvent = (res: Response, event: string, data: any) => {
 // Nuevo endpoint con progreso en tiempo real usando Server-Sent Events
 export const generarReporteConProgreso = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    console.log('🚀 === INICIO generarReporteConProgreso ===');
+    console.log('📋 Body recibido:', JSON.stringify(req.body, null, 2));
+
     const { idEspecialidad, idDevices } = req.body;
     const userId = getUserIdFromToken(req); // Obtener userId del JWT token
 
+    console.log('👤 Usuario decodificado:', userId);
+    console.log('🎯 Especialidad:', idEspecialidad);
+    console.log('📱 Devices IDs:', idDevices);
+    console.log('📊 Cantidad de devices:', idDevices?.length);
+
     if (!idEspecialidad || !Array.isArray(idDevices) || idDevices.length === 0) {
+      console.log('❌ Validación fallida: datos faltantes');
       return next(new AppError("Se requieren idEspecialidad e idDevices[]", 400));
     }
 
     if (!userId) {
+      console.log('❌ Validación fallida: usuario no autenticado');
       return next(new AppError("Usuario no autenticado", 401));
     }
 
@@ -592,8 +602,7 @@ export const generarPlantillaPorEspecialidad = async (req: Request, res: Respons
   }
 };
 
-// Función para limpiar todos los archivos temporales de un usuario al cerrar sesión
-// Controlador para limpieza automática de archivos temporales del usuario
+// Función para limpiar archivos durante sesión activa (requiere autenticación)
 export const limpiarArchivosUsuario = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Sección: Autenticación del usuario
@@ -675,6 +684,121 @@ export const limpiarArchivosUsuario = async (req: Request, res: Response, next: 
   } catch (err) {
     console.error('Error limpiando archivos de usuario:', err);
     next(new AppError('Error al limpiar archivos temporales', 500));
+  }
+};
+
+// Función especial para limpiar archivos durante logout/sesión expirada
+// No requiere autenticación válida, pero extrae userId del token expirado
+export const limpiarArchivosLogout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      res.status(200).json({
+        message: 'No hay token, no hay archivos que limpiar',
+        filesDeleted: 0
+      });
+      return;
+    }
+
+    // Extraer userId del token sin validar (puede estar expirado)
+    let userId: string | null = null;
+    try {
+      const token = authHeader.split(' ')[1];
+      const payload = jwt.decode(token) as any; // decode vs verify - no valida expiración
+      userId = payload?.userId;
+    } catch (decodeError) {
+      console.log('Error decodificando token para limpieza:', decodeError);
+      res.status(200).json({
+        message: 'Token no decodificable, no hay archivos que limpiar',
+        filesDeleted: 0
+      });
+      return;
+    }
+
+    if (!userId) {
+      res.status(200).json({
+        message: 'No se pudo obtener userId del token, no hay archivos que limpiar',
+        filesDeleted: 0
+      });
+      return;
+    }
+
+    console.log(`🧹 Limpieza de logout iniciada para usuario: ${userId}`);
+    const userTempDir = path.resolve('temp', `user_${userId}`);
+
+    // Verificación de existencia del directorio temporal
+    if (!fs.existsSync(userTempDir)) {
+      console.log(`📂 No existe directorio temporal para usuario: ${userId}`);
+      res.status(200).json({
+        message: 'No hay archivos temporales para limpiar',
+        filesDeleted: 0,
+        userId: userId
+      });
+      return;
+    }
+
+    // Lectura y eliminación de archivos DOCX
+    const files = fs.readdirSync(userTempDir);
+    let deletedCount = 0;
+
+    console.log(`📊 Archivos encontrados en directorio ${userTempDir}:`, files);
+
+    // Eliminar todos los archivos .docx del usuario
+    for (const file of files) {
+      if (file.endsWith('.docx')) {
+        const filePath = path.join(userTempDir, file);
+        try {
+          fs.unlinkSync(filePath);
+          deletedCount++;
+          console.log(`🗑️ Archivo eliminado en logout: ${file} del usuario ${userId}`);
+        } catch (deleteErr) {
+          console.error(`❌ Error eliminando ${file}:`, deleteErr);
+        }
+      }
+    }
+
+    // Limpieza del directorio temporal vacío
+    try {
+      const remainingFiles = fs.readdirSync(userTempDir);
+      const remainingDocxFiles = remainingFiles.filter(file => file.endsWith('.docx'));
+
+      if (remainingDocxFiles.length === 0) {
+        // Eliminar archivos restantes que no sean .docx
+        for (const file of remainingFiles) {
+          const filePath = path.join(userTempDir, file);
+          try {
+            fs.unlinkSync(filePath);
+            console.log(`🗑️ Archivo no-docx eliminado: ${file}`);
+          } catch (err) {
+            console.error(`❌ Error eliminando archivo ${file}:`, err);
+          }
+        }
+
+        // Eliminar directorio vacío
+        fs.rmdirSync(userTempDir);
+        console.log(`📂 Directorio temporal eliminado para usuario ${userId}`);
+      }
+    } catch (dirErr) {
+      console.error('❌ Error eliminando directorio:', dirErr);
+    }
+
+    // Respuesta de confirmación de limpieza
+    const response = {
+      message: `Archivos temporales eliminados exitosamente en logout`,
+      filesDeleted: deletedCount,
+      userId: userId
+    };
+
+    console.log('✅ Resultado limpieza de logout:', response);
+    res.status(200).json(response);
+
+  } catch (err) {
+    console.error('❌ Error limpiando archivos de logout:', err);
+    res.status(200).json({
+      message: 'Error en limpieza de logout, continuando...',
+      filesDeleted: 0,
+      error: err instanceof Error ? err.message : 'Error desconocido'
+    });
   }
 };
 
@@ -1088,5 +1212,44 @@ export const obtenerReportesColaborador = async (req: Request, res: Response, ne
   } catch (error) {
     console.error('Error obteniendo reportes del colaborador:', error);
     next(new AppError('Error al obtener reportes del colaborador', 500));
+  }
+};
+
+// Nuevo endpoint para validar si existe plantilla para una especialidad
+export const validarPlantillaEspecialidad = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { idEspecialidad } = req.params;
+
+    if (!idEspecialidad) {
+      return next(new AppError("Se requiere el ID de la especialidad", 400));
+    }
+
+    // Buscar si existe una plantilla para esta especialidad
+    const plantilla = await Reporte.findOne({ idEspecialidad });
+
+    // Obtener información de la especialidad para incluir en la respuesta
+    const especialidad = await Especialidad.findById(idEspecialidad);
+
+    const tienePrivileges = plantilla && Buffer.isBuffer(plantilla.file.data);
+
+    res.status(200).json({
+      tienePrivileges,
+      especialidad: {
+        _id: especialidad?._id || idEspecialidad,
+        nombre: especialidad?.nombre || 'Especialidad desconocida'
+      },
+      plantilla: tienePrivileges ? {
+        _id: plantilla._id,
+        name: plantilla.name,
+        fechaSubida: (plantilla as any).createdAt || new Date()
+      } : null,
+      mensaje: tienePrivileges
+        ? `Plantilla disponible para ${especialidad?.nombre || 'la especialidad'}`
+        : `No se puede generar el reporte: falta la plantilla Word de la especialidad.`
+    });
+
+  } catch (error) {
+    console.error('Error validando plantilla:', error);
+    next(new AppError('Error al validar plantilla de especialidad', 500));
   }
 };

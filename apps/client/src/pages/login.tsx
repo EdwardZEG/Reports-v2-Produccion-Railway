@@ -287,7 +287,8 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
                   <span className="checkbox-custom"></span>
                   <span className="checkbox-label">Recordar sesión</span>
                 </label>
-                <div className="forgot-password">
+                {/* SECCIÓN DESHABILITADA: Recuperación de contraseña restringida */}
+                <div className="forgot-password" style={{ display: 'none' }}>
                   <a
                     href="#"
                     onClick={(e) => {
@@ -314,8 +315,8 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
               )}
             </button>
 
-            {/* Enlace para ir al registro si no tiene cuenta */}
-            <div className="register-section">
+            {/* SECCIÓN DESHABILITADA: Registro restringido */}
+            <div className="register-section" style={{ display: 'none' }}>
               <span className="register-text">¿Aún no tienes cuenta?</span>
               <a
                 href="#"
@@ -327,6 +328,20 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
               >
                 Regístrate aquí
               </a>
+            </div>
+
+            {/* Espaciador invisible para mantener el tamaño del contenedor */}
+            <div style={{ 
+              height: '50px', 
+              visibility: 'hidden', 
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }} aria-hidden="true">
+              {/* Simula el espacio del enlace "Olvidaste contraseña" */}
+              <span style={{ fontSize: '14px', height: '14px' }}></span>
+              {/* Simula el espacio de la sección de registro */}
+              <span style={{ fontSize: '15px', height: '24px' }}></span>
             </div>
           </form>
         </div>

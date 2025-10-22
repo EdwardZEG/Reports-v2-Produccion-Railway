@@ -7,6 +7,7 @@ import { getToken } from "../../auth/authService";
 import { useData } from "../../context/DataContext";
 import { getBaseApiUrl } from "../../utils/apiUrl";
 import { jwtDecode } from "jwt-decode";
+import { inputDateToStartOfDay, inputDateToEndOfDay } from "../../utils/dateUtils";
 
 // Interface para dispositivos encontrados en la búsqueda
 interface Device {
@@ -61,7 +62,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
   const [fechaFinal, setFechaFinal] = useState("");     // Fecha final del período
 
   // Estados para datos de la aplicación - Usando contexto optimizado
-  const { colaboradores, loadColaboradoresIfNeeded } = useData(); // Lista completa de colaboradores desde contexto
+  const { colaboradores, loadColaboradoresIfNeeded, isColaboradoresLoading } = useData(); // Lista completa de colaboradores desde contexto
 
   // Estados para filtrado por rol del usuario
   const [colaboradoresFiltrados, setColaboradoresFiltrados] = useState<any[]>([]);
@@ -74,11 +75,27 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
   const [isLoading, setIsLoading] = useState(false); // Estado de carga
 
   // Cargar colaboradores si no están disponibles
+  // 🛡️ PROTECCIÓN ANTI-LOOP: Solo ejecutar una vez al montar el componente
   useEffect(() => {
-    if (colaboradores.length === 0) {
+    console.log('🔍 SearchReportForm: Componente montado - Verificando colaboradores...');
+    console.log('🔍 SearchReportForm: Estado inicial:', {
+      colaboradoresLength: colaboradores.length,
+      isColaboradoresLoading
+    });
+
+    // Solo cargar si realmente no hay colaboradores y no está cargando
+    if (colaboradores.length === 0 && !isColaboradoresLoading) {
+      console.log('🔄 SearchReportForm: Iniciando carga inicial de colaboradores...');
       loadColaboradoresIfNeeded();
+    } else {
+      console.log('⏭️ SearchReportForm: Saltando carga - colaboradores disponibles o cargando');
     }
-  }, [colaboradores.length, loadColaboradoresIfNeeded]);
+  }, []); // 🔧 Array vacío para ejecutar solo una vez al montar
+
+  // Efecto separado para logging cuando cambien los colaboradores
+  useEffect(() => {
+    console.log('📊 SearchReportForm: Colaboradores actualizados:', colaboradores.length);
+  }, [colaboradores.length]);
 
   // useEffect para obtener información del usuario logueado (copiado de Polizas.tsx)
   useEffect(() => {
@@ -149,6 +166,34 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
     setEspecialidadesFiltradas(listaEspecialidades);
     setEspecialidad(""); // Resetear especialidad seleccionada
   }, [poliza, colaboradoresFiltrados]);
+
+  /**
+   * Función para validar si existe plantilla para una especialidad
+   * Previene que se inicie la generación si no hay plantilla disponible
+   */
+  const validarPlantillaEspecialidad = async (especialidadId: string): Promise<{ tienePrivileges: boolean; mensaje: string; especialidad: any }> => {
+    try {
+      const response = await fetch(`${getBaseApiUrl()}/reportes/validar-plantilla/${especialidadId}`, {
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error validando plantilla:', error);
+      return {
+        tienePrivileges: false,
+        mensaje: 'Error al validar la plantilla. Inténtelo de nuevo.',
+        especialidad: null
+      };
+    }
+  };
 
   /**
    * Función auxiliar para generar reporte usando Server-Sent Events
@@ -289,13 +334,16 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
       // 2. Extraer IDs de colaboradores para la búsqueda de dispositivos
       const idsColaboradores = colaboradoresCoincidentes.map((c) => c._id);
 
-      // 3. Buscar dispositivos usando los filtros seleccionados
+      // 3. Buscar dispositivos usando los filtros seleccionados con fechas inteligentes
+      const fechaInicioISO = inputDateToStartOfDay(fechaInicio); // 00:00:00 del día seleccionado
+      const fechaFinalISO = inputDateToEndOfDay(fechaFinal); // Hasta la hora actual si es hoy, o 23:59:59 si es día pasado
+      
       const res = await api.get<Device[]>("/devices", {
         params: {
           colaboradores: idsColaboradores.join(","),
           especialidad,
-          fechaInicio,
-          fechaFinal,
+          fechaInicio: fechaInicioISO,
+          fechaFinal: fechaFinalISO,
         },
       });
       const devices = res.data;
@@ -310,8 +358,38 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
       // 4. NUEVA LÓGICA: Para sincronizar vista previa con Word
       if (!disableWordGeneration) {
         try {
+          console.log('🚀 Frontend: Iniciando generación de reporte Word...');
+          console.log('📱 Devices encontrados:', devices.length);
+          console.log('📊 IDs de devices:', devices.map(d => d._id));
+          console.log('🎯 Especialidad seleccionada:', especialidad);
+          console.log('🏢 Póliza seleccionada:', poliza);
+          console.log('📅 Período:', fechaInicio, 'a', fechaFinal);
+          console.log('📅 Fechas ISO enviadas:', fechaInicioISO, 'a', fechaFinalISO);
+
+          // Validar que existe plantilla antes de generar el reporte
+          console.log('🔍 Validando plantilla para especialidad:', especialidad);
+          const validacion = await validarPlantillaEspecialidad(especialidad);
+
+          if (!validacion.tienePrivileges) {
+            console.error('❌ No hay plantilla disponible:', validacion.mensaje);
+            toast.error(validacion.mensaje);
+
+            // Limpiar cualquier resultado anterior cuando no hay plantilla
+            onSearch([]); // Limpiar los datos mostrados anteriormente
+            onReporteGenerado("", ""); // Limpiar estado del reporte anterior
+            setIsLoading(false);
+            onLoadingEnd?.();
+            return;
+          }
+
+          console.log('✅ Plantilla validada correctamente, procediendo con generación...');
+
           // Generar Word primero
-          const { nombre, url } = await generarReporteConProgreso(devices, especialidad, poliza, fechaInicio, fechaFinal);
+          const { nombre, url } = await generarReporteConProgreso(devices, especialidad, poliza, fechaInicioISO, fechaFinalISO);
+
+          console.log('✅ Frontend: Reporte Word generado exitosamente');
+          console.log('📄 Nombre archivo:', nombre);
+          console.log('🔗 URL descarga:', url);
 
           // Solo después de que el Word esté listo, mostrar dispositivos y reporte
           onSearch(devices);
@@ -321,7 +399,7 @@ const SearchReportForm: React.FC<SearchReportFormProps> = ({
           setIsLoading(false);
           onLoadingEnd?.();
         } catch (reportError) {
-          console.error("Error generando reporte:", reportError);
+          console.error("❌ Frontend: Error generando reporte:", reportError);
           // Si falla el Word, aún mostrar los datos
           onSearch(devices);
           onReporteGenerado("", "");

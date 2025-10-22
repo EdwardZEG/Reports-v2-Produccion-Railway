@@ -1,0 +1,670 @@
+/* PerfilNew.css - Réplica exacta del diseño de InicioSection */
+
+/* Contenedor principal exacto al inicio-section */
+.perfil-section {
+  padding: 1.5rem; /* Espaciado interno igual al inicio */
+  background: #FCEDED; /* Fondo exacto al inicio */
+  height: calc(100vh - 1rem); /* Altura calculada igual al inicio */
+  max-height: calc(100vh - 1rem); /* Altura máxima igual al inicio */
+  font-family: 'Open Sans', sans-serif; /* Tipografía exacta al inicio */
+  overflow-y: auto; /* Scroll vertical igual al inicio */
+  overflow-x: hidden; /* Sin scroll horizontal igual al inicio */
+  position: relative; /* Posicionamiento igual al inicio */
+  display: flex; /* Layout flexbox igual al inicio */
+  flex-direction: column; /* Apila elementos verticalmente igual al inicio */
+}
+
+/* Header interno - dentro del contenedor de datos */
+.perfil-header-internal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem; /* Margen inferior para separar de los datos */
+  padding-bottom: 1rem; /* Padding inferior */
+  border-bottom: 2px solid #E9383B; /* Línea separadora igual al dashboard */
+}
+
+/* Botón de búsqueda circular igual al de Pólizas */
+.search-button-perfil {
+  background: linear-gradient(145deg, #333333, #000000) !important; /* Gradiente para efecto 3D */
+  color: white !important;
+  border: 2px solid #ffffff !important; /* Borde blanco */
+  width: 42px !important; /* Más grande */
+  height: 42px !important; /* Más grande */
+  min-width: 42px !important;
+  min-height: 42px !important;
+  max-width: 42px !important;
+  max-height: 42px !important;
+  border-radius: 50% !important; /* Círculo perfecto */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  font-size: 22px !important; /* Tamaño del contenedor para el icono */
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3) !important; /* Sombras 3D */
+  transition: all 0.2s ease !important;
+  /* Centrado perfecto */
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+/* Icono del botón de búsqueda con efectos visuales y transición suave */
+.search-button-perfil i {
+  font-size: 22px !important; /* Ícono X más grande */
+  line-height: 1 !important;
+  width: auto !important;
+  height: auto !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important; /* Sombra del ícono */
+  transition: all 0.2s ease !important; /* Transición suave para cambio de icono */
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Efecto hover del botón de búsqueda */
+.search-button-perfil:hover {
+  background: linear-gradient(145deg, #555555, #222222) !important; /* Gradiente más claro en hover */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en hover */
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4) !important; /* Sombras más pronunciadas en hover */
+  transform: translateY(-1px) !important; /* Elevación sutil */
+}
+
+/* Efecto active del botón de búsqueda */
+.search-button-perfil:active {
+  background: linear-gradient(145deg, #000000, #333333) !important; /* Gradiente invertido en active */
+  border: 2px solid #ffffff !important; /* Mantiene el borde blanco en active */
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5) !important; /* Sombras reducidas en active */
+  transform: translateY(0px) !important; /* Sin elevación en active */
+}
+
+/* Sección del título */
+.perfil-title-section {
+  display: flex;
+  align-items: center;
+}
+
+/* Título con exactamente el mismo estilo que section-title-compact */
+.perfil-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* Gap igual al de Pólizas */
+  color: #3A0707; /* Color igual al de Pólizas */
+  font-weight: 700; /* Font-weight igual al de Pólizas */
+  font-size: 1.4rem; /* Tamaño igual al de Pólizas */
+  margin: 0;
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al de Pólizas */
+}
+
+.perfil-title i {
+  color: #000000; /* Color de icono igual al de Pólizas */
+  font-size: 1.5rem; /* Tamaño de icono igual al de Pólizas */
+}
+
+/* Contenido principal exacto al inicio */
+.perfil-content {
+  background: #FFFFFF; /* Fondo blanco igual al inicio */
+  border-radius: 16px; /* Bordea igual al inicio */
+  /* Sombra exacta al inicio */
+  box-shadow: 
+    6px 6px 16px rgba(0, 0, 0, 0.08),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.03);
+  border: none; /* Sin borde igual al inicio */
+  overflow: hidden;
+  flex: 1; /* Ocupa el espacio disponible */
+}
+
+.perfil-body {
+  padding: 1.25rem; /* Padding igual al search-section del inicio */
+}
+
+/* Loading con estilo del inicio */
+.perfil-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: #887A7A; /* Color igual al inicio */
+  font-size: 1.2rem;
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al inicio */
+}
+
+/* Error con estilo del inicio */
+.perfil-error {
+  text-align: center;
+  padding: 2rem;
+  color: #E9383B; /* Color rojo igual al dashboard */
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al inicio */
+}
+
+/* Contenedor de información sin grid (sin avatar) */
+.perfil-info-container {
+  width: 100%;
+}
+
+/* Sección de información ocupando todo el ancho */
+.info-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem; /* Gap aumentado para más espacio */
+  align-items: start; /* Alinear elementos al inicio */
+  width: 100%; /* Ocupa todo el ancho disponible */
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-group.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Labels igual al inicio */
+.info-label {
+  font-weight: 600;
+  color: #3A0707; /* Color igual al inicio */
+  font-size: 0.8rem; /* Tamaño igual al inicio */
+  margin-bottom: 0.4rem; /* Margin igual al inicio */
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al inicio */
+}
+
+/* Campos de información exactos a inputs del inicio */
+.info-value {
+  border: 1px solid #e9ecef; /* Borde igual a inputs del inicio */
+  border-radius: 25px; /* Bordeado igual a inputs del inicio */
+  padding: 8px 16px; /* Padding igual a inputs del inicio */
+  background: #f8f9fa; /* Fondo igual a inputs del inicio */
+  height: 36px; /* Altura igual a inputs del inicio */
+  font-size: 13px; /* Tamaño de fuente igual a inputs del inicio */
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al inicio */
+  color: #495057; /* Color igual a inputs del inicio */
+  /* Efecto neomórfico exacto a inputs del inicio */
+  box-shadow:
+    inset 2px 2px 6px rgba(0, 0, 0, 0.08),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+}
+
+.info-value.editable {
+  cursor: pointer;
+}
+
+.info-value.editable:hover {
+  /* Efecto hover exacto a inputs del inicio */
+  box-shadow:
+    inset 3px 3px 8px rgba(0, 0, 0, 0.12),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.95);
+  border-color: #e9ecef;
+  background: #f8f9fa;
+}
+
+/* Iconos todos negros */
+.info-value i {
+  color: #000000 !important; /* Todos los iconos negros */
+  font-size: 1.1rem; /* Tamaño igual al inicio */
+  flex-shrink: 0; /* No se encogen */
+}
+
+/* Espaciado del contenido del info-value */
+.info-value span {
+  flex: 1;
+}
+
+.phone-edit-container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+}
+
+/* Input de teléfono exacto a inputs del inicio */
+.phone-input {
+  flex: 1;
+  border: 1px solid #e9ecef; /* Borde igual a inputs del inicio */
+  border-radius: 25px; /* Bordeado igual a inputs del inicio */
+  padding: 8px 16px; /* Padding igual a inputs del inicio */
+  background: #f8f9fa; /* Fondo igual a inputs del inicio */
+  height: 36px; /* Altura igual a inputs del inicio */
+  font-size: 13px; /* Tamaño igual a inputs del inicio */
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al inicio */
+  color: #495057; /* Color igual a inputs del inicio */
+  /* Efecto neomórfico exacto a inputs del inicio */
+  box-shadow:
+    inset 2px 2px 6px rgba(0, 0, 0, 0.08),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.phone-input:focus {
+  /* Efecto focus exacto a inputs del inicio */
+  box-shadow:
+    inset 3px 3px 8px rgba(0, 0, 0, 0.12),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.95);
+  border-color: #e9ecef;
+  background: #f8f9fa;
+}
+
+/* Modo de edición del teléfono - mismo tamaño que info-value */
+.phone-edit-mode {
+  width: 100%;
+}
+
+.phone-input-container {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e9ecef;
+  border-radius: 25px;
+  padding: 8px 16px;
+  background: #f8f9fa;
+  /* Efecto neomórfico exacto a inputs del inicio */
+  box-shadow:
+    inset 2px 2px 6px rgba(0, 0, 0, 0.08),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+  position: relative;
+  /* MISMO TAMAÑO que info-value */
+  height: 36px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.phone-input-container:focus-within {
+  /* Efecto focus exacto a inputs del inicio */
+  box-shadow:
+    inset 3px 3px 8px rgba(0, 0, 0, 0.12),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.95);
+}
+
+.phone-icon {
+  color: #000000;
+  font-size: 1.1rem;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.phone-input-clean {
+  border: none;
+  background: transparent;
+  flex: 1;
+  outline: none;
+  font-size: 13px;
+  font-family: 'Open Sans', sans-serif;
+  color: #495057;
+  padding: 0;
+  padding-right: 65px; /* Espacio para los botones más grandes */
+  height: 20px;
+  line-height: 20px;
+}
+
+.phone-input-clean::placeholder {
+  color: #6c757d;
+  opacity: 0.7;
+}
+
+/* Contenedor de botones dentro del input */
+.phone-actions-inline {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  height: 100%;
+}
+
+/* Botones inline - círculos perfectos más grandes */
+.btn-inline {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  min-height: 26px !important;
+  max-width: 26px !important;
+  max-height: 26px !important;
+  border-radius: 50% !important;
+  border: none;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.btn-inline-success {
+  background: #28a745 !important;
+  color: white !important;
+}
+
+.btn-inline-success:hover {
+  background: #218838 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-inline-cancel {
+  background: #6c757d !important;
+  color: white !important;
+}
+
+.btn-inline-cancel:hover {
+  background: #5a6268 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Iconos dentro de los botones */
+.btn-inline i {
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+
+/* Icono de editar mejorado */
+.edit-icon {
+  margin-left: auto;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.info-value.editable:hover .edit-icon {
+  opacity: 1;
+}
+
+/* Display del estado sin input - estilo coordinador */
+.status-display {
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.status-badge-perfil {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Open Sans', sans-serif;
+  /* Sombra sutil igual al dashboard */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status-badge-perfil.active {
+  background: #28a745; /* Verde sólido sin degradado */
+  color: #FFFFFF;
+}
+
+.status-badge-perfil.inactive {
+  background: #dc3545; /* Rojo sólido sin degradado */
+  color: #FFFFFF;
+}
+
+.status-badge-perfil.poliza-badge {
+  background: #E9383B; /* Rojo sólido igual a la línea de Mi Perfil */
+  color: #FFFFFF;
+  text-transform: none; /* Quitar las mayúsculas automáticas */
+}
+
+.status-badge-perfil.no-poliza-badge {
+  background: #6c757d; /* Gris sólido para "No asignada" */
+  color: #FFFFFF;
+  text-transform: none; /* Quitar las mayúsculas automáticas */
+}
+
+.status-badge-perfil.no-especialidades-badge {
+  background: #6c757d; /* Gris sólido para "No asignadas" */
+  color: #FFFFFF;
+  text-transform: none; /* Quitar las mayúsculas automáticas */
+}
+
+/* Contenedor de chips de especialidades en perfil - con mejor espaciado */
+.especialidades-chips-perfil {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem; /* Gap más grande para las cápsulas más grandes */
+  align-items: flex-start;
+}
+
+/* Chip individual de especialidad en perfil - tamaño similar al badge activo */
+.especialidad-chip-perfil {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px; /* Más redondeado como el badge activo */
+  padding: 0.4rem 0.8rem; /* Padding más grande similar al badge activo */
+  font-size: 0.85rem; /* Font-size más grande similar al badge activo */
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem; /* Gap más grande para mejor separación */
+  font-weight: 600; /* Font-weight igual al badge activo */
+  line-height: 1.1;
+  white-space: nowrap;
+  letter-spacing: 0.3px; /* Letter-spacing similar al badge activo */
+}
+
+/* Icono dentro del chip en perfil - más grande */
+.especialidad-chip-perfil i {
+  font-size: 0.9rem; /* Icono más grande */
+  color: #64748b;
+}
+
+/* Hover effect para chips en perfil - igual al de colaboradores */
+.especialidad-chip-perfil:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.specialties-list, .policies-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Tags exactos al gradiente del dashboard */
+.especialidad-tag {
+  background: linear-gradient(135deg, #E9383B 0%, #F08283 100%); /* Gradiente rojo del dashboard */
+  color: #FFFFFF;
+  padding: 0.3rem 0.6rem;
+  border-radius: 16px; /* Bordea igual al device-count */
+  font-size: 0.7rem; /* Tamaño igual al device-count */
+  font-weight: 600; /* Font-weight igual al device-count */
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al inicio */
+  letter-spacing: 0.3px; /* Letter-spacing igual al device-count */
+}
+
+.poliza-tag {
+  background: linear-gradient(135deg, #38E9E6 0%, #2CBEBB 100%); /* Gradiente turquesa del dashboard */
+  color: #FFFFFF;
+  padding: 0.3rem 0.6rem;
+  border-radius: 16px; /* Bordea igual al device-count */
+  font-size: 0.7rem; /* Tamaño igual al device-count */
+  font-weight: 600; /* Font-weight igual al device-count */
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al inicio */
+  letter-spacing: 0.3px; /* Letter-spacing igual al device-count */
+}
+
+/* Metadata con estilo del dashboard */
+.user-metadata {
+  background: #F8F8F8; /* Fondo igual al preview-container del dashboard */
+  border-radius: 10px; /* Bordea igual al preview-container del dashboard */
+  padding: 0.75rem; /* Padding igual al preview-container del dashboard */
+  border: none; /* Sin borde igual al dashboard */
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al inicio */
+  font-size: 0.85rem;
+  color: #887A7A; /* Color igual al inicio */
+  /* Transición igual al dashboard */
+  transition: all 0.3s ease;
+}
+
+/* Botones con estilo exacto al dashboard */
+.btn {
+  border: 1px solid #e9ecef; /* Borde igual a inputs del inicio */
+  border-radius: 25px; /* Bordeado igual a inputs del inicio */
+  padding: 8px 16px; /* Padding igual a inputs del inicio */
+  cursor: pointer;
+  font-size: 13px; /* Tamaño igual a inputs del inicio */
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Open Sans', sans-serif; /* Tipografía igual al inicio */
+  height: 36px; /* Altura igual a inputs del inicio */
+  box-sizing: border-box;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #E9383B 0%, #F08283 100%); /* Gradiente rojo del dashboard */
+  color: #FFFFFF;
+  border-color: #E9383B;
+  /* Sombra neomórfica igual a inputs del inicio */
+  box-shadow:
+    2px 2px 6px rgba(0, 0, 0, 0.08),
+    -2px -2px 6px rgba(255, 255, 255, 0.9);
+}
+
+.btn-primary:hover {
+  box-shadow:
+    3px 3px 8px rgba(0, 0, 0, 0.12),
+    -3px -3px 8px rgba(255, 255, 255, 0.95);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #38E9E6 0%, #2CBEBB 100%); /* Gradiente turquesa del dashboard */
+  color: #FFFFFF;
+  border-color: #38E9E6;
+  /* Sombra neomórfica igual a inputs del inicio */
+  box-shadow:
+    2px 2px 6px rgba(0, 0, 0, 0.08),
+    -2px -2px 6px rgba(255, 255, 255, 0.9);
+}
+
+.btn-success:hover {
+  box-shadow:
+    3px 3px 8px rgba(0, 0, 0, 0.12),
+    -3px -3px 8px rgba(255, 255, 255, 0.95);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #887A7A 0%, #625757 100%); /* Gradiente neutral del dashboard */
+  color: #FFFFFF;
+  border-color: #887A7A;
+  /* Sombra neomórfica igual a inputs del inicio */
+  box-shadow:
+    2px 2px 6px rgba(0, 0, 0, 0.08),
+    -2px -2px 6px rgba(255, 255, 255, 0.9);
+}
+
+.btn-secondary:hover {
+  box-shadow:
+    3px 3px 8px rgba(0, 0, 0, 0.12),
+    -3px -3px 8px rgba(255, 255, 255, 0.95);
+}
+
+.btn-sm {
+  padding: 6px 12px; /* Padding reducido pero manteniendo proporciones */
+  font-size: 12px; /* Tamaño de fuente reducido */
+  height: 32px; /* Altura reducida */
+}
+
+/* Responsive sin avatar */
+@media (max-width: 1200px) {
+  .info-section {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .perfil-section {
+    padding: 1rem; /* Padding igual al inicio responsive */
+    height: calc(100vh - 0.25rem); /* Altura igual al inicio responsive */
+    max-height: calc(100vh - 0.25rem); /* Max-height igual al inicio responsive */
+  }
+
+  .perfil-body {
+    padding: 1.5rem; /* Padding igual al inicio responsive */
+  }
+
+  .perfil-title {
+    font-size: 1.2rem; /* Tamaño reducido en tablet */
+  }
+  
+  .perfil-title i {
+    font-size: 1.3rem; /* Icono reducido en tablet */
+  }
+  
+  .perfil-header-internal {
+    flex-direction: column; /* Header en columna en móvil */
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .search-button-perfil {
+    align-self: flex-end; /* Botón alineado a la derecha */
+  }
+  
+  .perfil-content {
+    border-radius: 16px; /* Mantener bordea del desktop */
+  }
+}
+
+@media (max-width: 480px) {
+  .info-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .perfil-body {
+    padding: 1.25rem; /* Padding igual al dashboard mobile */
+    border-radius: 16px; /* Bordea igual al dashboard mobile */
+  }
+  
+  .perfil-header-internal {
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .search-button-perfil {
+    width: 36px !important; /* Tamaño más pequeño en móvil */
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    font-size: 18px !important; /* Icono más pequeño en móvil pero proporcional */
+  }
+  
+  .search-button-perfil i {
+    font-size: 18px !important; /* Proporcional al tamaño móvil */
+  }
+}

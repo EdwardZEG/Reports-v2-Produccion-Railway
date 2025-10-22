@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Device from "../models/Device";
 import DeviceReport from "../models/DeviceReport";
+import DeviceCatalog from "../models/DeviceCatalog";
 import { AppError } from "../errors/customErrors";
 import Colaborador from "../models/Colaborador";
 
@@ -170,30 +171,39 @@ export const getDevices = async (req: Request, res: Response) => {
       }
     }
 
-    // Filtrar por especialidad
-    if (especialidad) {
-      filtro.especialidad = new mongoose.Types.ObjectId(especialidad as string);
-    }
+    // CAMBIO: Comentamos filtro por especialidad del reporte aquí
+    // Lo aplicaremos después via deviceCatalog para mayor precisión
+    // if (especialidad) {
+    //   filtro.especialidad = new mongoose.Types.ObjectId(especialidad as string);
+    // }
 
-    // Filtrar por rango de fechas (usando fechaReporte)
+    // Filtrar por rango de fechas (usando fechaReporte) - fechas ya vienen optimizadas desde el frontend
     if (fechaInicio && fechaFinal) {
+      // Las fechas ya vienen en formato ISO con el rango correcto desde el frontend
       const startDate = new Date(fechaInicio as string);
       const endDate = new Date(fechaFinal as string);
-      endDate.setHours(23, 59, 59, 999);
-
+      
       filtro.fechaReporte = {
         $gte: startDate,
         $lte: endDate,
       };
+      
+      console.log('📅 Filtro de fechas aplicado:');
+      console.log(`  - Desde: ${startDate.toISOString()} (${startDate.toLocaleString('es-ES')})`);
+      console.log(`  - Hasta: ${endDate.toISOString()} (${endDate.toLocaleString('es-ES')})`);
     }
 
     console.log('🔍 Filtro de búsqueda:', JSON.stringify(filtro, null, 2));
 
     // Buscar en DeviceReports con populate de deviceCatalog
-    const deviceReports = await DeviceReport.find(filtro)
+    let deviceReports = await DeviceReport.find(filtro)
       .populate({
         path: 'deviceCatalog',
-        select: 'type ubication identifier building level note'
+        select: 'type ubication identifier building level note poliza especialidad',
+        populate: [
+          { path: 'poliza', select: 'nombre' },
+          { path: 'especialidad', select: 'nombre' }
+        ]
       })
       .populate('colaborador', 'nombre apellido_paterno apellido_materno correo rol')
       .populate('colaboradores', 'nombre apellido_paterno apellido_materno correo rol') // AGREGAR POPULATE PARA COLABORADORES
@@ -203,6 +213,77 @@ export const getDevices = async (req: Request, res: Response) => {
         select: 'nombre apellido_paterno'
       })
       .sort({ fechaReporte: -1 });
+
+    console.log('📊 DeviceReports encontrados (antes del filtro de póliza):', deviceReports.length);
+
+    // DEBUG: Mostrar algunos ejemplos de DeviceReports encontrados
+    if (deviceReports.length > 0) {
+      console.log('🔍 DEBUG - Primeros reportes encontrados:');
+      deviceReports.slice(0, 3).forEach((report: any, index: number) => {
+        console.log(`  ${index + 1}. Report ID: ${report._id}`);
+        console.log(`     - Colaborador: ${report.colaborador?.nombre || 'Sin colaborador'}`);
+        console.log(`     - Especialidad: ${report.especialidad?.nombre || 'Sin especialidad'} (ID: ${report.especialidad?._id})`);
+        console.log(`     - DeviceCatalog: ${report.deviceCatalog?.identifier || 'Sin deviceCatalog'}`);
+        console.log(`     - DeviceCatalog.poliza: ${report.deviceCatalog?.poliza?.nombre || 'Sin póliza'} (ID: ${report.deviceCatalog?.poliza?._id})`);
+        console.log(`     - DeviceCatalog.especialidad: ${report.deviceCatalog?.especialidad?.nombre || 'Sin especialidad en catalog'} (ID: ${report.deviceCatalog?.especialidad?._id})`);
+        console.log(`     - FechaReporte: ${report.fechaReporte}`);
+      });
+    }
+
+    // 🎯 FILTRO UNIVERSAL POR ESPECIALIDAD DEL DEVICECATALOG (todos los usuarios)
+    if (especialidad) {
+      console.log('🎯 Aplicando filtro de especialidad del deviceCatalog...');
+      const reportesAntesDelFiltroEspecialidad = deviceReports.length;
+
+      deviceReports = deviceReports.filter((report: any) => {
+        if (!report.deviceCatalog || !report.deviceCatalog.especialidad) {
+          console.log('⚠️ DeviceReport sin deviceCatalog o especialidad:', report._id);
+          return false;
+        }
+
+        const deviceEspecialidadId = report.deviceCatalog.especialidad._id.toString();
+        const especialidadBuscada = especialidad.toString();
+        const perteneceALaEspecialidad = deviceEspecialidadId === especialidadBuscada;
+
+        if (!perteneceALaEspecialidad) {
+          console.log(`❌ Reporte ${report._id} excluido - deviceCatalog.especialidad: ${deviceEspecialidadId} !== ${especialidadBuscada}`);
+        } else {
+          console.log(`✅ Reporte ${report._id} incluido - deviceCatalog.especialidad: ${deviceEspecialidadId} === ${especialidadBuscada}`);
+        }
+
+        return perteneceALaEspecialidad;
+      });
+
+      console.log(`🎯 Filtro de especialidad aplicado: ${deviceReports.length} de ${reportesAntesDelFiltroEspecialidad} reportes mantenidos`);
+    }
+
+    // 🔒 FILTRO ADICIONAL POR PÓLIZA DEL COORDINADOR (aplicar a deviceCatalog)
+    if (user?.rol === 'coordinador' && user?.polizaId) {
+      console.log('🔒 Aplicando filtro de póliza a deviceCatalog para coordinador...');
+      console.log('🔒 Póliza del coordinador:', user.polizaId);
+      const reportesAntesDelFiltroPoliza = deviceReports.length;
+
+      deviceReports = deviceReports.filter((report: any) => {
+        if (!report.deviceCatalog || !report.deviceCatalog.poliza) {
+          console.log('⚠️ DeviceReport sin deviceCatalog o póliza:', report._id);
+          return false;
+        }
+
+        const devicePolizaId = report.deviceCatalog.poliza._id.toString();
+        const userPolizaId = user.polizaId.toString();
+        const perteneceALaPoliza = devicePolizaId === userPolizaId;
+
+        if (!perteneceALaPoliza) {
+          console.log(`❌ Reporte ${report._id} excluido - deviceCatalog.poliza: ${devicePolizaId} !== ${userPolizaId}`);
+        } else {
+          console.log(`✅ Reporte ${report._id} incluido - deviceCatalog.poliza: ${devicePolizaId} === ${userPolizaId}`);
+        }
+
+        return perteneceALaPoliza;
+      });
+
+      console.log(`🔒 Filtro de póliza aplicado: ${deviceReports.length} de ${reportesAntesDelFiltroPoliza} reportes mantenidos`);
+    }
 
     console.log('📊 DeviceReports encontrados:', deviceReports.length);
 
@@ -225,7 +306,7 @@ export const getDevices = async (req: Request, res: Response) => {
       );
     }
 
-    console.log('📊 Después del filtro adicional:', filteredReports.length);
+    console.log('📊 Después del filtro de identifier/ubication:', filteredReports.length);
 
     // Transformar DeviceReports al formato esperado por el frontend (Device interface)
     const devicesFormatted = filteredReports.map((report: any) => {

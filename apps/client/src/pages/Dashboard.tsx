@@ -4,7 +4,8 @@
  * Optimizado para UX/UI con background unificado y distribución de espacio mejorada
  */
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import '../styles/Dashboard.css';
 import { getToken, logout } from '../auth/authService';
 
@@ -15,6 +16,7 @@ import Polizas from './Polizas';
 import Coordinadores from './Coordinadores';
 import Encargados from './Encargados';
 import PeriodosMPSection from '../components/PeriodosMP/PeriodosMPSection';
+import Perfil from './PerfilNew';
 
 // Importar logo y contexto DVD
 import logoRwnet from '../assets/logo_rwnet.png';
@@ -38,6 +40,8 @@ interface MenuItem {
  * Incluye funcionalidad de búsqueda, vista previa y modal de resultados optimizado
  */
 const Dashboard: React.FC = () => {
+  const location = useLocation();
+
   // Estados para la funcionalidad del dashboard original - búsqueda y reportes
   const [nombreUsuario, setNombreUsuario] = useState<string>("");
   const [dispositivos, setDispositivos] = useState<any[]>([]);              // Dispositivos encontrados en búsqueda
@@ -173,7 +177,14 @@ const Dashboard: React.FC = () => {
     }
   }, [role]);
 
-
+  // Manejar navegación desde el perfil con state
+  useEffect(() => {
+    if (location.state?.activeSection) {
+      setActiveSection(location.state.activeSection);
+      // Limpiar el state para evitar que se quede persistente
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   /**
    * Obtener iniciales del nombre de usuario
@@ -466,12 +477,12 @@ const Dashboard: React.FC = () => {
   };
 
   /**
-   * Ir a configuración
+   * Ir a perfil
    */
   const goToConfig = () => {
-    // Ir a configuración
+    // Ir a perfil del usuario
     setIsUserDropdownOpen(false);
-    // Aquí se puede agregar la navegación a configuración en el futuro
+    setActiveSection('perfil');
   };
 
   // Función de cierre de sesión con preservación de credenciales recordadas
@@ -883,6 +894,11 @@ const Dashboard: React.FC = () => {
       );
     }
 
+    // Vista de perfil del usuario
+    if (activeSection === 'perfil') {
+      return <Perfil />;
+    }
+
     // Renderizar otras secciones del dashboard según el menú seleccionado
     const menuItem = menuItems.find(item => item.section === activeSection);
     if (menuItem && menuItem.component) {
@@ -1025,7 +1041,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="dropdown-divider"></div>
             <div className="dropdown-item" onClick={goToConfig}>
-              <i className="bi bi-gear me-2"></i>Configuración
+              <i className="bi bi-person me-2"></i>Perfil
             </div>
             <div className="dropdown-item" onClick={handleLogout}>
               <i className="bi bi-box-arrow-right me-2"></i>Cerrar sesión

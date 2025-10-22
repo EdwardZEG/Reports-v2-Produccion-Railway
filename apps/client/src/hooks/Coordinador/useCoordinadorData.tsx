@@ -128,13 +128,44 @@ export const useCoordinadores = () => {
     try {
       const response = await api.post("/coordinadores", nuevo);
 
-      // REFETCH COMPLETO: Obtener datos actualizados después de crear
-      await fetchData();
+      // ENFOQUE DIRECTO: Agregar inmediatamente el nuevo coordinador al estado
+      // Para evitar problemas de sincronización cuando la lista está vacía
+      const nuevoCoordinador = { ...response.data, resaltado: true };
 
-      // Después del refetch, resaltar el coordinador recién creado
-      setCoordinadores(prev => prev.map(c =>
-        c._id === response.data._id ? { ...c, resaltado: true } : { ...c, resaltado: false }
-      ));
+      console.log('🎯 Estado coordinadores antes de agregar:', coordinadores.length, 'elementos');
+
+      setCoordinadores(prev => {
+        console.log('🔄 setCoordinadores - Estado anterior:', prev.length, 'coordinadores');
+        // Verificar si el coordinador ya existe (por si el refetch fue exitoso)
+        const existeYa = prev.some(c => c._id === response.data._id);
+        if (existeYa) {
+          console.log('👤 Coordinador ya existe en lista, solo aplicando resaltado');
+          const nuevoEstado = prev.map(c =>
+            c._id === response.data._id ? { ...c, resaltado: true } : { ...c, resaltado: false }
+          );
+          console.log('🔄 setCoordinadores - Estado nuevo (existía):', nuevoEstado.length, 'coordinadores');
+          return nuevoEstado;
+        } else {
+          console.log('➕ Agregando nuevo coordinador a lista vacía/incompleta');
+          const nuevoEstado = [...prev.map(c => ({ ...c, resaltado: false })), nuevoCoordinador];
+          console.log('🔄 setCoordinadores - Estado nuevo (agregado):', nuevoEstado.length, 'coordinadores');
+          return nuevoEstado;
+        }
+      });
+
+
+
+      // Hacer refetch en background para sincronizar con servidor
+      // pero no dependemos de él para mostrar el elemento
+      fetchData().catch(error => {
+        console.error('⚠️ Error en refetch background coordinadores:', error);
+      });
+
+      // Limpiar timer anterior si existe
+      const timerAnterior = timersResaltado.current.get(response.data._id);
+      if (timerAnterior) {
+        clearTimeout(timerAnterior);
+      }
 
       // Quitar el resaltado después de 3 segundos con sistema de timers
       const nuevoTimer = setTimeout(() => {

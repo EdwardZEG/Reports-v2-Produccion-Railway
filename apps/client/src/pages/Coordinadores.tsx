@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { CiEdit, CiTrash } from "react-icons/ci";
 import { toast } from "react-toastify";
 import { useCoordinadores } from "../hooks/Coordinador/useCoordinadorData";
+import { useData } from "../context/DataContext";
 
 interface CoordinadorForm {
   nombre: string;
@@ -27,6 +28,9 @@ const Coordinadores = () => {
     error,
     setError,
   } = useCoordinadores();
+
+  // 🚀 Hook para invalidar cache de DataContext cuando se crean coordinadores
+  const { invalidateColaboradoresCache } = useData();
 
   const [showModalRegistro, setShowModalRegistro] = useState(false);
   const [showModalEdicion, setShowModalEdicion] = useState(false);
@@ -185,7 +189,12 @@ const Coordinadores = () => {
 
   // Efecto para filtrar coordinadores - exacto como especialidades
   useEffect(() => {
+    console.log('🔄 useEffect coordinadores triggered:', {
+      coordinadores: coordinadores.length,
+      terminoBusqueda: terminoBusqueda
+    });
     if (!terminoBusqueda.trim()) {
+      console.log('🔄 Sin búsqueda, copiando coordinadores:', coordinadores.length);
       setCoordinadoresFiltrados(coordinadores);
     } else {
       const filtrados = coordinadores.filter((coord) => {
@@ -240,24 +249,56 @@ const Coordinadores = () => {
     }
   }, [terminoBusqueda, coordinadores]);
 
-  // Resetear búsqueda cuando cambian los datos - igual que Polizas
+  // Resetear búsqueda cuando cambian los datos - SOLO si hay búsqueda activa
   useEffect(() => {
     if (terminoBusqueda.trim() !== '') {
       setPaginaActual(1); // Resetear a primera página al buscar
     }
-  }, [coordinadoresFiltrados]);
+    // Si no hay búsqueda y la página actual es mayor al total de páginas, ajustar
+    else {
+      const totalPaginasActuales = Math.ceil(coordinadoresFiltrados.length / CARDS_POR_PAGINA);
+      if (paginaActual > totalPaginasActuales && totalPaginasActuales > 0) {
+        setPaginaActual(totalPaginasActuales);
+      }
+    }
+  }, [coordinadoresFiltrados, terminoBusqueda, paginaActual]);
 
   // ===== FUNCIONES DE PAGINACIÓN - EXACTO COMO POLIZAS =====
 
   // Calcular total de páginas
   const totalPaginas = Math.ceil(coordinadoresFiltrados.length / CARDS_POR_PAGINA);
 
-  // Calcular índices para la página actual
-  const indiceInicio = (paginaActual - 1) * CARDS_POR_PAGINA;
+  // 🛡️ PROTECCIÓN: Asegurar que la página actual sea válida
+  const paginaActualSegura = Math.max(1, Math.min(paginaActual, totalPaginas || 1));
+
+  // Si la página actual no es segura, corregirla
+  if (paginaActual !== paginaActualSegura && totalPaginas > 0) {
+    console.log('🛡️ Corrigiendo página actual:', { de: paginaActual, a: paginaActualSegura });
+    setPaginaActual(paginaActualSegura);
+  }
+
+  // Calcular índices para la página actual segura
+  const indiceInicio = (paginaActualSegura - 1) * CARDS_POR_PAGINA;
   const indiceFin = indiceInicio + CARDS_POR_PAGINA;
 
   // Obtener coordinadores para la página actual
   const coordinadoresPaginados = coordinadoresFiltrados.slice(indiceInicio, indiceFin);
+
+  // 🔍 DEBUG: Log para tracking de rendering
+  console.log('🎯 Coordinadores - Estado de renderizado:', {
+    coordinadoresBase: coordinadores.length,
+    coordinadoresFiltrados: coordinadoresFiltrados.length,
+    coordinadoresPaginados: coordinadoresPaginados.length,
+    paginaActual,
+    paginaActualSegura,
+    indiceInicio,
+    indiceFin,
+    primerosCoordinadores: coordinadoresPaginados.slice(0, 2).map(c => ({
+      id: c._id,
+      nombre: c.nombre,
+      resaltado: c.resaltado
+    }))
+  });
 
   // Función para cambiar de página
   const cambiarPagina = (numeroPagina: number) => {
@@ -871,6 +912,10 @@ const Coordinadores = () => {
       const coordinadorConEstado = { ...nuevoCoordinador, estado: "Activo" };
       const resultado = await crearCoordinador(coordinadorConEstado);
       if (resultado.success && resultado.coordinadores) {
+        // 🚀 INVALIDAR CACHE del DataContext para actualizar inmediatamente las búsquedas de colaboradores
+        console.log('💥 Coordinadores: Invalidando cache de DataContext tras crear coordinador...');
+        invalidateColaboradoresCache();
+
         // Ir a la ÚLTIMA página donde se encuentra el nuevo coordinador (al final de la lista)
         const totalCoordinadores = resultado.coordinadores.length;
         const ultimaPagina = Math.ceil(totalCoordinadores / CARDS_POR_PAGINA);

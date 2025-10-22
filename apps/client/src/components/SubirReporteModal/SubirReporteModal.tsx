@@ -860,22 +860,24 @@ const SubirReporteModal: React.FC<SubirReporteModalProps> = ({
                                     <div className="evidencia-content">
                                         {evidencias[evidenciaActual] ? (
                                             <div className="evidencia-preview">
-                                                <img
-                                                    src={URL.createObjectURL(evidencias[evidenciaActual]!)}
-                                                    alt={evidenciasTitulos[evidenciaActual]}
-                                                />
-                                                <button
-                                                    className="btn-remove-evidencia"
-                                                    onClick={() => {
-                                                        setEvidencias(prev => {
-                                                            const updated = [...prev];
-                                                            updated[evidenciaActual] = null;
-                                                            return updated;
-                                                        });
-                                                    }}
-                                                >
-                                                    <i className="bi bi-trash"></i>
-                                                </button>
+                                                <div className="imagen-wrapper">
+                                                    <img
+                                                        src={URL.createObjectURL(evidencias[evidenciaActual]!)}
+                                                        alt={evidenciasTitulos[evidenciaActual]}
+                                                    />
+                                                    <button
+                                                        className="btn-remove-evidencia"
+                                                        onClick={() => {
+                                                            setEvidencias(prev => {
+                                                                const updated = [...prev];
+                                                                updated[evidenciaActual] = null;
+                                                                return updated;
+                                                            });
+                                                        }}
+                                                    >
+                                                        <i className="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="evidencia-upload">

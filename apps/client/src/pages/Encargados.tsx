@@ -8,6 +8,7 @@ import {
   useEncargadosData,
   Encargado,
 } from "../hooks/Colaborador/useColaborador";
+import { useData } from "../context/DataContext";
 
 const Encargados = () => {
   const {
@@ -15,11 +16,14 @@ const Encargados = () => {
     polizas,
     especialidades,
     fetchEncargados,
+    crearColaborador, // Nueva función para crear colaboradores con resaltado
     actualizarEncargado,
     eliminarEncargado,
-    marcarColaboradorCreado, // Nueva función para resaltado
     getPolizaNombre,
   } = useEncargadosData();
+
+  // 🚀 Hook para invalidar cache de DataContext cuando se crean colaboradores
+  const { invalidateColaboradoresCache } = useData();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [encargadoEditando, setEncargadoEditando] = useState<Encargado | null>(null);
@@ -150,7 +154,12 @@ const Encargados = () => {
   }, []);
 
   useEffect(() => {
+    console.log('🔄 useEffect encargados triggered:', {
+      encargados: encargados.length,
+      terminoBusqueda: terminoBusqueda
+    });
     if (!terminoBusqueda.trim()) {
+      console.log('🔄 Sin búsqueda, copiando encargados:', encargados.length);
       setEncargadosFiltrados(encargados);
     } else {
       const filtrados = encargados.filter((encargado) => {
@@ -207,24 +216,56 @@ const Encargados = () => {
     }
   }, [terminoBusqueda, encargados]);
 
-  // Resetear búsqueda cuando cambian los datos - igual que coordinadores
+  // Resetear búsqueda cuando cambian los datos - SOLO si hay búsqueda activa
   useEffect(() => {
     if (terminoBusqueda.trim() !== '') {
       setPaginaActual(1); // Resetear a primera página al buscar
     }
-  }, [encargadosFiltrados]);
+    // Si no hay búsqueda y la página actual es mayor al total de páginas, ajustar
+    else {
+      const totalPaginasActuales = Math.ceil(encargadosFiltrados.length / CARDS_POR_PAGINA);
+      if (paginaActual > totalPaginasActuales && totalPaginasActuales > 0) {
+        setPaginaActual(totalPaginasActuales);
+      }
+    }
+  }, [encargadosFiltrados, terminoBusqueda, paginaActual]);
 
   // ===== FUNCIONES DE PAGINACIÓN - EXACTO COMO COORDINADORES =====
 
   // Calcular total de páginas
   const totalPaginas = Math.ceil(encargadosFiltrados.length / CARDS_POR_PAGINA);
 
-  // Calcular índices para la página actual
-  const indiceInicio = (paginaActual - 1) * CARDS_POR_PAGINA;
+  // 🛡️ PROTECCIÓN: Asegurar que la página actual sea válida
+  const paginaActualSegura = Math.max(1, Math.min(paginaActual, totalPaginas || 1));
+
+  // Si la página actual no es segura, corregirla
+  if (paginaActual !== paginaActualSegura && totalPaginas > 0) {
+    console.log('🛡️ Encargados - Corrigiendo página actual:', { de: paginaActual, a: paginaActualSegura });
+    setPaginaActual(paginaActualSegura);
+  }
+
+  // Calcular índices para la página actual segura
+  const indiceInicio = (paginaActualSegura - 1) * CARDS_POR_PAGINA;
   const indiceFin = indiceInicio + CARDS_POR_PAGINA;
 
   // Obtener colaboradores para la página actual
   const encargadosPaginados = encargadosFiltrados.slice(indiceInicio, indiceFin);
+
+  // 🔍 DEBUG: Log para tracking de rendering - igual que coordinadores
+  console.log('🎯 Encargados - Estado de renderizado:', {
+    encargadosBase: encargados.length,
+    encargadosFiltrados: encargadosFiltrados.length,
+    encargadosPaginados: encargadosPaginados.length,
+    paginaActual,
+    paginaActualSegura,
+    indiceInicio,
+    indiceFin,
+    primerosEncargados: encargadosPaginados.slice(0, 2).map(e => ({
+      id: e._id,
+      nombre: e.nombre,
+      resaltado: e.resaltado
+    }))
+  });
 
   // Función para cambiar de página
   const cambiarPagina = (numeroPagina: number) => {
@@ -422,15 +463,18 @@ const Encargados = () => {
    */
   const handleColaboradorCreado = async (colaboradorCreado?: Encargado) => {
     if (colaboradorCreado) {
-      // Marcar el colaborador como creado con resaltado temporal
-      const resultado = await marcarColaboradorCreado(colaboradorCreado);
+      // 🚀 INVALIDAR CACHE del DataContext para actualizar inmediatamente las búsquedas de colaboradores
+      console.log('💥 Encargados: Invalidando cache de DataContext tras crear colaborador...');
+      invalidateColaboradoresCache();
 
-      if (resultado.success && resultado.encargados) {
-        // Ir a la ÚLTIMA página donde se encuentra el nuevo colaborador (al final de la lista)
-        const totalColaboradores = resultado.encargados.length;
-        const ultimaPagina = Math.ceil(totalColaboradores / CARDS_POR_PAGINA);
-        setPaginaActual(ultimaPagina);
-      }
+      // Si se usa crearColaborador, ya se hizo el refetch y resaltado internamente
+      // Solo necesitamos manejar la navegación a la página correcta
+
+      // Ir a la ÚLTIMA página donde se encuentra el nuevo colaborador (al final de la lista)
+      const totalColaboradores = encargados.length + 1; // +1 por el recién creado
+      const ultimaPagina = Math.ceil(totalColaboradores / CARDS_POR_PAGINA);
+      console.log('📍 Encargados: Navegando a la última página:', ultimaPagina);
+      setPaginaActual(ultimaPagina);
     } else {
       // Fallback para cuando no se recibe el colaborador (ediciones)
       await fetchEncargados();
@@ -701,6 +745,7 @@ const Encargados = () => {
         rolUsuario={getRol() || undefined}
         polizaUsuarioId={userPolizaId || undefined}
         colaboradorEditando={encargadoEditando || undefined}
+        crearColaborador={crearColaborador} // Nueva función para crear con resaltado
       />
 
       {/* Modal de confirmación para desactivar */}
