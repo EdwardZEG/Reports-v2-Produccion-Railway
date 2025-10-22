@@ -70,7 +70,7 @@ const SearchDevice: React.FC<SearchDeviceProps> = ({ onAddDevice }) => {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `${getBaseApiUrl()}/devices?${campo}=${encodeURIComponent(
+        `${getBaseApiUrl()}/device-catalog-search?${campo}=${encodeURIComponent(
           value
         )}`,
         {
@@ -80,7 +80,8 @@ const SearchDevice: React.FC<SearchDeviceProps> = ({ onAddDevice }) => {
         }
       );
       if (!res.ok) return;
-      const data = await res.json();
+      const response = await res.json();
+      const data = response.data || []; // Extraer el array de data
       setSuggestions(data);
 
       const match = data.find(

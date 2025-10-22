@@ -184,7 +184,10 @@ app.get('/api/view-migrated-data', async (req: Request, res: Response) => {
 // RUTA PARA VER TODOS LOS DISPOSITIVOS EN CATÁLOGO
 app.get('/api/all-catalog-devices', async (req: Request, res: Response) => {
   try {
-    const allDevices = await DeviceCatalog.find({}).populate(['especialidad', 'poliza']).lean();
+    const allDevices = await DeviceCatalog.find({})
+      .sort({ insertOrder: 1 }) // AGREGADO: Ordenar por insertOrder
+      .populate(['especialidad', 'poliza'])
+      .lean();
 
     res.json({
       success: true,

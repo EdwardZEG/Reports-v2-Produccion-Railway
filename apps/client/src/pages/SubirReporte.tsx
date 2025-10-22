@@ -516,7 +516,7 @@ const SubirReporte: React.FC = () => {
     }
     try {
       const token = localStorage.getItem("token");
-      const url = `${getBaseApiUrl()}/devices?${campo}=${encodeURIComponent(value)}`;
+      const url = `${getBaseApiUrl()}/device-catalog-search?${campo}=${encodeURIComponent(value)}`;
 
       const res = await fetch(url, {
         headers: {
@@ -528,7 +528,8 @@ const SubirReporte: React.FC = () => {
         return;
       }
 
-      const data = await res.json();
+      const response = await res.json();
+      const data = response.data || []; // Extraer el array de data
       setSuggestions(data);
 
       const match = data.find(
